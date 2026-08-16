@@ -1,0 +1,22 @@
+{
+  "name": "EduGen Suite",
+  "short_name": "EduGen",
+  "description": "Penjana Permainan Pendidikan Interaktif untuk Guru dan Pelajar.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#4f46e5",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "img/logoedugen.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/logoedugen.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+/* Fail: css/style.css
+   Kegunaan: Gaya tambahan untuk EduGen Suite (melengkapkan Tailwind CSS)
+*/
+
+/* Import Font 'Nunito' untuk gaya yang lebih mesra/pendidikan */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+body {
+    font-family: 'Nunito', sans-serif;
+    /* Melicinkan font pada pelayar */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Custom Scrollbar (Untuk Chrome, Edge, Safari) === */
+/* Menjadikan scrollbar lebih nipis dan moden */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9; 
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+}
+
+/* === Logo Styles === */
+.app-logo-style {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.app-logo-style:hover {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+/* === Language Switcher Button === */
+/* Kelas ini digunakan dalam header untuk butang BM/EN */
+.lang-btn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lang-btn.active {
+    background-color: #4f46e5; /* Indigo-600 */
+    color: white;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+    transform: scale(1.05);
+}
+
+.lang-btn.inactive {
+    color: #64748b; /* Slate-500 */
+    background-color: transparent;
+}
+
+.lang-btn.inactive:hover {
+    background-color: #e2e8f0; /* Slate-200 */
+    color: #334155;
+}
+
+/* === Game Grid Card Hover Effects === */
+/* Memberikan efek timbul apabila tetikus berada di atas pilihan game */
+#game-grid > div {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+#game-grid > div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border-color: #818cf8; /* Indigo-400 */
+}
+
+/* === Form Inputs Focus State === */
+/* Menjadikan border input lebih jelas apabila ditekan */
+input:focus, 
+textarea:focus, 
+select:focus {
+    outline: none;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* === Utility === */
+/* Sembunyikan scrollbar tetapi fungsi scroll masih ada (untuk container tertentu jika perlu) */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Animasi halus untuk pertukaran tab */
+#panel-preview, #panel-code {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

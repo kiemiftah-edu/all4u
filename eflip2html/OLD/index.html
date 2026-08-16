@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipbook Studio HTML</title>
+    
+    <!-- PWA: Manifest & Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="img/flip2html.png">
+    <link rel="apple-touch-icon" href="img/flip2html.png">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Library: SortableJS untuk Drag & Drop mesra Mobile -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- Tambahan: PDF.js untuk import PDF berbilang halaman -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #ec4899;
+            --glass: rgba(255, 255, 255, 0.95);
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
+            --text-main: #1e293b;
+            --ease-paper: cubic-bezier(0.645, 0.045, 0.355, 1);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 0;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- LOADING OVERLAY --- */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .app-container {
+            background: var(--glass);
+            width: 95%; max-width: 1100px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex; flex-direction: column;
+            margin: 20px auto;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* --- HEADER STYLES (STRICTLY CENTERED) --- */
+        header {
+            padding: 3rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            background: rgba(255,255,255,0.5);
+            gap: 25px; 
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 130px; 
+            height: 130px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(139, 92, 246, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .header-text { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 12px;
+        }
+        
+        h1 { 
+            font-size: 2.2rem; 
+            font-weight: 900; 
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin: 0; 
+            line-height: 1.1;
+        }
+        .subtitle { 
+            font-size: 0.95rem; 
+            color: #64748b; 
+            font-weight: 700; 
+            margin-top: 0;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            max-width: 600px;
+        }
+
+        /* --- EDITOR SECTION (CENTERED) --- */
+        .editor { 
+            padding: 2rem; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem; 
+        }
+
+        .section-label { 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: #64748b; 
+            margin-bottom: 1rem; 
+            letter-spacing: 0.1em;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+
+        .input-box { 
+            background: #f8fafc; 
+            padding: 1.2rem; 
+            border-radius: var(--radius-md); 
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .input-box label { 
+            display: block; 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            margin-bottom: 0.8rem; 
+        }
+
+        select { 
+            width: 100%; 
+            padding: 0.8rem; 
+            border-radius: var(--radius-sm); 
+            border: 1px solid #cbd5e1; 
+            outline: none; 
+            background: white; 
+            cursor: pointer; 
+            font-size: 1rem;
+            text-align: center;
+            text-align-last: center;
+        }
+
+        .upload-zone {
+            width: 100%;
+            max-width: 600px;
+            border: 2px dashed #94a3b8; 
+            border-radius: var(--radius-md); 
+            background: #f1f5f9; 
+            padding: 3rem 2rem;
+            text-align: center; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            position: relative;
+        }
+        .upload-zone:hover { border-color: var(--primary); background: #e0e7ff; }
+        .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .upload-zone-text { display: block; color: #64748b; font-weight: 600; line-height: 1.6; font-size: 1rem; }
+        .upload-zone-text .en { font-size: 0.85rem; opacity: 0.8; font-weight: 500; font-style: italic; display: block; margin-top: 4px; }
+        
+        .sortable-grid { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            margin-top: 1.5rem; 
+            min-height: 50px; 
+            justify-content: center; 
+            width: 100%;
+        }
+        
+        .img-card {
+            width: 90px; height: 120px; background: white; border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm); 
+            overflow: hidden; position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .img-card:active { cursor: grabbing; }
+        .img-preview { width: 100%; height: 85px; object-fit: cover; pointer-events: none; }
+        .card-controls { height: 35px; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
+        .ctrl-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.1rem; padding: 5px; }
+
+        .actions { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            width: 100%;
+            margin-top: 1rem; 
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 1.4rem 3rem; border: none; border-radius: 60px;
+            font-size: 1.1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.4); transition: 0.3s;
+        }
+        .btn-main:active { transform: scale(0.96); }
+
+        /* --- PREVIEW AREA --- */
+        #previewArea {
+            display: none; background: #e2e8f0; border-top: 1px solid #cbd5e1; padding: 4rem 1.5rem;
+            flex-direction: column; align-items: center; position: relative;
+            width: 100%;
+        }
+
+        .scene {
+            perspective: 3500px;
+            width: 100%; height: 50vh; min-height: 400px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 3rem; position: relative;
+            transform-style: preserve-3d;
+            padding: 20px;
+            box-sizing: border-box;
+            container-type: size;
+        }
+
+        .book {
+            position: relative; 
+            aspect-ratio: var(--ratio, 0.707);
+            width: 100%; height: auto; max-width: 100%; max-height: 100%;
+            width: min(100cqw, calc(100cqh * var(--ratio, 0.707)));
+            height: min(100cqh, calc(100cqw / var(--ratio, 0.707)));
+            transform-style: preserve-3d;
+            transition: aspect-ratio 0.4s var(--ease-paper);
+            box-shadow: 0 25px 50px -10px rgba(0,0,0,0.4);
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        .page {
+            position: absolute; inset: 0; background-color: #fff;
+            transform-origin: left center;
+            transition: transform 1.4s var(--ease-paper), z-index 0s linear 0.7s;
+            border-radius: 2px 5px 5px 2px;
+            border: 1px solid rgba(0,0,0,0.06);
+            display: flex; justify-content: center; align-items: center;
+            backface-visibility: visible; 
+            will-change: transform, z-index;
+            overflow: hidden;
+            transform: translate3d(0,0,0);
+            box-shadow: inset -2px 0 3px rgba(0,0,0,0.08), 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        /* Back of the turning sheet stays paper-white instead of mirrored artwork */
+        .page img { width: 100%; height: 100%; object-fit: fill; pointer-events: none; -webkit-user-drag: none; backface-visibility: hidden; }
+        .page::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,#f7f7f5 0%,#fff 45%,#ecece8 100%); transform:rotateY(180deg) translateZ(0.2px); backface-visibility:hidden; pointer-events:none; z-index:4; }
+        .page-glow { position: absolute; inset: 0; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%); pointer-events: none; z-index: 5; opacity: 0; transition: opacity 1.4s var(--ease-paper); }
+        .page::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 30px; background: linear-gradient(to right, rgba(0,0,0,0.15) 0%, transparent 100%); z-index: 6; pointer-events: none; }
+        .page-shadow { position: absolute; inset: 0; pointer-events: none; background: rgba(0,0,0,0); transition: background 1.4s var(--ease-paper); z-index: 10; }
+        .page.flipped .page-glow { opacity: 1; }
+        .page.flipped .page-shadow { background: rgba(0,0,0,0.12); }
+
+        .book.rtl .page { transform-origin: right center; }
+        .book.rtl .page.flipped { transform: translate3d(0,0,1px) rotateY(179deg) scale(0.985); z-index: 0 !important; }
+        .book.ltr .page { transform-origin: left center; }
+        .book.ltr .page.flipped { transform: translate3d(0,0,1px) rotateY(-179deg) scale(0.985); z-index: 0 !important; }
+
+        /* --- ARROW ALPHA 30% & CENTERED --- */
+        .corner-guide {
+            position: absolute; top: 50%; z-index: 100; width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            opacity: 0.3; 
+            animation: blink-fade 1.5s infinite ease-in-out;
+        }
+        .corner-guide svg { width: 100%; height: 100%; fill: rgba(59, 130, 246, 0.6); stroke: white; stroke-width: 3px; }
+        
+        .guide-ltr { right: 15px; } 
+        .guide-rtl { left: 15px; }  
+
+        .restart-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 999; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
+        .restart-overlay.visible { pointer-events: auto; opacity: 1; }
+        .btn-restart { background: rgba(0,0,0,0.85); color: white; padding: 1.2rem 2.5rem; border-radius: 50px; border: 2px solid white; font-weight: 800; cursor: pointer; font-size: 1.1rem; backdrop-filter: blur(5px); }
+
+        /* --- DOWNLOAD SECTION --- */
+        .download-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .btn-download-final {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem 2.5rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-download-final:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-download-final .dl-icon { font-size: 2.2rem; }
+        .btn-download-final .dl-text { text-align: center; }
+        .btn-download-final .dl-text b { display: block; font-size: 1.2rem; letter-spacing: 0.5px; }
+        .btn-download-final .dl-text span { font-size: 0.85rem; opacity: 0.95; font-style: italic; display: block; margin-top: 3px; }
+
+        footer { width: 100%; background: rgba(15, 23, 42, 0.98); color: #94a3b8; text-align: center; padding: 2.5rem 1.5rem; margin-top: auto; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        footer a { color: var(--primary); text-decoration: none; font-weight: 700; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink-fade { 
+            0%, 100% { opacity: 0.3; transform: translateY(-50%) scale(1) rotate(var(--rot, 0deg)); } 
+            50% { opacity: 0.15; transform: translateY(-50%) scale(0.9) rotate(var(--rot, 0deg)); } 
+        }
+
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        @media (min-width: 768px) {
+            header { padding: 4rem 2rem; }
+            .logo-img { width: 160px; height: 160px; }
+            h1 { font-size: 3rem; }
+            .subtitle { font-size: 1.1rem; }
+            .editor { padding: 3rem; }
+            .scene { height: 60vh; }
+            .sortable-grid { gap: 15px; }
+            .img-card { width: 100px; height: 135px; }
+        }
+
+        @media (max-width: 480px) {
+            .app-container { margin: 10px auto; border-radius: var(--radius-md); }
+            .logo-img { width: 110px; height: 110px; }
+            h1 { font-size: 1.7rem; }
+            .subtitle { font-size: 0.85rem; }
+            .btn-main { padding: 1rem 2rem; font-size: 1rem; width: auto; }
+            .btn-download-final { padding: 1.2rem 1.5rem; }
+            .btn-download-final .dl-text b { font-size: 1rem; }
+            .scene { height: 60vh; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div style="font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; font-size: 0.9rem;">Menyusun Halaman...</div>
+    <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">Optimizing Flipbook Engine</div>
+</div>
+
+<div class="app-container">
+    <header>
+        <img src="img/flip2html.png" alt="Flipbook Studio" class="logo-img" onerror="this.src='https://via.placeholder.com/130?text=F2H'">
+        <div class="header-text">
+            <h1>FLIPBOOK STUDIO HTML</h1>
+            <div class="subtitle">Easily Convert Image to Flipbook & HTML Code</div>
+        </div>
+    </header>
+
+    <div class="editor">
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="section-label">Pilihan Tetapan / Style Options</div>
+            <div class="input-box">
+                <label>Arah Selakan Halaman / Flip Direction</label>
+                <select id="direction">
+                    <option value="ltr">Standard (Kiri → Kanan)</option>
+                    <option value="rtl">Arabic/Jawi (Kanan → Kiri)</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="section-label">
+                Muat Naik & Susun / Upload & Arrange
+                <span style="display:block; margin-top:5px; font-size:0.75rem; color:var(--primary);" id="imgCount">0 Gambar / Images</span>
+            </div>
+            <div class="upload-zone">
+                <span style="font-size: 3rem; display: block; margin-bottom: 15px;">📂</span>
+                <span class="upload-zone-text">
+                    Klik untuk memuat naik atau seret imej/PDF ke sini<br>
+                    <span class="en">Click to upload images/PDF or drag and drop here</span>
+                </span>
+                <input type="file" id="fileInput" accept="image/*,application/pdf,.pdf" multiple onchange="handleBatchUpload(this)">
+            </div>
+            <div class="sortable-grid" id="sortableGrid"></div>
+        </div>
+
+        <div class="actions">
+            <button class="btn-main" id="btnGenerate" onclick="startPreview()">
+                ✨ JANA FLIPBOOK / GENERATE FLIPBOOK
+            </button>
+        </div>
+    </div>
+
+    <div id="previewArea">
+        <div class="section-label" style="text-align:center; margin-bottom:25px; color:var(--text-main);">Pratonton Eksklusif / Premium Preview</div>
+        
+        <div class="scene">
+            <div id="cornerGuide" class="corner-guide">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+
+            <div class="book" id="bookPreview"></div>
+            <div class="restart-overlay" id="restartOverlay">
+                <button class="btn-restart" onclick="resetBook()">↻ Mula Semula / Restart</button>
+            </div>
+        </div>
+
+        <div class="download-wrapper">
+            <div class="section-label" style="margin-bottom:15px;">Simpan Fail Anda / Save Offline Version</div>
+            <button class="btn-download-final" onclick="downloadHTML()">
+                <span class="dl-icon">💾</span>
+                <div class="dl-text">
+                    <b>MUAT TURUN E-FLIPBOOK.HTML</b>
+                    <span>Click to Download Your Flipbook (Offline HTML)</span>
+                </div>
+            </button>
+            <textarea id="outputCode" style="display:none"></textarea>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>Flipbook Studio HTML 2025© was creatively built and designed using Gemini Canvas by <a href="https://www.tiktok.com/@kiemiftah" target="_blank">Kiemiftah.Com</a>.</p>
+    <p style="color: #64748b; font-size: 0.8rem; margin-top: 8px;">Last Updated on 21 December 2025 | Version 1.7</p>
+</footer>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed:', err));
+        });
+    }
+
+    let uploadedImages = []; 
+    let settings = { dir: 'ltr', ratio: 0.707 };
+    let previewCurrentPage = 0;
+    let generatedHTMLContent = "";
+
+    const sortable = new Sortable(document.getElementById('sortableGrid'), {
+        animation: 150,
+        ghostClass: 'dragging',
+        onEnd: function (evt) {
+            const item = uploadedImages.splice(evt.oldIndex, 1)[0];
+            uploadedImages.splice(evt.newIndex, 0, item);
+        }
+    });
+
+    async function handleBatchUpload(input) {
+        const files = Array.from(input.files || []);
+        if (files.length === 0) return;
+
+        const loader = document.getElementById('loadingOverlay');
+        const loaderTitle = loader.querySelector('div:nth-child(2)');
+        const loaderSub = loader.querySelector('div:nth-child(3)');
+        const originalTitle = loaderTitle ? loaderTitle.textContent : '';
+        const originalSub = loaderSub ? loaderSub.textContent : '';
+
+        loader.style.display = 'flex';
+        if (loaderTitle) loaderTitle.textContent = 'Memproses Fail...';
+        if (loaderSub) loaderSub.textContent = 'Reading images / rendering PDF pages';
+
+        try {
+            // Process one selected file at a time so mixed image/PDF uploads keep their original order.
+            for (const file of files) {
+                const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+                if (isPdf) {
+                    await importPdfFile(file, loaderTitle, loaderSub);
+                } else if (file.type.startsWith('image/')) {
+                    const imageObj = await importImageFile(file);
+                    uploadedImages.push(imageObj);
+                    renderGrid();
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Fail tidak dapat diproses. Pastikan PDF atau imej tidak rosak / corrupted.');
+        } finally {
+            input.value = '';
+            loader.style.display = 'none';
+            if (loaderTitle) loaderTitle.textContent = originalTitle || 'Menyusun Halaman...';
+            if (loaderSub) loaderSub.textContent = originalSub || 'Optimizing Flipbook Engine';
+            renderGrid();
+        }
+    }
+
+    function importImageFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = (e) => {
+                const tempImg = new Image();
+                tempImg.onerror = reject;
+                tempImg.onload = () => resolve({
+                    id: Date.now() + Math.random(),
+                    src: e.target.result,
+                    ratio: tempImg.naturalWidth / tempImg.naturalHeight,
+                    width: tempImg.naturalWidth,
+                    height: tempImg.naturalHeight,
+                    sourceType: 'image',
+                    sourceName: file.name
+                });
+                tempImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function importPdfFile(file, loaderTitle, loaderSub) {
+        if (!window.pdfjsLib) throw new Error('PDF.js gagal dimuatkan.');
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const pdf = await pdfjsLib.getDocument({ data: bytes, isEvalSupported: false }).promise;
+
+        for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+            if (loaderTitle) loaderTitle.textContent = `PDF: Halaman ${pageNo} / ${pdf.numPages}`;
+            if (loaderSub) loaderSub.textContent = file.name;
+
+            const page = await pdf.getPage(pageNo);
+            const baseViewport = page.getViewport({ scale: 1 });
+            // High-quality preview/export while keeping generated HTML reasonably sized.
+            const maxDimension = 1800;
+            const scale = Math.max(0.5, Math.min(2.25, maxDimension / Math.max(baseViewport.width, baseViewport.height)));
+            const viewport = page.getViewport({ scale });
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            canvas.width = Math.ceil(viewport.width);
+            canvas.height = Math.ceil(viewport.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            uploadedImages.push({
+                id: Date.now() + Math.random(),
+                src: canvas.toDataURL('image/jpeg', 0.94),
+                ratio: canvas.width / canvas.height,
+                width: canvas.width,
+                height: canvas.height,
+                sourceType: 'pdf',
+                sourceName: file.name,
+                pdfPage: pageNo
+            });
+
+            // Show each rendered page immediately in the existing page-by-page thumbnail preview.
+            renderGrid();
+            page.cleanup();
+        }
+    }
+
+    function renderGrid() {
+        document.getElementById('previewArea').style.display = 'none';
+        const grid = document.getElementById('sortableGrid');
+        const countSpan = document.getElementById('imgCount');
+        grid.innerHTML = '';
+        countSpan.textContent = `${uploadedImages.length} Halaman / Pages`;
+        if (uploadedImages.length === 0) { 
+            grid.innerHTML = '<div style="color:#94a3b8; font-style:italic; padding:20px;">Belum ada gambar yang dipilih</div>'; 
+            return; 
+        }
+        uploadedImages.forEach((imgObj, index) => {
+            const card = document.createElement('div');
+            card.className = 'img-card';
+            card.innerHTML = `<img src="${imgObj.src}" class="img-preview"><div class="card-controls"><button class="ctrl-btn del" onclick="removeImage(${index})">🗑️</button></div>`;
+            grid.appendChild(card);
+        });
+    }
+
+    function removeImage(index) { uploadedImages.splice(index, 1); renderGrid(); }
+
+    function startPreview() {
+        if (uploadedImages.length === 0) { alert("Sila masukkan gambar terlebih dahulu."); return; }
+        const loader = document.getElementById('loadingOverlay');
+        loader.style.display = 'flex';
+        
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                settings.dir = document.getElementById('direction').value;
+                settings.ratio = uploadedImages[0].ratio;
+                settings.width = uploadedImages[0].width;
+                settings.height = uploadedImages[0].height;
+
+                const guide = document.getElementById('cornerGuide');
+                if (settings.dir === 'ltr') {
+                    guide.className = 'corner-guide guide-ltr';
+                    // LTR: Kanan menunjuk ke Kiri (180deg)
+                    guide.style.setProperty('--rot', '180deg'); 
+                } else {
+                    guide.className = 'corner-guide guide-rtl';
+                    // RTL: Kiri menunjuk ke Kanan (0deg)
+                    guide.style.setProperty('--rot', '0deg'); 
+                }
+
+                const book = document.getElementById('bookPreview');
+                book.style.setProperty('--ratio', settings.ratio);
+                document.getElementById('previewArea').style.display = 'flex';
+
+                renderBook();
+                generateCode(); 
+                
+                loader.style.display = 'none';
+                document.getElementById('previewArea').scrollIntoView({ behavior: 'smooth' });
+            }, 800);
+        });
+    }
+
+    function renderBook() {
+        const book = document.getElementById('bookPreview');
+        book.innerHTML = '';
+        book.className = `book ${settings.dir}`;
+        previewCurrentPage = 0;
+        document.getElementById('restartOverlay').classList.remove('visible');
+        uploadedImages.forEach((imgObj, i) => {
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.style.zIndex = uploadedImages.length - i;
+            page.innerHTML = `<img src="${imgObj.src}"><div class="page-glow"></div><div class="page-shadow"></div>`;
+            book.appendChild(page);
+        });
+        setupInteraction(book, uploadedImages.length);
+    }
+
+    function setupInteraction(bookEl, total) {
+        let isDragging = false, startX = 0;
+        const updateState = () => {
+            const pages = bookEl.querySelectorAll('.page');
+            document.getElementById('restartOverlay').classList.toggle('visible', previewCurrentPage >= total);
+            pages.forEach((p, i) => {
+                if (i < previewCurrentPage) { p.classList.add('flipped'); p.style.zIndex = i; }
+                else { p.classList.remove('flipped'); p.style.zIndex = total - i; }
+            });
+        };
+        updateState();
+        const goNext = () => { if (previewCurrentPage < total) { previewCurrentPage++; updateState(); } };
+        const goPrev = () => { if (previewCurrentPage > 0) { previewCurrentPage--; updateState(); } };
+        bookEl.onpointerdown = e => { isDragging = true; startX = e.clientX; };
+        window.onpointerup = e => {
+            if (!isDragging) return; isDragging = false;
+            if(document.getElementById('restartOverlay').classList.contains('visible')) return;
+            const diff = e.clientX - startX, threshold = 40, rect = bookEl.getBoundingClientRect();
+            let next = false;
+            if (settings.dir === 'ltr') {
+                if (diff < -threshold) next = true; else if (diff > threshold) next = false; else next = (e.clientX - rect.left) > rect.width/2;
+            } else {
+                if (diff > threshold) next = true; else if (diff < -threshold) next = false; else next = (e.clientX - rect.left) < rect.width/2;
+            }
+            if (next) goNext(); else goPrev();
+        };
+        window.resetBook = () => { previewCurrentPage = 0; updateState(); };
+    }
+
+    function generateCode() {
+        const imgSrcList = uploadedImages.map(o => o.src);
+        const ratio = settings.ratio;
+        const dir = settings.dir;
+        const w = settings.width;
+        const h = settings.height;
+
+        let htmlParts = [];
+        htmlParts.push('<!DOCTYPE html><html lang="ms"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">');
+        htmlParts.push('<title>Generated using eFlip2HTML by Kiemiftah.Com</title><style>');
+        htmlParts.push('body{margin:0;padding:0;width:100vw;height:100vh;height:100dvh;background:#0f172a;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:sans-serif}');
+        htmlParts.push('.sc{perspective:4000px;width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;padding:15px;box-sizing:border-box}');
+        
+        // Pure Math logic untuk hentikan bug stretching di Safari / iPad / Mobile Webkit
+        htmlParts.push('.bk{position:relative;transform-style:preserve-3d;cursor:grab;box-shadow:0 30px 60px -12px rgba(0,0,0,0.6);');
+        htmlParts.push('width:min(calc(100vw - 30px),calc((100vh - 30px)*' + ratio + '));height:min(calc(100vh - 30px),calc((100vw - 30px)/' + ratio + '));');
+        htmlParts.push('width:min(calc(100vw - 30px),calc((100dvh - 30px)*' + ratio + '));height:min(calc(100dvh - 30px),calc((100vw - 30px)/' + ratio + '));}');
+        
+        htmlParts.push('.pg{position:absolute;inset:0;background:#fff;transition:transform 1.4s cubic-bezier(0.645,0.045,0.355,1), z-index 0s linear 0.7s;backface-visibility:visible;border:1px solid rgba(0,0,0,0.08);border-radius:2px 4px 4px 2px;display:flex;justify-content:center;align-items:center;overflow:hidden;transform:translate3d(0,0,0);box-shadow:inset -2px 0 3px rgba(0,0,0,.08),0 3px 10px rgba(0,0,0,.08)}');
+        htmlParts.push('.pg img{width:100%;height:100%;object-fit:fill;pointer-events:none;backface-visibility:hidden}.pg:after{content:\'\';position:absolute;inset:0;background:linear-gradient(90deg,#f7f7f5 0%,#fff 45%,#ecece8 100%);transform:rotateY(180deg) translateZ(.2px);backface-visibility:hidden;pointer-events:none;z-index:4}');
+        htmlParts.push('.pg::before{content:\'\';position:absolute;left:0;top:0;bottom:0;width:30px;background:linear-gradient(to right,rgba(0,0,0,0.15) 0%,transparent 100%);z-index:6}');
+        htmlParts.push('.pgl,.psh{position:absolute;inset:0;pointer-events:none;transition:1.4s}.pgl{background:linear-gradient(to right,rgba(255,255,255,0) 0%,rgba(255,255,255,0.2) 50%,rgba(255,255,255,0) 100%);opacity:0}.psh{background:rgba(0,0,0,0)}');
+        htmlParts.push('.bk.rtl .pg{transform-origin:right center}.bk.rtl .pg.flipped{transform:translate3d(0,0,1px) rotateY(179deg) scale(0.985)}');
+        htmlParts.push('.bk.ltr .pg{transform-origin:left center}.bk.ltr .pg.flipped{transform:translate3d(0,0,1px) rotateY(-179deg) scale(0.985)}');
+        htmlParts.push('.pg.flipped .pgl{opacity:1}.pg.flipped .psh{background:rgba(0,0,0,0.2)}');
+        htmlParts.push('#ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;pointer-events:none;opacity:0;transition:0.5s}#ov.sh{pointer-events:auto;opacity:1}');
+        htmlParts.push('.bt{background:rgba(0,0,0,0.85);color:#fff;padding:18px 36px;border:2px solid #fff;border-radius:40px;cursor:pointer;font-size:1rem;font-weight:bold;backdrop-filter:blur(5px)}');
+        htmlParts.push('.gd{position:absolute;top:50%;z-index:50;width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0.3;animation:bf 1.5s infinite ease-in-out}');
+        htmlParts.push('.gd svg{width:100%;height:100%;fill:rgba(59,130,246,0.6);stroke:white;stroke-width:3px}');
+        htmlParts.push('.gl{right:25px;transform:translateY(-50%) rotate(180deg)}.gr{left:25px;transform:translateY(-50%) rotate(0deg)}@keyframes bf{0%,100%{opacity:0.3;transform:translateY(-50%) scale(1) rotate(var(--r,0deg))}50%{opacity:0.15;transform:translateY(-50%) scale(0.9) rotate(var(--r,0deg))}}');
+        htmlParts.push('</style></head><body><div class="sc">');
+        const arrowClass = (dir === 'ltr') ? 'gl' : 'gr';
+        const arrowRot = (dir === 'ltr') ? '180deg' : '0deg';
+        htmlParts.push('<div class="gd ' + arrowClass + '" style="--r:' + arrowRot + '"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>');
+        htmlParts.push('<div class="bk ' + dir + '" id="b"></div><div id="ov"><button class="bt" onclick="rs()">↻ Restart</button></div></div>');
+        htmlParts.push('<script>const im=' + JSON.stringify(imgSrcList) + ';const d="' + dir + '";const b=document.getElementById("b");const ov=document.getElementById("ov");');
+        htmlParts.push('im.forEach((s,i)=>{const p=document.createElement("div");p.className="pg";p.style.zIndex=im.length-i;p.innerHTML=\'<img src="\'+s+\'"><div class="pgl"></div><div class="psh"></div>\';b.appendChild(p)});');
+        htmlParts.push('let c=0;function u(){const ps=document.querySelectorAll(".pg");ov.classList.toggle("sh",c>=im.length);ps.forEach((p,i)=>{if(i<c){p.classList.add("flipped");p.style.zIndex=i}else{p.classList.remove("flipped");p.style.zIndex=im.length-i}})}');
+        htmlParts.push('function rs(){c=0;u()}let sx=0,dg=false;b.onpointerdown=e=>{dg=true;sx=e.clientX};window.onpointerup=e=>{if(!dg)return;dg=false;if(ov.classList.contains("sh"))return;const x=e.clientX-sx,t=40,r=b.getBoundingClientRect();let n=false;');
+        if (dir === 'ltr') {
+            htmlParts.push('if(x<-t)n=true;else if(x>t)n=false;else n=(e.clientX-r.left)>r.width/2;');
+        } else {
+            htmlParts.push('if(x>t)n=true;else if(x<-t)n=false;else n=(e.clientX-r.left)<r.width/2;');
+        }
+        htmlParts.push('if(n&&c<im.length)c++;if(!n&&c>0)c--;u()};<' + '/script></body></html>');
+        generatedHTMLContent = htmlParts.join("");
+        document.getElementById('outputCode').value = generatedHTMLContent;
+    }
+
+    function downloadHTML() {
+        if (!generatedHTMLContent) { alert("Sila jana buku terlebih dahulu."); return; }
+        const blob = new Blob([generatedHTMLContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'eFlipbook.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    renderGrid();
+</script>
+
+</body>
+</html>

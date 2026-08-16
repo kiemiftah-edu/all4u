@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e1b4b">
+    <meta name="description" content="Penjana Prompt Buku Cerita Komik 3D - AI Powered">
+    <title>Comixs Prompter | AI Prompt to Generate 3D Comic Book</title>
+    
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="manifest.json?v=38">
+    <link rel="apple-touch-icon" href="img/comixsprompter.png?v=38">
+    <link rel="icon" type="image/png" href="img/comixsprompter.png?v=38">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM (v18) -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- FIX: Ensure React is available globally -->
+    <script>
+        window.React = React;
+        window.ReactDOM = ReactDOM;
+    </script>
+
+    <!-- Babel for JSX -->
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    
+    <!-- GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Force Fonts */
+        body {
+            font-family: 'Comic Neue', cursive;
+        }
+        h1.comix-title {
+            font-family: 'Bangers', system-ui;
+            letter-spacing: 0.05em;
+        }
+        /* Active Toggle Style */
+        .lang-active { background-color: #4f46e5; color: white; }
+        .lang-inactive { color: #64748b; background-color: transparent; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox:checked {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+        }
+        
+        /* Custom Scrollbar for Textareas and Pre blocks */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-indigo-950 to-black text-slate-100 min-h-screen flex flex-col">
+    
+    <!-- Root Container for React -->
+    <div id="root" class="flex flex-col flex-grow"></div>
+
+    <!-- Main Logic Script -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- INTERNAL ICON SYSTEM ---
+        const IconBase = ({ children, className, ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
+        );
+
+        const Icons = {
+            Sparkles: (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></IconBase>,
+            Copy: (props) => <IconBase {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></IconBase>,
+            Plus: (props) => <IconBase {...props}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>,
+            Trash2: (props) => <IconBase {...props}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconBase>,
+            BookOpen: (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>,
+            Languages: (props) => <IconBase {...props}><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></IconBase>,
+            User: (props) => <IconBase {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></IconBase>,
+            Settings: (props) => <IconBase {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>,
+            Palette: (props) => <IconBase {...props}><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></IconBase>,
+            FileJson: (props) => <IconBase {...props}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1"/><path d="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1"/></IconBase>,
+            Layers: (props) => <IconBase {...props}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></IconBase>,
+            Check: (props) => <IconBase {...props}><path d="M20 6 9 17l-5-5"/></IconBase>,
+            ImageIcon: (props) => <IconBase {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></IconBase>,
+            Upload: (props) => <IconBase {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></IconBase>,
+            Monitor: (props) => <IconBase {...props}><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></IconBase>,
+            ShieldCheck: (props) => <IconBase {...props}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></IconBase>,
+            Type: (props) => <IconBase {...props}><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></IconBase>,
+            PenTool: (props) => <IconBase {...props}><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></IconBase>,
+            Globe: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconBase>,
+            MessageSquare: (props) => <IconBase {...props}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></IconBase>,
+            Video: (props) => <IconBase {...props}><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></IconBase>,
+            Box: (props) => <IconBase {...props}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></IconBase>,
+            RefreshCw: (props) => <IconBase {...props}><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></IconBase>,
+            Eraser: (props) => <IconBase {...props}><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></IconBase>
+        };
+
+        // --- DATA CONSTANTS ---
+        const GENRES_DATA = [
+            { value: "Hyperrealistic 3D Cartoon: Masterpiece, 8K, extreme detail, realistic textures on cartoon proportions, raytracing, cinematic lighting, depth of field.", labelKey: "genre_hyper_3d" },
+            { value: "Cute Malaysian Chibi (2.5D): big head chibi ratio (2:1), soft semi-3D rendering, pastel colours, soft glow lighting, expressive cute eyes.", labelKey: "genre_chibi" },
+            { value: "Pixar-Style 3D: Soft lighting, expressive characters, glossy skin, vibrant colors, Subsurface Scattering, Octane Render.", labelKey: "genre_pixar" },
+            { value: "Disney Traditional (2D): Modern 2D Disney style, clean lineart, strong facial expressions, bold colors, smooth shading.", labelKey: "genre_disney" },
+            { value: "Modern Kawaii Storybook: 2D+3D hybrid, clean pastel colours, simple rounded characters, smooth cel-shading, bright friendly lighting.", labelKey: "genre_kawaii" },
+            { value: "Crisp Ink & Watercolor: Defined watercolor textures constrained by sharp ink outlines. Bold, crisp black or sepia ink lines.", labelKey: "genre_watercolor" },
+            { value: "Vector Flat (Modern): Ultra-modern, minimal, geometric shapes, flat colors or subtle gradients. No outlines.", labelKey: "genre_vector" },
+            { value: "Anime Style: High-quality anime art, clean lineart, cel-shaded coloring, vibrant lighting, Makoto Shinkai inspired.", labelKey: "genre_anime" },
+            { value: "Vintage Rubber-Hose (1930s): Large pie-cut eyes, glove-hands, 'rubber hose' limb animation. Muted vintage colors.", labelKey: "genre_rubber" },
+            { value: "Comic Book / Marvel Style: Bold ink lines, dynamic shading, halftone patterns, vibrant superhero colors, action-oriented.", labelKey: "genre_comic" }
+        ];
+
+        const RATIOS_DATA = [
+            { id: '16:9', labelKey: 'ratio_16_9', dim: '3840x2160' },
+            { id: '9:16', labelKey: 'ratio_9_16', dim: '2160x3840' },
+            { id: '4:5', labelKey: 'ratio_4_5', dim: '2160x2700' },
+            { id: 'A4', labelKey: 'ratio_A4', dim: '2480x3508' },
+            { id: 'B5', labelKey: 'ratio_B5', dim: '2079x2953' },
+            { id: 'A5', labelKey: 'ratio_A5', dim: '1748x2480' },
+            { id: 'A6', labelKey: 'ratio_A6', dim: '1240x1748' }
+        ];
+
+        // STRICTLY MALAY & HIJAB ENFORCED
+        const CHAR_DATA = [
+            { id: 'male', labelKey: 'char_male', promptText: 'Malay Male Character (Age adapted to story context)' },
+            { id: 'female', labelKey: 'char_female', promptText: 'Malay Female Character (Wearing Proper Hijab/Tudung, Modest Clothing)' },
+            { id: 'duo', labelKey: 'char_duo', promptText: 'Malay Male and Malay Female (Hijab) Character Duo' },
+            { id: 'animal', labelKey: 'char_animal', promptText: 'Animal Character (No Dogs/Pigs)' },
+            { id: 'none', labelKey: 'char_none', promptText: 'No specific main character (Crowd/Background must be Malay Ethnicity, Females in Hijab)' },
+            { id: 'attached', labelKey: 'char_attached', promptText: 'Use the Attached Reference Image for Main Character design (Ensure Modesty/Shariah Compliance)' },
+        ];
+
+        const ARABIC_FONTS = [
+            { name: 'Amiri', label: 'Amiri', style: 'Serif', arabicName: 'خط أميري' },
+            { name: 'Cairo', label: 'Cairo', style: 'Sans-Serif', arabicName: 'خط القاهرة' },
+            { name: 'Lalezar', label: 'Lalezar', style: 'Display', arabicName: 'خط لاليزار' },
+            { name: 'Aref Ruqaa', label: 'Aref Ruqaa', style: 'Handwriting', arabicName: 'عارف رقعة' },
+            { name: 'Reem Kufi', label: 'Reem Kufi', style: 'Kufi', arabicName: 'ريم كوفي' },
+            { name: 'Scheherazade New', label: 'Scheherazade', style: 'Serif', arabicName: 'شهرزاد' },
+            { name: 'Tajawal', label: 'Tajawal', style: 'Sans-Serif', arabicName: 'خط تجوال' },
+            { name: 'Almarai', label: 'Almarai', style: 'Sans-Serif', arabicName: 'المراعي' }
+        ];
+
+        const LANG_OPTIONS = [
+            { code: 'ms', label: 'Bahasa Melayu', dir: 'ltr' },
+            { code: 'en', label: 'English', dir: 'ltr' },
+            { code: 'ar', label: 'Arabic', dir: 'rtl' },
+            { code: 'ms-jawi', label: 'Melayu (Jawi)', dir: 'rtl' },
+        ];
+        
+        // --- TRANSLATION DICTIONARY ---
+        const TRANSLATIONS = {
+            ms: {
+                subtitle: "Penjana AI Prompt Buku Cerita Komik 3D",
+                outputLang: "Pilihan Bahasa Output",
+                selectFont: "Pilih Font Arab/Jawi (Google Fonts)",
+                fontPreview: "*Font dimuat turun dari Google Fonts untuk pratonton.",
+                storyTitle: "Tajuk Buku Cerita",
+                storyTitlePh: "Tajuk Cerita...",
+                authorName: "Nama Penulis",
+                authorNamePh: "Nama Penulis...",
+                noAuthor: "TIADA",
+                imgSize: "Saiz Imej",
+                orientationLabel: "Orientasi",
+                ori_landscape: "Landscape",
+                ori_portrait: "Portrait",
+                artStyle: "Gaya Seni",
+                mainChar: "Watak Utama",
+                outputMode: "Pilihan Janaan Prompt",
+                visualTick: "Visual Bergambar",
+                narrativeScriptToggle: "TEKS NARATIF / SKRIP",
+                animationTick: "Animasi Video",
+                props: "Props & Elemen Tambahan",
+                propsPh: "Cth: Bas sekolah, pelangi, kucing...", 
+                storyline: "Input Cerita (Storyboard)",
+                storyBoxesTitle: "Penyusunan Jalan Cerita",
+                boxLabel: "Kotak Cerita",
+                clearBox: "Kosongkan",
+                sceneInputHint: "Tulis cerita di sini. Sistem akan kesan pemisah seperti Babak, Bab, Scene, Alur Cerita, Plot, Sequence, Segmen, Episod, atau selang satu baris (double Enter).\n\nContoh:\nBabak 1: Ali berjalan...\n(deskripsi panjang)\n\nBab 2: Ali jumpa kawan.",
+                max5ScenesNote: "Masukkan semua babak di sini. Sistem akan mengesan dan memecahkannya secara automatik.",
+                sceneLabel: "BABAK",
+                generateBtn: "JANA PROMPT",
+                resultTitle: "HASIL PROMPT",
+                resultSubtitle: "Struktur: Sequential Generation + Continuity Lock + Shariah Safe",
+                instruction: "ARAHAN: Salin ARRAY JSON 'PROMPT IMEJ (KOTAK)' untuk jana 5 imej serentak dalam satu batch. Kemudian, jana VIDEO untuk setiap babak di bawahnya. COVER buat paling akhir.",
+                cover: "MUKA DEPAN",
+                page: "BABAK",
+                imageBoxLabel: "PROMPT IMEJ (KOTAK - BATCH ARRAY)",
+                videoPromptTitle: "PROMPT ANIMASI (VIDEO)",
+                narrativeScriptTitle: "SKRIP NARATIF (TTS)",
+                copied: "DISALIN!",
+                copy: "SALIN",
+                clearResult: "Tutup / Hilangkan Hasil",
+                footerCredit: "was creatively built and designed using Gemini Canvas by",
+                lastUpdated: "Last Updated on 11 March 2026",
+                // Dropdowns (BM)
+                genre_hyper_3d: "Kartun 3D Hiper-Realistik",
+                genre_chibi: "Chibi Malaysia Comel (2.5D)",
+                genre_pixar: "Gaya 3D Pixar",
+                genre_disney: "Disney Tradisional (2D)",
+                genre_kawaii: "Buku Cerita Kawaii Moden",
+                genre_watercolor: "Dakwat & Cat Air (Tegas)",
+                genre_vector: "Vektor Rata (Moden)",
+                genre_anime: "Gaya Anime",
+                genre_rubber: "Vintaj Rubber-Hose (1930an)",
+                genre_comic: "Buku Komik / Gaya Marvel",
+                ratio_16_9: "16:9 (Widescreen Sinematik)",
+                ratio_9_16: "9:16 (Vertikal / Reels)",
+                ratio_4_5: "4:5 (Buku Cerita Portrait)",
+                ratio_A4: "A4 (Standard Kertas)",
+                ratio_B5: "B5 (Buku Cerita)",
+                ratio_A5: "A5 (Buku Nota)",
+                ratio_A6: "A6 (Buku Poket)",
+                char_male: "Lelaki",
+                char_female: "Perempuan",
+                char_duo: "Lelaki & Perempuan",
+                char_animal: "Haiwan",
+                char_none: "Tiada Watak",
+                char_attached: "Dilampirkan",
+                alertSelectOutput: "Sila tandakan sekurang-kurangnya satu pilihan janaan prompt."
+            },
+            en: {
+                subtitle: "3D Comic Storybook AI Prompt Generator",
+                outputLang: "Output Language Selection",
+                selectFont: "Select Arabic/Jawi Font (Google Fonts)",
+                fontPreview: "*Fonts downloaded from Google Fonts for preview.",
+                storyTitle: "Storybook Title",
+                storyTitlePh: "Story Title...",
+                authorName: "Author Name",
+                authorNamePh: "Author Name...",
+                noAuthor: "NONE",
+                imgSize: "Image Size (Aspect Ratio)",
+                orientationLabel: "Orientation",
+                ori_landscape: "Landscape",
+                ori_portrait: "Portrait",
+                artStyle: "Art Style",
+                mainChar: "Main Character",
+                outputMode: "Prompt Generation Options",
+                visualTick: "Visual Illustration",
+                narrativeScriptToggle: "NARRATIVE / SCRIPT TEXT",
+                animationTick: "Video Animation",
+                props: "Props & Extra Elements",
+                propsPh: "Ex: School bus, rainbow, cat...", 
+                storyline: "Story Input (Storyboard)",
+                storyBoxesTitle: "Story Composition",
+                boxLabel: "Storyboard",
+                clearBox: "Clear",
+                sceneInputHint: "Paste the full story here. The system can detect separators such as Scene, Babak, Bab, Plot, Story Arc, Sequence, Segment, Episode, or blank lines.",
+                max5ScenesNote: "Paste all scenes here. System will auto-detect and split them.",
+                sceneLabel: "SCENE",
+                generateBtn: "GENERATE PROMPT",
+                resultTitle: "PROMPT RESULT (JSON)",
+                resultSubtitle: "Structure: Sequential Generation + Continuity Lock + Shariah Safe",
+                instruction: "INSTRUCTION: Copy 'IMAGE PROMPT (BOX)' JSON ARRAY to generate all images in one batch. Then generate VIDEO for each scene below it. Do COVER last.",
+                cover: "COVER",
+                page: "SCENE",
+                imageBoxLabel: "IMAGE PROMPT (BOX - BATCH ARRAY)",
+                videoPromptTitle: "ANIMATION PROMPT (VIDEO)",
+                narrativeScriptTitle: "NARRATIVE SCRIPT (TTS)",
+                copied: "COPIED!",
+                copy: "COPY",
+                clearResult: "Close / Clear Result",
+                footerCredit: "was creatively built and designed using Gemini Canvas by",
+                lastUpdated: "Last Updated on 11 March 2026",
+                // Dropdowns (EN)
+                genre_hyper_3d: "Hyperrealistic 3D Cartoon",
+                genre_chibi: "Cute Malaysian Chibi (2.5D)",
+                genre_pixar: "Pixar-Style 3D",
+                genre_disney: "Disney Traditional (2D)",
+                genre_kawaii: "Modern Kawaii Storybook",
+                genre_watercolor: "Crisp Ink & Watercolor",
+                genre_vector: "Vector Flat (Modern)",
+                genre_anime: "Anime Style",
+                genre_rubber: "Vintage Rubber-Hose (1930s)",
+                genre_comic: "Comic Book / Marvel Style",
+                ratio_16_9: "16:9 (Cinematic Widescreen)",
+                ratio_9_16: "9:16 (Vertical / Reels)",
+                ratio_4_5: "4:5 (Storybook Portrait)",
+                ratio_A4: "A4 (Standard Paper)",
+                ratio_B5: "B5 (Storybook)",
+                ratio_A5: "A5 (Notebook)",
+                ratio_A6: "A6 (Pocket Book)",
+                char_male: "Male",
+                char_female: "Female",
+                char_duo: "Male & Female",
+                char_animal: "Animal",
+                char_none: "No Character",
+                char_attached: "As Attached",
+                alertSelectOutput: "Please tick at least one prompt generation option."
+            }
+        };
+
+        // ---- GLOBAL PARSING FUNCTIONS ----
+        
+        // 1. Grouping Logic with Tiered Detection
+        const groupScenesFromText = (text) => {
+            if (!text) return [];
+            const lines = text.split('\n');
+            const scenes = [];
+            let currentScene = null;
+
+            // Tier 1: Strong Delimiters (true scene/chapter splitters)
+            const strongHeaderRegex = /^(?:(?:scene|babak|bab|alur\s*cerita|jalan\s*cerita|story\s*arc|plot|sequence|segmen|segment|episode|episod|panel|cut\s*scene|adegan|aksi\s*utama|chapter))\s*(?:#|no\.?|ke-)?\s*(?:\d+|[ivxlcdm]+)?(?:\s*[:.)-]|\s+-)?\s*/i;
+
+            // Tier 2: Weak Delimiters (visual descriptors, fallback only)
+            const weakHeaderRegex = /^(?:visual|gambaran|aksi|action|setting|latar|shot|cut\s*to|view|camera|transition)\s*(?:#|no\.?|ke-)?\s*(?:\d+|[ivxlcdm]+)?(?:\s*[:.)-]|\s+-)?\s*/i;
+
+            // Audio/Text triggers (Attachments)
+            const audioRegex = /^(?:audio|dialog|dialogue|percakapan|cakap|suara|bunyi|voice|voiceover|vo|narrator|narasi|pencerita|script|skrip|text|teks|caption|kapsyen|title|tajuk|on-screen|on\s*screen)(?:\s*\d*)?[:.-]\s*/i;
+            const implicitDialogRegex = /^["'“].*["'”]$|^[A-Za-z0-9_ ]+:\s*["'“].*["'”]$/;
+
+            // 1. Detect Mode
+            const hasStrongHeaders = lines.some(l => strongHeaderRegex.test(l.trim()));
+            const hasWeakHeaders = lines.some(l => weakHeaderRegex.test(l.trim()));
+
+            // Determine which regex is the active splitter
+            let activeSplitter = null;
+            if (hasStrongHeaders) {
+                // STRICT MODE: Only split on SCENE/BABAK
+                activeSplitter = strongHeaderRegex;
+            } else if (hasWeakHeaders) {
+                // WEAK MODE: Split on VISUAL/ACTION if no scenes defined
+                activeSplitter = weakHeaderRegex;
+            }
+
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) {
+                    if (!activeSplitter && currentScene) {
+                        scenes.push(currentScene);
+                        currentScene = null;
+                    }
+                    return;
+                }
+
+                let isHeader = false;
+                if (activeSplitter) {
+                    isHeader = activeSplitter.test(trimmed);
+                }
+
+                if (isHeader) {
+                    if (currentScene) scenes.push(currentScene);
+                    let visualContent = trimmed.replace(activeSplitter, "").trim();
+                    currentScene = { visual: visualContent, audio: "" };
+                    return;
+                }
+
+                const isAudioPrefix = audioRegex.test(trimmed);
+                const isImplicitDialog = implicitDialogRegex.test(trimmed);
+
+                if (isAudioPrefix || isImplicitDialog) {
+                    let audioContent = trimmed;
+                    if (currentScene) {
+                        currentScene.audio = currentScene.audio ? currentScene.audio + " " + audioContent : audioContent;
+                    }
+                    return;
+                }
+
+                if (currentScene) {
+                    if (currentScene.visual.length > 0) currentScene.visual += " ";
+                    currentScene.visual += trimmed;
+                } else {
+                    currentScene = { visual: trimmed, audio: "" };
+                }
+            });
+
+            if (currentScene) scenes.push(currentScene);
+            return scenes.filter(s => s.visual.length > 0 || s.audio.length > 0);
+        };
+
+        const parseScenesFromText = (text) => {
+            if (!text) return [];
+            const result = groupScenesFromText(text);
+            return result.map(s => s.visual);
+        };
+        
+        const getArtStyleProfile = (genre = '') => {
+            const g = genre.toLowerCase();
+
+            if (g.includes('hyperrealistic 3d cartoon')) {
+                return {
+                    font: "Premium cinematic sans-serif with polished title-card readability.",
+                    sceneLook: "Hyperrealistic stylized 3D cartoon with realistic materials, raytraced reflections, cinematic depth, expressive stylized anatomy, and high-detail environmental realism.",
+                    visualLock: "STYLE LOCK: Preserve hyperrealistic stylized 3D cartoon rendering, realistic textures on stylized proportions, raytraced material response, cinematic depth of field, and premium CGI lighting. Do not drift into flat 2D, anime, simple cartoon, or full live-action realism.",
+                    videoStyle: "Hyperrealistic stylized 3D cartoon animation matching the generated image exactly",
+                    coverLook: "Use a premium hyperrealistic stylized 3D cartoon hero composition with rich materials, cinematic depth, and high-end CGI finish.",
+                    negative: ["NO LIVE-ACTION HUMAN LOOK", "NO FLAT 2D RENDERING", "NO SIMPLE TOON LOOK"]
+                };
+            }
+            if (g.includes('cute malaysian chibi')) {
+                return {
+                    font: "Cute rounded display font or playful soft sans-serif.",
+                    sceneLook: "Cute Malaysian chibi 2.5D with oversized head ratio, soft semi-3D rendering, pastel colors, charming facial expressions, rounded forms, and warm toy-like depth.",
+                    visualLock: "STYLE LOCK: Preserve chibi 2.5D proportions, oversized head-to-body ratio, soft pastel rendering, adorable rounded shapes, and toy-like semi-3D finish. Do not drift into realistic anatomy, gritty comic shading, or sharp mature styling.",
+                    videoStyle: "Cute Malaysian chibi 2.5D animation matching the generated image exactly",
+                    coverLook: "Use a cheerful chibi-focused cover with oversized-cute character appeal, soft pastel depth, and playful family-friendly charm.",
+                    negative: ["NO REALISTIC BODY PROPORTIONS", "NO DARK GRITTY TONE", "NO HARD-EDGE MATURE COMIC LOOK"]
+                };
+            }
+            if (g.includes('pixar-style 3d')) {
+                return {
+                    font: "Clean modern family-film sans-serif with polished title readability.",
+                    sceneLook: "Pixar-inspired 3D with expressive faces, smooth stylized anatomy, glossy surfaces, soft global illumination, vibrant color harmony, and cinematic family-animation warmth.",
+                    visualLock: "STYLE LOCK: Preserve Pixar-inspired 3D appeal, expressive facial acting, smooth stylized anatomy, glossy material finish, warm cinematic lighting, and polished family-animation rendering. Do not drift into live-action realism, flat vector art, or anime lineart.",
+                    videoStyle: "Pixar-inspired 3D animated film style matching the generated image exactly",
+                    coverLook: "Use a polished Pixar-inspired 3D cover with expressive faces, warm light, and premium family-animation spectacle.",
+                    negative: ["NO LIVE-ACTION LOOK", "NO FLAT VECTOR LOOK", "NO ANIME LINEART"]
+                };
+            }
+            if (g.includes('disney traditional')) {
+                return {
+                    font: "Elegant clean storybook sans-serif or classic animated-feature title font.",
+                    sceneLook: "Modern Disney-inspired 2D animation with clean lineart, appealing character silhouettes, bold color blocking, smooth 2D shading, and emotionally expressive faces.",
+                    visualLock: "STYLE LOCK: Preserve clean 2D Disney-inspired lineart, hand-drawn appeal, bold readable shapes, smooth 2D shading, and expressive animated-feature acting. Do not drift into 3D CGI, watercolor wash, anime rendering, or realistic live-action textures.",
+                    videoStyle: "Modern Disney-inspired 2D animated feature style matching the generated image exactly",
+                    coverLook: "Use a modern animated-feature 2D cover with elegant lineart, readable silhouettes, and warm theatrical storybook appeal.",
+                    negative: ["NO 3D CGI LOOK", "NO WATERCOLOR BLEED", "NO ANIME STYLING"]
+                };
+            }
+            if (g.includes('modern kawaii storybook')) {
+                return {
+                    font: "Soft rounded storybook font with friendly childlike readability.",
+                    sceneLook: "Modern kawaii storybook hybrid with clean pastel surfaces, rounded simplified forms, light cel-shading, bright gentle lighting, and wholesome illustrated-book charm.",
+                    visualLock: "STYLE LOCK: Preserve pastel kawaii storybook softness, rounded simplified forms, friendly childlike appeal, clean hybrid 2D-plus-soft-3D finish, and bright gentle mood. Do not drift into gritty realism, harsh comic ink, or dark dramatic rendering.",
+                    videoStyle: "Modern kawaii storybook hybrid animation matching the generated image exactly",
+                    coverLook: "Use a pastel kawaii storybook cover with rounded character charm, gentle depth, and friendly bookstore-ready appeal.",
+                    negative: ["NO DARK GRITTY SHADING", "NO HARSH COMIC INK", "NO REALISTIC LIVE-ACTION LOOK"]
+                };
+            }
+            if (g.includes('crisp ink & watercolor')) {
+                return {
+                    font: "Elegant handwritten serif or refined illustrated-book title font.",
+                    sceneLook: "Crisp ink and watercolor illustration with controlled watercolor blooms, visible paper texture, decisive ink outlines, painterly wash transitions, and handcrafted editorial beauty.",
+                    visualLock: "STYLE LOCK: Preserve sharp ink outlines, controlled watercolor washes, visible paper texture, pigment bloom, and handcrafted illustrated-book finish. Do not drift into glossy 3D rendering, flat vector art, or cel-shaded anime/comic surfaces.",
+                    videoStyle: "Crisp ink-and-watercolor illustrated animation with paper-texture continuity matching the generated image exactly",
+                    coverLook: "Use a refined illustrated-book cover with crisp ink contours, watercolor bloom, paper texture, and artisanal elegance.",
+                    negative: ["NO GLOSSY 3D CGI", "NO FLAT VECTOR SHAPES", "NO CEL-SHADED ANIME LOOK"]
+                };
+            }
+            if (g.includes('vector flat')) {
+                return {
+                    font: "Modern geometric sans-serif with ultra-clean editorial clarity.",
+                    sceneLook: "Ultra-modern vector flat illustration with geometric construction, flat colors or restrained gradients, crisp edges, simplified shape language, and clean poster-like minimalism.",
+                    visualLock: "STYLE LOCK: Preserve ultra-clean vector flat design, geometric shape language, crisp contour separation, minimal texture, and flat-color poster clarity. Do not drift into painterly textures, detailed ink lines, 3D depth realism, or comic halftones.",
+                    videoStyle: "Ultra-clean modern vector flat motion-graphics style matching the generated image exactly",
+                    coverLook: "Use a clean geometric vector-flat cover with strong shape hierarchy, modern editorial spacing, and striking minimalist clarity.",
+                    negative: ["NO PAPER TEXTURE", "NO PAINTERLY BRUSHWORK", "NO 3D RENDERED DEPTH", "NO HALFTONE COMIC TEXTURE"]
+                };
+            }
+            if (g.includes('anime style')) {
+                return {
+                    font: "Modern anime subtitle font or clean manga-inspired display sans.",
+                    sceneLook: "High-quality anime illustration with clean lineart, cel shading, expressive eyes, polished lighting accents, controlled color separation, and cinematic anime framing.",
+                    visualLock: "STYLE LOCK: Preserve clean anime lineart, cel-shaded color logic, expressive anime facial design, polished highlight treatment, and strong Japanese-animation readability. Do not drift into painterly watercolor, western comic halftone, or realistic live-action textures.",
+                    videoStyle: "High-quality anime film style matching the generated image exactly",
+                    coverLook: "Use a polished anime-style cover with clean lineart, strong silhouette appeal, and cinematic illustrated energy.",
+                    negative: ["NO WATERCOLOR BLEED", "NO WESTERN COMIC HALFTONES", "NO LIVE-ACTION REALISM"]
+                };
+            }
+            if (g.includes('vintage rubber-hose')) {
+                return {
+                    font: "Vintage 1930s cartoon lettering with retro poster character.",
+                    sceneLook: "Vintage 1930s rubber-hose cartoon with pie-cut eyes, glove hands, elastic tube-like limbs, retro staging, muted aged colors, and old-animation charm.",
+                    visualLock: "STYLE LOCK: Preserve 1930s rubber-hose anatomy, pie-cut eyes, glove hands, bendy elastic limbs, retro staging, and vintage cartoon color treatment. Do not drift into modern anime proportions, realistic anatomy, or glossy modern 3D rendering.",
+                    videoStyle: "Vintage 1930s rubber-hose cartoon animation matching the generated image exactly",
+                    coverLook: "Use a retro 1930s cartoon cover with pie-cut-eye charm, vintage staging, and nostalgic poster energy.",
+                    negative: ["NO MODERN ANIME LOOK", "NO REALISTIC ANATOMY", "NO GLOSSY 3D FINISH"]
+                };
+            }
+            if (g.includes('comic book / marvel style') || g.includes('comic book') || g.includes('marvel')) {
+                return {
+                    font: "Bold comic-book display lettering, dynamic and punchy.",
+                    sceneLook: "Dynamic western comic-book illustration with bold inks, dramatic contour shadows, halftone accents, energetic foreshortening, high-impact color contrast, and superhero-panel intensity.",
+                    visualLock: "STYLE LOCK: Preserve bold western comic ink, dramatic shadow massing, halftone energy, superhero-panel dynamism, and high-impact comic rendering. Do not drift into watercolor softness, flat vector minimalism, or anime cel-shading.",
+                    videoStyle: "Dynamic western comic-book animation style matching the generated image exactly",
+                    coverLook: "Use a bold superhero-comic cover with dramatic inks, dynamic perspective, halftone energy, and blockbuster panel impact.",
+                    negative: ["NO WATERCOLOR SOFTNESS", "NO FLAT MINIMAL VECTOR LOOK", "NO ANIME CEL-SHADING"]
+                };
+            }
+
+            return {
+                font: "Clean Serif/Sans-Serif. Legible.",
+                sceneLook: genre,
+                visualLock: "STYLE LOCK: Preserve the selected art style consistently with no style drift.",
+                videoStyle: `${genre} matching the generated image exactly`,
+                coverLook: `Use the selected art style consistently across the cover and all scenes.`,
+                negative: []
+            };
+        };
+
+        const getFontStyleDesc = (genre) => getArtStyleProfile(genre).font;
+
+        const sanitizeAudioLine = (text = '') => text.replace(/^(Audio:|Dialog:|Dialogue:|Suara:|Voice:|Voiceover:|VO:|Narrator:|Narasi:|Pencerita:|Script:|Skrip:|Text:|Teks:|Caption:|Kapsyen:)\s*/i, '').trim();
+
+        const getPromptLanguageMeta = (langCode) => {
+            if (langCode === 'ms') {
+                return {
+                    contentLabel: 'Bahasa Melayu Malaysia',
+                    proofing: `
+LOCK: MANDATORY PROOF-CHECK
+1. Write the final embedded text in standard Bahasa Melayu Malaysia.
+2. Strictly follow 'Kamus Dewan' and 'Pusat Rujukan Persuratan Melayu (PRPM/DBP)' for spelling and grammar.
+3. Check spelling, punctuation, and natural Malaysian phrasing. Avoid Indonesian wording or mixed-language drift.`
+                };
+            }
+            if (langCode === 'ms-jawi') {
+                return {
+                    contentLabel: 'Bahasa Melayu (Tulisan Jawi)',
+                    proofing: `
+LOCK: MANDATORY PROOF-CHECK
+1. Write the final embedded text in authentic Malay Jawi script (Tulisan Jawi) with RTL direction.
+2. Strictly use correct and modern Jawi spelling standards (Sistem Ejaan Jawi Baharu DBP/reliable modern Jawi sources).
+3. Ensure it reads as natural Malay, not literal Arabic translation.`
+                };
+            }
+            if (langCode === 'ar') {
+                return {
+                    contentLabel: 'Standard Arabic (Fusha)',
+                    proofing: `
+LOCK: MANDATORY PROOF-CHECK
+1. Write the final embedded text in clear Standard Arabic (Fusha) with RTL direction.
+2. Strictly verify vocabulary and phrasing using reliable sources like 'Al-Maany' dictionary or professional Arabic news/journalism websites.
+3. Check spelling, grammar, punctuation, sentence flow, and readability. Avoid broken machine translation.`
+                };
+            }
+            return {
+                contentLabel: 'English',
+                proofing: `
+LOCK: MANDATORY PROOF-CHECK
+1. Write the final embedded text in natural English.
+2. Strictly follow Oxford Dictionary standards for spelling, grammar, and vocabulary.
+3. Check spelling, punctuation, and readability. Avoid stiff translation and keep the line fluent.`
+            };
+        };
+
+        const getProofingInstruction = (langCode) => getPromptLanguageMeta(langCode).proofing;
+
+        const summariseSceneForContinuity = (sceneObj = {}) => {
+            const visual = (sceneObj.visual || '').replace(/\s+/g, ' ').trim();
+            const audio = sanitizeAudioLine(sceneObj.audio || '').replace(/\s+/g, ' ').trim();
+            const combined = [visual, audio].filter(Boolean).join(' | ');
+            return combined ? combined.slice(0, 240) : 'No prior scene summary available.';
+        };
+
+        const buildNarrationText = (sceneObj = {}, langCode = 'ms') => {
+            const visual = (sceneObj.visual || '').replace(/\s+/g, ' ').trim();
+            const audio = sanitizeAudioLine(sceneObj.audio || '').replace(/\s+/g, ' ').trim();
+            const base = audio || visual || '';
+            if (!base) return '';
+            return base
+                .replace(/^[-–—•\s]+/, '')
+                .replace(/^\w+\s*:\s*/g, '')
+                .replace(/["“”']/g, '')
+                .trim();
+        };
+
+        const detectLocationChange = (prevText = '', currentText = '') => {
+            const prev = (prevText || '').toLowerCase();
+            const curr = (currentText || '').toLowerCase();
+            if (!prev || !curr) return false;
+            const markers = ['berpindah ke', 'bertukar ke', 'lokasi baru', 'di tempat lain', 'sementara itu di', 'kemudian di', 'seterusnya di', 'cut to', 'new location', 'at another location', 'elsewhere', 'meanwhile at', 'transition to'];
+            if (markers.some(m => curr.includes(m))) return true;
+            const places = ['rumah','sekolah','kelas','hutan','pantai','pejabat','pasar','kampung','jalan','taman','masjid','bilik','dapur','hospital','kedai','istana','balai','forest','beach','office','market','village','road','park','mosque','room','kitchen','hospital','shop','castle'];
+            const prevPlaces = places.filter(p => prev.includes(p));
+            const currPlaces = places.filter(p => curr.includes(p));
+            return prevPlaces.length && currPlaces.length && !currPlaces.some(p => prevPlaces.includes(p));
+        };
+
+        const buildSceneContinuity = (prevSceneObj, currentSceneObj, sceneNum) => {
+            if (!prevSceneObj || sceneNum <= 1) {
+                return {
+                    continuityLock: 'START FROM A CLEAN FIRST FRAME for Scene 1. Establish the environment, character design, outfit, props, framing, and mood clearly.',
+                    transitionInstruction: 'No transition needed. Open naturally as the first scene.',
+                    grokStartFrame: 'This is the first scene. No previous frame reference required.',
+                    previousSceneSummary: 'Scene 1 starts the story, so there is no previous scene.',
+                    carryForwardInstruction: 'Establish the hero assets, props, location logic, and visual identity clearly so later scenes can extend from this frame without reset.'
+                };
+            }
+            const previousSceneSummary = summariseSceneForContinuity(prevSceneObj);
+            const locationChanged = detectLocationChange(prevSceneObj.visual, currentSceneObj.visual);
+            if (locationChanged) {
+                return {
+                    continuityLock: `CONTINUITY LOCK: Preserve the exact same character identity, body proportion, wardrobe logic, modesty level, props, and visual tone from Scene ${sceneNum - 1}. Only the location may change if required by the story.`,
+                    transitionInstruction: `TRANSITION: Begin from the last frame of Scene ${sceneNum - 1}, briefly hold the existing composition, then use a logical fade out, dissolve, motivated cut, or travel transition into the new setting before the next action starts.`,
+                    grokStartFrame: `START FROM LAST FRAME of Scene ${sceneNum - 1}, then transition smoothly into the new location.`,
+                    previousSceneSummary,
+                    carryForwardInstruction: 'Carry forward the same characters, props, time-of-day logic, and emotional state into the new place. Do not reset pose, costume, or prop ownership unless the story explicitly changes them.'
+                };
+            }
+            return {
+                continuityLock: `CONTINUITY LOCK: START FROM LAST FRAME of Scene ${sceneNum - 1}. Preserve exact character face, body size, outfit logic, modest styling, props, hand-held objects, lighting direction, and environment continuity unless the story explicitly changes them.`,
+                transitionInstruction: `TRANSITION: Continue directly from the last frame of Scene ${sceneNum - 1} with motivated motion carry-over. No random reset, no identity drift, no prop drift, no unexplained object changes, and no sudden camera grammar change.`,
+                grokStartFrame: `START FROM LAST FRAME of Scene ${sceneNum - 1}. Continue the motion naturally.`,
+                previousSceneSummary,
+                carryForwardInstruction: 'Extend the previous scene naturally. Keep action, framing logic, and object placement coherent from one scene to the next.'
+            };
+        };
+
+        const ComixsPrompter = () => {
+            const [uiLang, setUiLang] = useState('ms'); 
+            const t = (key) => TRANSLATIONS[uiLang][key] || key;
+            const [hitCount, setHitCount] = useState('...');
+
+            const [config, setConfig] = useState({
+                title: '',
+                authorName: '', 
+                language: 'ms', 
+                genre: GENRES_DATA[0].value,
+                aspectRatio: '16:9',
+                orientation: 'landscape',
+                characterType: 'male',
+                noAuthor: true,
+                enableVisual: false,
+                enableAnimation: false,
+                enableTextNarrativeScript: true,
+                extraElements: '', 
+                arabicFont: 'Amiri'
+            });
+
+            const [storyInput, setStoryInput] = useState('');
+
+            const [jsonOutput, setJsonOutput] = useState(null);
+            const [copiedSection, setCopiedSection] = useState(null);
+            const [logoError, setLogoError] = useState(false);
+
+            const inputFontSize = 'text-base sm:text-lg'; 
+
+            useEffect(() => {
+                const link = document.createElement('link');
+                link.href = 'https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&family=Amiri:ital,wght@0,400;0,700;1,400&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&family=Lalezar&family=Reem+Kufi:wght@400;700&family=Scheherazade+New:wght@400;700&family=Tajawal:wght@400;700&display=swap';
+                link.rel = 'stylesheet';
+                document.head.appendChild(link);
+                if ('serviceWorker' in navigator) {
+                    const registerSW = async () => {
+                        try {
+                            const registration = await navigator.serviceWorker.register('./sw.js?v=38');
+                            registration.update?.();
+                        } catch (e) {}
+                    };
+                    if (document.readyState === 'complete') {
+                        registerSW();
+                    } else {
+                        window.addEventListener('load', registerSW, { once: true });
+                    }
+                }
+                
+                fetch('./api/hit.php')
+                    .then(res => res.json())
+                    .then(data => setHitCount(data.total))
+                    .catch(err => {
+                        console.log("Hit counter disabled/local");
+                        setHitCount('Offline'); 
+                    });
+                
+                return () => document.head.removeChild(link);
+            }, []);
+
+            const currentLangDir = LANG_OPTIONS.find(l => l.code === config.language)?.dir || 'ltr';
+            const isRTL = ['ar', 'ms-jawi'].includes(config.language);
+            
+            // Fix: Menerapkan font Google Fonts pada UI dengan format petikan (quotes) yang betul
+            const fontStyleToApply = isRTL ? { fontFamily: `"${config.arabicFont}", serif` } : {};
+
+            useEffect(() => {
+                setUiLang(config.language === 'en' ? 'en' : 'ms');
+            }, [config.language]);
+
+            const handleConfigChange = (e) => {
+                const { name, value, type, checked } = e.target;
+                const val = type === 'checkbox' ? checked : value;
+                setConfig(prev => {
+                    const next = { ...prev, [name]: val };
+                    if (name === 'noAuthor' && val) next.authorName = '';
+                    
+                    if (name === 'aspectRatio') {
+                        if (val === '16:9') next.orientation = 'landscape';
+                        else if (val === '9:16' || val === '4:5') next.orientation = 'portrait';
+                    }
+                    
+                    return next;
+                });
+            };
+
+            const handleStoryInputChange = (value) => {
+                setStoryInput(value);
+            };
+
+            const clearStoryInput = () => {
+                setStoryInput('');
+            };
+
+            const generateJSON = () => {
+                const allScenes = groupScenesFromText(storyInput.trim());
+                if (allScenes.length === 0) {
+                    alert(config.language === 'ms' ? 'Sila isi sekurang-kurangnya satu cerita terlebih dahulu.' : 'Please enter at least one story first.');
+                    return;
+                }
+
+                if (!config.enableVisual && !config.enableAnimation) {
+                    alert(t('alertSelectOutput'));
+                    return;
+                }
+
+                const promptLangMeta = getPromptLanguageMeta(config.language);
+                const selectedLangLabel = promptLangMeta.contentLabel;
+                const charLabel = CHAR_DATA.find(c => c.id === config.characterType)?.promptText || CHAR_DATA[0].promptText;
+                
+                const selectedRatio = RATIOS_DATA.find(r => r.id === config.aspectRatio);
+                const isPaperSize = ['A4', 'B5', 'A5', 'A6'].includes(config.aspectRatio);
+                
+                let finalDimensions = selectedRatio?.dim || "3840x2160";
+                if (isPaperSize) {
+                    const [w, h] = finalDimensions.split('x').map(Number);
+                    if (config.orientation === 'landscape') {
+                        finalDimensions = Math.max(w, h) + 'x' + Math.min(w, h);
+                    } else {
+                        finalDimensions = Math.min(w, h) + 'x' + Math.max(w, h);
+                    }
+                }
+                const finalOrientationText = config.orientation === 'landscape' ? 'Landscape' : 'Portrait';
+
+                let characterModesty = "Malay Ethnicity. Dress all characters according to the story context while remaining fully modest, aurat-covering, respectful, and non-sexualised. Do not force traditional attire unless the story setting naturally requires it.";
+                if (config.characterType === 'female') {
+                    characterModesty = "STRICT MODESTY: Female character must wear context-appropriate modest attire with proper hijab/tudung covering hair, neck, and chest, loose long sleeves, opaque fabric, and no visible body curve emphasis. Adapt the style to the story setting without breaking aurat rules.";
+                } else if (config.characterType === 'male') {
+                    characterModesty = "Male character must wear context-appropriate modest attire that covers aurat properly, looks neat, and matches the story setting. Do not force baju Melayu, songkok, or kopiah unless the story naturally requires them. No indecent styling or clothing above the knee.";
+                } else if (config.characterType === 'duo') {
+                    characterModesty = "Duo characters must follow story-appropriate modest styling. Female must wear proper hijab/tudung and loose modest clothing. Male must wear context-appropriate modest attire. Keep the pair visually consistent across all scenes.";
+                }
+
+                const styleBooster = `FULL-PAGE DESIGN, FULL-BLEED, EDGE-TO-EDGE, absolutely no white borders, no blank areas, no empty margins, no empty safe areas. The entire ${config.aspectRatio} canvas must be completely filled with meaningful artwork.`;
+                const globalConsistencyLock = `SERIES CONSISTENCY LOCK: For all prompts generated under the story title '${config.title}', strictly maintain the exact same character designs, facial identities, proportions, and overall art style.`;
+                
+                // Fix: Mendapatkan gaya spesifik untuk tulisan Arab/Jawi agar difahami oleh AI 
+                const selectedArFont = ARABIC_FONTS.find(f => f.name === config.arabicFont) || ARABIC_FONTS[0];
+                const rtlFontStyleDesc = `Use Arabic/Jawi typography matching the exact visual styling of '${selectedArFont.name}'. Typography Style: ${selectedArFont.style} style. Ensure the text renders accurately reflecting this specific ${selectedArFont.style} typographic characteristic.`;
+                
+                const textConsistencyLock = `TYPOGRAPHY LOCK: For the entire story titled '${config.title}', the generated text MUST use the exact same font family, font style ${isRTL ? `(${selectedArFont.style} style)` : ''}, and font size consistently across every single image. Do not change the typography between generations.`;
+                
+                const artStyleProfile = getArtStyleProfile(config.genre);
+                const visualReferenceSection = config.characterType === 'attached'
+                    ? "Use the attached reference image as the primary character reference. Preserve the face identity and visual traits while keeping full modesty and Shariah compliance."
+                    : "No external image reference. Build consistent character design from the prompt only.";
+                const shariahUniversal = "STRICT SHARIAH FILTER: modest clothing, no exposed aurat, no sensual pose, no pigs, no dogs, no alcohol, no gambling, no smoking, no obscene gesture, no romantic touching, no immoral visual cues.";
+
+                const scenes = allScenes;
+                const boxScenesData = [];
+
+                scenes.forEach((sceneObj, idx) => {
+                    const currentSceneNum = idx + 1;
+                    const prevSceneObj = idx > 0 ? scenes[idx - 1] : null;
+                    const continuity = buildSceneContinuity(prevSceneObj, sceneObj, currentSceneNum);
+                    const sceneDescription = sceneObj.visual || sanitizeAudioLine(sceneObj.audio || '') || `Scene ${currentSceneNum}`;
+                    const narrationText = buildNarrationText(sceneObj, config.language);
+                    const scriptSource = sanitizeAudioLine(sceneObj.audio || '') || narrationText || sceneDescription;
+                    const hasExplicitScript = Boolean(sanitizeAudioLine(sceneObj.audio || '').trim());
+                    const locationChanged = prevSceneObj ? detectLocationChange(prevSceneObj.visual, sceneObj.visual) : false;
+                    const negativeBase = [
+                        "NO EXPOSED AURAT", "NO PIGS", "NO DOGS", "NO ALCOHOL", "NO GAMBLING", "NO SMOKING",
+                        "NO VAPING", "NO DRUGS", "NO NIGHTCLUB ELEMENTS", "NO SEDUCTIVE POSES", "NO INTIMATE TOUCHING",
+                        "NO TATTOOS", "NO WHITE BORDERS", "NO MULTIPLE PANELS", "NO SPLIT SCREEN", "NO BLANK SPACE", "NO EMPTY MARGIN"
+                    ];
+
+                    const visualPrompt = config.enableVisual ? JSON.stringify({
+                        _directive: "GENERATE_IMAGE",
+                        meta: { target_model: "DALL-E 3 / Midjourney", compliance_mode: "SHARIAH_COMPLIANT_ULTRA_STRICT", prompt_language: "English" },
+                        image_specifications: {
+                            format: config.enableTextNarrativeScript ? "Single Panel Storybook Illustration with Bottom Narrative Box" : "Single Panel Full Page Illustration (1 Image Only)",
+                            style_booster: styleBooster,
+                            art_style: config.genre,
+                            visual_reference: visualReferenceSection,
+                            orientation: `${finalOrientationText} (${config.aspectRatio})`,
+                            dimensions: finalDimensions,
+                            quality: "ULTRA-STRICT 8K"
+                        },
+                        core_content: {
+                            topic: config.title,
+                            story_series_lock: globalConsistencyLock,
+                            additional_props: [config.extraElements || "", shariahUniversal],
+                            main_char: `${charLabel}. ${characterModesty}`
+                        },
+                        ...(config.enableTextNarrativeScript ? {
+                            text_processing: {
+                                language: selectedLangLabel,
+                                text_direction: isRTL ? "RTL (Right-to-Left)" : "LTR (Left-to-Right)",
+                                font_style: isRTL ? rtlFontStyleDesc : getFontStyleDesc(config.genre),
+                                font_size_target: "Standard storybook reading size with strong readability",
+                                typography_consistency: textConsistencyLock,
+                                narrative: `Generate one concise narrative passage in ${selectedLangLabel} based on the story context. Place the text consistently at the bottom area of the illustration. Do NOT use a rigid box or frame. Instead, adapt to the image color by softly blending a subtle bright/white gradient background directly behind the black text to ensure high readability. Integrate it smoothly so the artwork still looks like one cohesive full-page design without stark blank spaces.`,
+                                proof_reading: getProofingInstruction(config.language)
+                            }
+                        } : {}),
+                        narrative_flow: [{
+                            panel: `Scene ${currentSceneNum}`,
+                            visual: config.enableTextNarrativeScript
+                                ? `Create one illustrated scene from this story moment: ${sceneDescription}. ${currentSceneNum === 1 ? 'For Scene 1, establish the master character design clearly because Scene 2 onward must match this first generated image exactly.' : `For Scene ${currentSceneNum}, strictly match the master character generated in Scene 1 and continue from Scene ${currentSceneNum - 1} with no face drift, costume drift, body drift, prop drift, or style drift.`} ${continuity.continuityLock} ${continuity.transitionInstruction} ${continuity.carryForwardInstruction} Keep the artwork full-bleed and visually consistent with this exact art style language: ${artStyleProfile.sceneLook} ${artStyleProfile.visualLock} Reserve a dedicated bottom narration box area that does not block the main image.`
+                                : `Create one story illustration based on this scene only: ${sceneDescription}. ${currentSceneNum === 1 ? 'For Scene 1, establish the master character design clearly because Scene 2 onward must match this first generated image exactly.' : `For Scene ${currentSceneNum}, strictly match the master character generated in Scene 1 and continue from Scene ${currentSceneNum - 1} with no face drift, costume drift, body drift, prop drift, or style drift.`} ${continuity.continuityLock} ${continuity.transitionInstruction} ${continuity.carryForwardInstruction} ${styleBooster} Preserve the same story world, character identity, costume logic, prop logic, and emotional tone. Enforce this exact art style language: ${artStyleProfile.sceneLook} ${artStyleProfile.visualLock} STRICTLY NO TEXT, NO CAPTIONS, NO SPEECH BUBBLES, NO DIALOGUE BALLOONS, NO LETTERS OR TYPOGRAPHY INSIDE THE IMAGE.`,
+                            caption: config.enableTextNarrativeScript
+                                ? `Write one suitable narrative passage in ${selectedLangLabel} derived from this scene idea: ${narrationText || sceneDescription}. Use a standard storybook style, balanced line length, clean typography, and a bottom-aligned narration box only.`
+                                : "No text inside the image. Image-only storytelling."
+                        }],
+                        negative_constraints: config.enableTextNarrativeScript
+                            ? [...negativeBase, ...artStyleProfile.negative, "NO SPEECH BUBBLES", "NO DIALOGUE BALLOONS", "NO COMIC CHAT BUBBLES", "NO FULL-SCREEN TEXT OVERLAY", "NO TEXT COVERING THE MAIN IMAGE"]
+                            : [...negativeBase, ...artStyleProfile.negative, "NO TEXT", "NO CAPTIONS", "NO SPEECH BUBBLES", "NO DIALOGUE BALLOONS", "NO LETTERS", "NO TYPOGRAPHY"]
+                    }, null, 2) : null;
+
+                    let animationPrompt = null;
+                    if (config.enableAnimation) {
+                        const styleType = artStyleProfile.videoStyle;
+                        const locationTransition = locationChanged
+                            ? "Because the location or background changes, include a smooth motivated transition such as a natural cut, pan-follow, match action, dissolve, or scene-bridging movement that makes the shift feel logical."
+                            : "Stay in the same location and continue the motion naturally from the prior frame without a visual reset.";
+                        const scriptEmbed = config.enableTextNarrativeScript ? `
+
+**[EMBEDDED DIALOGUE / SCRIPT INSTRUCTION]**
+* **Script Requirement**: Generate a natural, scene-appropriate spoken script directly inside this animation plan.
+* **Target Language**: ${config.language === 'ms' ? 'Bahasa Melayu Malaysia only, strictly not Indonesian.' : config.language === 'ar' ? 'Standard Arabic (Fusha).' : 'English.'}
+* **Script Source Rule**: ${hasExplicitScript ? `Use and refine this provided script context carefully: ${scriptSource}` : `No explicit script is provided. Build a smart spoken script based on the narrative flow of this scene: ${sceneDescription}`}
+* **Speaker Rule**: Clearly state which character speaks each line. Use an explicit format such as: Ali: ... / Ibu: ... / Narrator: ...
+* **Scene Extension Rule**: ${currentSceneNum === 1 ? 'Build Scene 1 as the master speaking pattern and visual identity.' : `For Scene ${currentSceneNum}, extend naturally from Scene ${currentSceneNum - 1}. Preserve voice ownership, speaking role logic, emotional continuity, and story flow without reset.`}
+* **Integration Rule**: The generated script must support this exact visual animation, timing, and character continuity. Avoid random extra dialogue, long monologues, or lines that do not match the visible action.` : `
+
+**[TEXT / SCRIPT OVERRIDE]**
+* Do not generate narration text, dialogue text, captions, subtitles, or on-screen words.
+* Animate the scene visually only, with no spoken script planning and no text output.`;
+                        animationPrompt = `
+**VIDEO GENERATION PROMPT (COPY THIS)**
+
+**[VISUAL PROMPT]**
+* **Goal**: Animate the generated image for this scene into a logical cinematic shot progression with consistent character identity and story continuity.
+* **Scene Context**: ${sceneDescription}
+* **Previous Scene Summary**: ${continuity.previousSceneSummary}
+* **Duration**: 6–8 seconds
+* **Aspect Ratio**: ${config.aspectRatio}
+* **FPS**: 24fps (Cinematic)
+* **Quality**: High fidelity, sharp, clean, 8K
+* **Style**: ${styleType}
+* **Art Style DNA**: ${artStyleProfile.sceneLook}
+* **Art Style Lock**: ${artStyleProfile.visualLock}
+* **Prompt Language**: English
+* **Reference-Lock**: Use the generated image for this scene as the primary visual source.
+* **Scene Logic Rule**: Derive the movement, pacing, blocking, and camera choice intelligently from the story action instead of random motion.
+* **Start Frame Rule**: ${currentSceneNum === 1 ? 'Start from the generated image of Scene 1.' : continuity.grokStartFrame}
+* **Extend Rule**: ${currentSceneNum === 1 ? 'Build the first motion naturally from the opening image.' : `For Scene ${currentSceneNum}, extend directly from the last frame of Scene ${currentSceneNum - 1} whenever the story remains in the same flow.`}
+* **Master Character Rule**: ${currentSceneNum === 1 ? 'Establish Scene 1 as the master character reference for all later scenes.' : 'From Scene 2 onward, strictly preserve the same character identity as Scene 1 and continue the same character state from the prior scene.'}
+* **Continuity Lock**: ${continuity.continuityLock}
+* **Transition Rule**: ${locationTransition}
+* **Carry-Forward Rule**: ${continuity.carryForwardInstruction}
+* **Image-Video Alignment**: Preserve the same character design, costume logic, props, lighting logic, environment mood, and composition language from the generated image.
+* **Motion Plan**: Generate normal, believable body movement, eye focus, fabric response, prop handling, and environmental motion that fit the scene. No warping, identity drift, costume drift, prop drift, reset-to-default posing, or random motion loops.
+* **Camera Guidance**: Choose the most suitable camera framing and movement for this scene, such as gentle push-in, pan-follow, tilt reveal, handheld energy, side tracking, or static emotional hold. Keep it smooth, motivated, and story-driven.
+* **Character Consistency**: Preserve face identity, body proportion, hairstyle, outfit logic, accessories, and emotional tone across all scenes.
+* **Prop Consistency**: Carry forward important props, hand-held objects, and environment state from the last frame unless the story explicitly changes them.
+* **Audio Rule**: ${config.enableTextNarrativeScript ? 'Generate dialogue planning only inside the prompt text where required, but do not add random extra dubbing, narration, or subtitles beyond the instructed script structure.' : 'No voice, no narration, no dubbing, no lipsync audio generation, and no subtitles.'}
+* **Text Overlay**: No readable text, no labels, no captions, and no graphic words anywhere in the video.
+* **Shariah Compliance Lock**: ${shariahUniversal}${scriptEmbed}`.trim();
+                    }
+
+                    boxScenesData.push({
+                        sceneNum: currentSceneNum,
+                        imagePrompt: visualPrompt,
+                        videoPrompt: animationPrompt
+                    });
+                });
+
+                const boxesOutput = boxScenesData.length > 0 ? [{ boxId: 1, scenes: boxScenesData }] : [];
+
+                const coverPrompt = JSON.stringify({
+                    _directive: "GENERATE_IMAGE",
+                    meta: { target_model: "DALL-E 3 / Midjourney", compliance_mode: "SHARIAH_COMPLIANT_ULTRA_STRICT", prompt_language: "English" },
+                    image_specifications: {
+                        format: "Book Cover",
+                        style_booster: styleBooster,
+                        art_style: config.genre,
+                        visual_reference: visualReferenceSection,
+                        orientation: `${finalOrientationText} (${config.aspectRatio})`,
+                        dimensions: finalDimensions,
+                        quality: "ULTRA-STRICT 8K"
+                    },
+                    core_content: {
+                        topic: config.title,
+                        story_series_lock: globalConsistencyLock,
+                        additional_props: [config.extraElements || "", shariahUniversal],
+                        main_char: `${charLabel}. ${characterModesty}`,
+                        compliance: shariahUniversal
+                    },
+                    text_processing: {
+                        language: selectedLangLabel,
+                        text_direction: isRTL ? "RTL (Right-to-Left)" : "LTR (Left-to-Right)",
+                        font_style: isRTL ? rtlFontStyleDesc : getFontStyleDesc(config.genre),
+                        font_size_target: "Large and clearly readable for a cover",
+                        typography_consistency: textConsistencyLock,
+                        cover_text_rule: config.noAuthor ? "Render title only. Do not add author text." : "Render title and author only. Do not add any extra text.",
+                        proof_reading: getProofingInstruction(config.language)
+                    },
+                    narrative_flow: [{
+                        panel: "Cover",
+                        visual: `Create a highly engaging full-bleed book cover for '${config.title}' in ${config.genre} with the same character design language, costume logic, modest styling, props logic, and visual world as the story scenes. ${artStyleProfile.coverLook} Use ${charLabel} as the key cover focus. Keep composition readable, visually striking, and consistent with the generated scenes. ${config.extraElements ? `Additional elements: ${config.extraElements}.` : ''}`,
+                        caption: config.noAuthor ? `TITLE ONLY: ${config.title}` : `TITLE: ${config.title} | AUTHOR: ${config.authorName}`
+                    }],
+                    negative_constraints: ["NO TEXT BLUR", "NO DISTORTION", "NO RANDOM EXTRA TEXT", "NO STYLE DRIFT", "NO CHARACTER DESIGN DRIFT", "NO WHITE BORDER", "NO EMPTY MARGIN", ...artStyleProfile.negative]
+                }, null, 2);
+
+                setJsonOutput({ cover: coverPrompt, boxes: boxesOutput });
+            };
+
+            const copyToClipboard = (text, sectionId) => {
+                if (!text) return;
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.style.position="fixed"; ta.style.left="-9999px";
+                document.body.appendChild(ta); ta.focus(); ta.select();
+                try { 
+                    if(document.execCommand('copy')) {
+                        setCopiedSection(sectionId);
+                        setTimeout(() => setCopiedSection(null), 2000);
+                    }
+                } catch (err) {}
+                document.body.removeChild(ta);
+            };
+
+            return (
+                <div className="flex flex-col min-h-screen">
+                    <main className="flex-grow w-full mx-auto px-4 sm:px-6 md:px-[10%] lg:px-[20%] py-8">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            
+                            <div className="relative flex flex-col items-center justify-center text-center py-2">
+                                <div className="w-40 h-40 sm:w-48 sm:h-48 bg-transparent flex items-center justify-center mb-6 transform hover:scale-105 transition-all duration-300 rounded-3xl border-4 border-white/20 shadow-2xl overflow-hidden relative group">
+                                     <div className="absolute inset-0 bg-white/10 blur-xl rounded-full opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                                     <img 
+                                        src="img/comixsprompter.png" 
+                                        alt="Logo" 
+                                        className={`w-full h-full object-cover drop-shadow-2xl ${logoError ? 'hidden' : 'block'}`} 
+                                        onError={() => setLogoError(true)} 
+                                    />
+                                    {logoError && <Icons.Sparkles className="w-24 h-24 text-white" />}
+                                </div>
+                                <h1 className="comix-title text-4xl sm:text-5xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white mb-1 tracking-tight drop-shadow-md">COMIXS PROMPTER</h1>
+                                <p className="text-xs sm:text-sm font-bold text-slate-400 tracking-widest uppercase">{t('subtitle')}</p>
+                            </div>
+
+                            <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/10 text-slate-800">
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-3">
+                                        <Icons.Languages className="w-4 h-4" /> {t('outputLang')}
+                                    </label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {LANG_OPTIONS.map((lang) => (
+                                            <button key={lang.code} onClick={() => setConfig({ ...config, language: lang.code })}
+                                                className={`flex-1 py-3 px-4 rounded-xl text-base font-bold transition-all shadow-sm border ${config.language === lang.code ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}`}>
+                                                {lang.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {['ar', 'ms-jawi'].includes(config.language) && (
+                                    <div className="mt-4 bg-indigo-50 p-3 rounded-xl border border-indigo-200 animate-in fade-in slide-in-from-top-2">
+                                        <label className="flex items-center gap-2 text-sm font-bold text-indigo-700 uppercase mb-2"><Icons.Type className="w-4 h-4" /> {t('selectFont')}</label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {ARABIC_FONTS.map((font) => (
+                                                <button key={font.name} onClick={() => setConfig({ ...config, arabicFont: font.name })} className={`text-right p-3 rounded-lg border text-base transition-all flex flex-col items-end ${config.arabicFont === font.name ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-300'}`}>
+                                                    <span className="text-xl leading-snug mb-1" style={{ fontFamily: `"${font.name}", serif` }}>{font.arabicName}</span>
+                                                    <span className="text-xs uppercase tracking-wider opacity-70">{font.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/10 text-slate-800 space-y-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-500 uppercase mb-1 ml-1">{t('storyTitle')}</label>
+                                    <input name="title" value={config.title} onChange={handleConfigChange} dir={currentLangDir} style={fontStyleToApply} className={`w-full p-4 bg-slate-100 border-2 border-slate-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none font-bold text-slate-800 placeholder-slate-400 transition-colors ${inputFontSize}`} placeholder={t('storyTitlePh')} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-500 uppercase mb-1 ml-1 flex items-center gap-2"><Icons.PenTool className="w-3 h-3" /> {t('authorName')}</label>
+                                    <input name="authorName" value={config.authorName} onChange={handleConfigChange} dir={currentLangDir} disabled={config.noAuthor} style={fontStyleToApply} className={`w-full p-3 border-2 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none text-slate-800 placeholder-slate-400 transition-colors ${config.noAuthor ? 'bg-slate-200 border-slate-200 opacity-70 cursor-not-allowed' : 'bg-slate-100 border-slate-200'} ${inputFontSize}`} placeholder={t('authorNamePh')} />
+                                    <label className="mt-2 flex items-center gap-3 text-sm font-bold text-slate-600">
+                                        <input type="checkbox" name="noAuthor" checked={config.noAuthor} onChange={handleConfigChange} className="w-5 h-5 custom-checkbox rounded-md border-slate-300 accent-indigo-600" />
+                                        <span>{t('noAuthor')}</span>
+                                    </label>
+                                </div>
+                                
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-3">
+                                        <Icons.MessageSquare className="w-4 h-4" /> {t('outputMode')}
+                                    </label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <label className={`flex items-center gap-3 py-3 px-4 rounded-xl text-base font-bold transition-all shadow-sm border cursor-pointer ${config.enableVisual ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}`}>
+                                            <input type="checkbox" name="enableVisual" checked={config.enableVisual} onChange={handleConfigChange} className="w-5 h-5 custom-checkbox rounded-md border-slate-300 accent-indigo-600" />
+                                            <span>{t('visualTick')}</span>
+                                        </label>
+                                        <label className={`flex items-center gap-3 py-3 px-4 rounded-xl text-base font-bold transition-all shadow-sm border cursor-pointer ${config.enableAnimation ? 'bg-purple-600 text-white border-purple-500' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}`}>
+                                            <input type="checkbox" name="enableAnimation" checked={config.enableAnimation} onChange={handleConfigChange} className="w-5 h-5 custom-checkbox rounded-md border-slate-300 accent-purple-600" />
+                                            <span>{t('animationTick')}</span>
+                                        </label>
+                                    </div>
+                                    <label className="mt-3 flex items-center gap-3 text-sm font-bold text-slate-600">
+                                        <input type="checkbox" name="enableTextNarrativeScript" checked={config.enableTextNarrativeScript} onChange={handleConfigChange} className="w-5 h-5 custom-checkbox rounded-md border-slate-300 accent-amber-600" />
+                                        <span>{t('narrativeScriptToggle')}</span>
+                                    </label>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-1 ml-1"><Icons.Monitor className="w-3 h-3" /> {t('imgSize')}</label>
+                                        <select name="aspectRatio" value={config.aspectRatio} onChange={handleConfigChange} className="w-full p-3 bg-slate-100 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-base text-slate-800 font-medium cursor-pointer">
+                                            {RATIOS_DATA.map(r => <option key={r.id} value={r.id}>{t(r.labelKey)}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-1 ml-1"><Icons.Monitor className="w-3 h-3" /> {t('orientationLabel')}</label>
+                                        <select name="orientation" value={config.orientation} onChange={handleConfigChange} disabled={!['A4', 'B5', 'A5', 'A6'].includes(config.aspectRatio)} className={`w-full p-3 border-2 rounded-xl focus:border-indigo-500 outline-none text-base font-medium cursor-pointer ${!['A4', 'B5', 'A5', 'A6'].includes(config.aspectRatio) ? 'bg-slate-200 border-slate-200 text-slate-500 opacity-70 cursor-not-allowed' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>
+                                            <option value="landscape">{t('ori_landscape')}</option>
+                                            <option value="portrait">{t('ori_portrait')}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-1 ml-1"><Icons.User className="w-3 h-3" /> {t('mainChar')}</label>
+                                        <select name="characterType" value={config.characterType} onChange={handleConfigChange} className="w-full p-3 bg-slate-100 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-base text-slate-800 font-medium cursor-pointer">
+                                            {CHAR_DATA.map(c => <option key={c.id} value={c.id}>{t(c.labelKey)}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-1 ml-1"><Icons.Palette className="w-3 h-3" /> {t('artStyle')}</label>
+                                        <select name="genre" value={config.genre} onChange={handleConfigChange} className="w-full p-3 bg-slate-100 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-base text-slate-800 font-medium cursor-pointer">
+                                            {GENRES_DATA.map(g => <option key={g.value} value={g.value}>{t(g.labelKey)}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase mb-1 ml-1"><Icons.Settings className="w-3 h-3" /> {t('props')}</label>
+                                    <textarea rows={4} name="extraElements" value={config.extraElements} onChange={handleConfigChange} dir={currentLangDir} className={`w-full p-3 bg-slate-100 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-slate-800 placeholder-slate-400 transition-colors resize-none ${inputFontSize}`} placeholder={t('propsPh')} />
+                                </div>
+                            </div>
+
+                            <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/10 text-slate-800">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-slate-600 flex items-center gap-2"><Icons.BookOpen className="w-5 h-5 text-indigo-600" /> {t('storyBoxesTitle')}</h3>
+                                </div>
+                                <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2 pl-2 custom-scrollbar">
+                                    <div className="relative group bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-bold text-indigo-600 flex items-center gap-2">
+                                                <Icons.Box className="w-4 h-4" /> {t('boxLabel')} ({parseScenesFromText(storyInput).length} {uiLang === 'ms' ? 'Episod' : t('sceneLabel')})
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={clearStoryInput} className="text-xs text-slate-400 hover:text-slate-600 font-bold px-2 py-1 rounded bg-slate-100 hover:bg-slate-200" title="Kosongkan">
+                                                    <Icons.Eraser className="w-3 h-3" /> {t('clearBox')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <textarea 
+                                            value={storyInput} 
+                                            onChange={(e) => handleStoryInputChange(e.target.value)} 
+                                            dir={currentLangDir} 
+                                            style={fontStyleToApply}
+                                            className={`w-full p-4 bg-white border-2 rounded-xl focus:ring-0 outline-none text-slate-800 placeholder-slate-400 min-h-[200px] shadow-inner resize-y transition-all ${inputFontSize} leading-relaxed border-slate-200 focus:border-purple-500`} 
+                                            placeholder={t('sceneInputHint')} 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onClick={generateJSON} className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold text-xl shadow-xl shadow-indigo-900/50 transform active:scale-95 transition-all flex items-center justify-center gap-2 border border-white/10">
+                                <Icons.FileJson className="w-6 h-6 text-yellow-300" /> {t('generateBtn')}
+                            </button>
+                        </div>
+
+                        {jsonOutput && (
+                            <div className="mt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                                <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-1 shadow-2xl border border-white/10 flex flex-col text-slate-800">
+                                    <div className="flex flex-col w-full">
+                                        <div className="p-4 border-b border-slate-100 bg-slate-50 rounded-t-3xl text-center">
+                                            <h3 className="text-slate-700 font-bold text-lg flex items-center justify-center gap-2"><Icons.Layers className="w-5 h-5 text-indigo-600" /> {t('resultTitle')}</h3>
+                                            <p className="text-sm text-slate-500 mt-1">{t('resultSubtitle')}</p>
+                                        </div>
+                                        <div className="bg-yellow-50 border-b border-yellow-100 p-3 text-sm text-yellow-800 text-center font-medium">{t('instruction')}</div>
+                                        <div className="p-4 space-y-4">
+                                            <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-lg">
+                                                <div className="flex justify-between items-center p-3 bg-slate-50 border-b border-slate-200">
+                                                    <span className="text-sm font-bold text-slate-700 flex items-center gap-2"><Icons.Settings className="w-4 h-4" /> {t('cover')}</span>
+                                                    <button onClick={() => copyToClipboard(jsonOutput.cover, 'cover')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all ${copiedSection === 'cover' ? 'bg-green-500 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'}`}>{copiedSection === 'cover' ? <Icons.Check className="w-3 h-3" /> : <Icons.Copy className="w-3 h-3" />} {copiedSection === 'cover' ? t('copied') : t('copy')}</button>
+                                                </div>
+                                                <pre className="p-3 text-sm font-mono text-slate-600 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto custom-scrollbar">{jsonOutput.cover}</pre>
+                                            </div>
+                                            {jsonOutput.boxes.map((boxData, idx) => (
+                                                <div key={idx} className="mb-8">
+                                                    {boxData.scenes.map((scene, sIdx) => (
+                                                        <div key={sIdx} className="mb-6 last:mb-0">
+                                                            {scene.imagePrompt && (
+                                                                <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-lg mb-2">
+                                                                    <div className="flex justify-between items-center p-3 bg-green-50 border-b border-green-100">
+                                                                        <span className="text-sm font-bold text-green-700 flex items-center gap-2"><Icons.BookOpen className="w-4 h-4" /> {t('imageBoxLabel')} - {t('sceneLabel')} {scene.sceneNum}</span>
+                                                                        <button onClick={() => copyToClipboard(scene.imagePrompt, `s-img-${scene.sceneNum}`)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all ${copiedSection === `s-img-${scene.sceneNum}` ? 'bg-green-600 text-white' : 'bg-green-100 hover:bg-green-200 text-green-800'}`}>{copiedSection === `s-img-${scene.sceneNum}` ? <Icons.Check className="w-3 h-3" /> : <Icons.Copy className="w-3 h-3" />} {copiedSection === `s-img-${scene.sceneNum}` ? t('copied') : t('copy')}</button>
+                                                                    </div>
+                                                                    <pre className="p-3 text-sm font-mono text-slate-600 whitespace-pre-wrap leading-relaxed">{scene.imagePrompt}</pre>
+                                                                </div>
+                                                            )}
+
+                                                            {scene.videoPrompt && (
+                                                                <div className="bg-indigo-50 rounded-xl overflow-hidden border border-indigo-200 shadow-lg ml-0 md:ml-4 border-l-4 border-l-indigo-400 mb-2">
+                                                                    <div className="flex justify-between items-center p-3 bg-indigo-100 border-b border-indigo-200">
+                                                                        <span className="text-sm font-bold text-indigo-700 flex items-center gap-2"><Icons.Video className="w-4 h-4" /> {t('videoPromptTitle')} - {t('sceneLabel')} {scene.sceneNum}</span>
+                                                                        <button onClick={() => copyToClipboard(scene.videoPrompt, `s-vid-${scene.sceneNum}`)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all ${copiedSection === `s-vid-${scene.sceneNum}` ? 'bg-indigo-600 text-white' : 'bg-indigo-200 hover:bg-indigo-300 text-indigo-800'}`}>{copiedSection === `s-vid-${scene.sceneNum}` ? <Icons.Check className="w-3 h-3" /> : <Icons.Copy className="w-3 h-3" />} {copiedSection === `s-vid-${scene.sceneNum}` ? t('copied') : t('copy')}</button>
+                                                                    </div>
+                                                                    <pre className="p-3 text-sm font-mono text-indigo-900 whitespace-pre-wrap leading-relaxed">{scene.videoPrompt}</pre>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="p-4 bg-slate-50 rounded-b-3xl border-t border-slate-100 text-center">
+                                            <button onClick={() => setJsonOutput(null)} className="flex items-center justify-center gap-2 mx-auto px-6 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-full font-bold text-sm transition-all shadow-sm">
+                                                <Icons.Trash2 className="w-4 h-4" /> {t('clearResult')}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    <footer className="w-full bg-indigo-950 p-4 text-center mt-auto border-t border-indigo-900/50">
+                        <p className="text-xs text-indigo-300 tracking-wide">
+                            AI.Comixs Prompter {new Date().getFullYear()}© {t('footerCredit')} <a href="https://www.tiktok.com/@kiemiftah" target="_blank" className="text-yellow-400 hover:text-yellow-300 underline font-bold transition-colors">Kiemiftah.Com</a>
+                        </p>
+                        <p className="text-[10px] text-indigo-500 mt-1 font-mono uppercase tracking-wider">
+                            Last Updated on {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} {hitCount ? `| Hits: ${hitCount}` : ''}
+                        </p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ComixsPrompter />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+    "name": "AI.GPTs Hub | Academic GPTs Launchpad",
+    "short_name": "AI.GPTs Hub",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#04182B",
+    "theme_color": "#04182B",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "https://www.dropbox.com/scl/fi/n8ech5gw3jj0c8tji7cvh/icongptacad.png?rlkey=q8zsbyegx2y6h8rcxkruhrscy&st=xxcda8mw&raw=1",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://www.dropbox.com/scl/fi/n8ech5gw3jj0c8tji7cvh/icongptacad.png?rlkey=q8zsbyegx2y6h8rcxkruhrscy&st=xxcda8mw&raw=1",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

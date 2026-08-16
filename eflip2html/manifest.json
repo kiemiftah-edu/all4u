@@ -1,0 +1,21 @@
+{
+  "name": "Flipbook Studio HTML",
+  "short_name": "eFlip2HTML",
+  "description": "Next-Gen Flipbook Engine by Kiemiftah.Com",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "img/flip2html.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/flip2html.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

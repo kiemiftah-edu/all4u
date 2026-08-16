@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipbook Studio HTML</title>
+    
+    <!-- PWA: Manifest & Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="img/flip2html.png">
+    <link rel="apple-touch-icon" href="img/flip2html.png">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Library: SortableJS untuk Drag & Drop mesra Mobile -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- Tambahan: PDF.js untuk import PDF berbilang halaman -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #ec4899;
+            --glass: rgba(255, 255, 255, 0.95);
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
+            --text-main: #1e293b;
+            --ease-paper: cubic-bezier(0.645, 0.045, 0.355, 1);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 0;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- LOADING OVERLAY --- */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .app-container {
+            background: var(--glass);
+            width: 95%; max-width: 1100px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex; flex-direction: column;
+            margin: 20px auto;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* --- HEADER STYLES (STRICTLY CENTERED) --- */
+        header {
+            padding: 3rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            background: rgba(255,255,255,0.5);
+            gap: 25px; 
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 130px; 
+            height: 130px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(139, 92, 246, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .header-text { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 12px;
+        }
+        
+        h1 { 
+            font-size: 2.2rem; 
+            font-weight: 900; 
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin: 0; 
+            line-height: 1.1;
+        }
+        .subtitle { 
+            font-size: 0.95rem; 
+            color: #64748b; 
+            font-weight: 700; 
+            margin-top: 0;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            max-width: 600px;
+        }
+
+        /* --- EDITOR SECTION (CENTERED) --- */
+        .editor { 
+            padding: 2rem; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem; 
+        }
+
+        .section-label { 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: #64748b; 
+            margin-bottom: 1rem; 
+            letter-spacing: 0.1em;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+
+        .input-box { 
+            background: #f8fafc; 
+            padding: 1.2rem; 
+            border-radius: var(--radius-md); 
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .input-box label { 
+            display: block; 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            margin-bottom: 0.8rem; 
+        }
+
+        select { 
+            width: 100%; 
+            padding: 0.8rem; 
+            border-radius: var(--radius-sm); 
+            border: 1px solid #cbd5e1; 
+            outline: none; 
+            background: white; 
+            cursor: pointer; 
+            font-size: 1rem;
+            text-align: center;
+            text-align-last: center;
+        }
+
+        .auto-detect-value {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid #dbeafe;
+            background: #ffffff;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .auto-detect-value small {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 0.76rem;
+            font-weight: 500;
+        }
+
+        .upload-zone {
+            width: 100%;
+            max-width: 600px;
+            border: 2px dashed #94a3b8; 
+            border-radius: var(--radius-md); 
+            background: #f1f5f9; 
+            padding: 3rem 2rem;
+            text-align: center; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            position: relative;
+        }
+        .upload-zone:hover { border-color: var(--primary); background: #e0e7ff; }
+        .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .upload-zone-text { display: block; color: #64748b; font-weight: 600; line-height: 1.6; font-size: 1rem; }
+        .upload-zone-text .en { font-size: 0.85rem; opacity: 0.8; font-weight: 500; font-style: italic; display: block; margin-top: 4px; }
+        
+        .sortable-grid { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            margin-top: 1.5rem; 
+            min-height: 50px; 
+            justify-content: center; 
+            width: 100%;
+        }
+        
+        .img-card {
+            width: 90px; height: 120px; background: white; border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm); 
+            overflow: hidden; position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .img-card:active { cursor: grabbing; }
+        .img-preview { width: 100%; height: 85px; object-fit: cover; pointer-events: none; }
+        .card-controls { height: 35px; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
+        .ctrl-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.1rem; padding: 5px; }
+
+        .actions { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            width: 100%;
+            margin-top: 1rem; 
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 1.4rem 3rem; border: none; border-radius: 60px;
+            font-size: 1.1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.4); transition: 0.3s;
+        }
+        .btn-main:active { transform: scale(0.96); }
+
+        /* --- PREVIEW AREA --- */
+        #previewArea {
+            display: none; background: #e2e8f0; border-top: 1px solid #cbd5e1; padding: 4rem 1.5rem;
+            flex-direction: column; align-items: center; position: relative;
+            width: 100%;
+        }
+
+        .scene {
+            perspective: 3500px;
+            width: 100%; height: 50vh; min-height: 400px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 3rem; position: relative;
+            transform-style: preserve-3d;
+            padding: 20px;
+            box-sizing: border-box;
+            container-type: size;
+        }
+
+        .book {
+            position: relative;
+            aspect-ratio: var(--ratio, 0.707);
+            width: 100%; height: auto; max-width: 100%; max-height: 100%;
+            width: min(100cqw, calc(100cqh * var(--ratio, 0.707)));
+            height: min(100cqh, calc(100cqw / var(--ratio, 0.707)));
+            transform-style: preserve-3d;
+            transition: aspect-ratio 0.4s var(--ease-paper);
+            box-shadow: 0 18px 38px -18px rgba(0,0,0,0.42);
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        /* Realistic paper curl engine: live multi-strip bend, dynamic light and cast shadow. */
+        .page {
+            position: absolute; inset: 0;
+            transform-origin: left center;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transform: translate3d(0,0,0);
+        }
+        .page-face {
+            position: absolute; inset: 0;
+            display: flex; justify-content: center; align-items: center;
+            background: #fff;
+            border: 1px solid rgba(15,23,42,0.07);
+            border-radius: 2px 5px 5px 2px;
+            overflow: hidden;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .page-front { transform: rotateY(0deg) translateZ(0.35px); }
+        .page-back {
+            transform: rotateY(180deg) translateZ(0.35px);
+            background:
+                linear-gradient(90deg, rgba(15,23,42,0.025), transparent 8%, transparent 92%, rgba(15,23,42,0.018)),
+                linear-gradient(135deg, #fffefc 0%, #f8f7f2 58%, #eeece5 100%);
+        }
+        .page-front img { width: 100%; height: 100%; object-fit: contain; background:#fff; pointer-events: none; -webkit-user-drag: none; }
+        .page.curling > .page-face { opacity:0; }
+
+        .curl-layer {
+            position:absolute; inset:0; opacity:0; pointer-events:none;
+            transform-style:preserve-3d; overflow:visible;
+        }
+        .curl-layer.active { opacity:1; }
+        .curl-strip {
+            position:absolute; top:0; bottom:0; transform-style:preserve-3d;
+            will-change:transform; transform-origin:center center;
+        }
+        .curl-strip-face {
+            position:absolute; inset:0; overflow:hidden;
+            backface-visibility:hidden; -webkit-backface-visibility:hidden;
+            background-repeat:no-repeat; background-color:#fff;
+        }
+        .curl-strip-front { transform:translateZ(.45px); }
+        .curl-strip-back {
+            transform:rotateY(180deg) translateZ(.45px);
+            background:linear-gradient(90deg,#f3f1e9 0%,#fffef9 30%,#f7f5ee 70%,#ece9df 100%);
+        }
+        .curl-strip-front::after,
+        .curl-strip-back::after {
+            content:""; position:absolute; inset:0; pointer-events:none;
+            opacity:var(--shine,0); transition:opacity .04s linear;
+        }
+        .curl-strip-front::after {
+            background:linear-gradient(90deg,rgba(255,255,255,.88) 0%,rgba(255,255,255,.22) 34%,rgba(15,23,42,.18) 100%);
+            mix-blend-mode:soft-light;
+        }
+        .curl-strip-back::after {
+            background:linear-gradient(90deg,rgba(15,23,42,.16),rgba(255,255,255,.34) 52%,rgba(15,23,42,.08));
+        }
+        .curl-cast-shadow {
+            position:absolute; top:1%; bottom:1%; left:0; width:80px;
+            opacity:0; pointer-events:none; z-index:999;
+            filter:blur(9px); border-radius:50%;
+            background:linear-gradient(90deg,transparent 0%,rgba(15,23,42,.14) 22%,rgba(15,23,42,.42) 50%,rgba(15,23,42,.14) 78%,transparent 100%);
+            will-change:left,width,opacity,transform;
+        }
+        .book { touch-action:none; }
+        .book.rtl .page { transform-origin: right center; }
+        .book.rtl .page.flipped { transform: translate3d(0,0,1px) rotateY(180deg); z-index: 0 !important; }
+        .book.ltr .page { transform-origin: left center; }
+        .book.ltr .page.flipped { transform: translate3d(0,0,1px) rotateY(-180deg); z-index: 0 !important; }
+
+        /* --- ARROW ALPHA 30% & CENTERED --- */
+        .corner-guide {
+            position: absolute; top: 50%; z-index: 100; width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            opacity: 0.3; 
+            animation: blink-fade 1.5s infinite ease-in-out;
+        }
+        .corner-guide svg { width: 100%; height: 100%; fill: rgba(59, 130, 246, 0.6); stroke: white; stroke-width: 3px; }
+        
+        .guide-ltr { right: 15px; } 
+        .guide-rtl { left: 15px; }  
+
+        .restart-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 999; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
+        .restart-overlay.visible { pointer-events: auto; opacity: 1; }
+        .btn-restart { background: rgba(0,0,0,0.85); color: white; padding: 1.2rem 2.5rem; border-radius: 50px; border: 2px solid white; font-weight: 800; cursor: pointer; font-size: 1.1rem; backdrop-filter: blur(5px); }
+
+        /* --- DOWNLOAD SECTION --- */
+        .download-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .btn-download-final {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem 2.5rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-download-final:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-download-final .dl-icon { font-size: 2.2rem; }
+        .btn-download-final .dl-text { text-align: center; }
+        .btn-download-final .dl-text b { display: block; font-size: 1.2rem; letter-spacing: 0.5px; }
+        .btn-download-final .dl-text span { font-size: 0.85rem; opacity: 0.95; font-style: italic; display: block; margin-top: 3px; }
+
+        footer { width: 100%; background: rgba(15, 23, 42, 0.98); color: #94a3b8; text-align: center; padding: 2.5rem 1.5rem; margin-top: auto; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        footer a { color: var(--primary); text-decoration: none; font-weight: 700; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink-fade { 
+            0%, 100% { opacity: 0.3; transform: translateY(-50%) scale(1) rotate(var(--rot, 0deg)); } 
+            50% { opacity: 0.15; transform: translateY(-50%) scale(0.9) rotate(var(--rot, 0deg)); } 
+        }
+
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        @media (min-width: 768px) {
+            header { padding: 4rem 2rem; }
+            .logo-img { width: 160px; height: 160px; }
+            h1 { font-size: 3rem; }
+            .subtitle { font-size: 1.1rem; }
+            .editor { padding: 3rem; }
+            .scene { height: 60vh; }
+            .sortable-grid { gap: 15px; }
+            .img-card { width: 100px; height: 135px; }
+        }
+
+        @media (max-width: 480px) {
+            .app-container { margin: 10px auto; border-radius: var(--radius-md); }
+            .logo-img { width: 110px; height: 110px; }
+            h1 { font-size: 1.7rem; }
+            .subtitle { font-size: 0.85rem; }
+            .btn-main { padding: 1rem 2rem; font-size: 1rem; width: auto; }
+            .btn-download-final { padding: 1.2rem 1.5rem; }
+            .btn-download-final .dl-text b { font-size: 1rem; }
+            .scene { height: 60vh; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div style="font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; font-size: 0.9rem;">Menyusun Halaman...</div>
+    <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 8px;">Optimizing Flipbook Engine</div>
+</div>
+
+<div class="app-container">
+    <header>
+        <img src="img/flip2html.png" alt="Flipbook Studio" class="logo-img" onerror="this.src='https://via.placeholder.com/130?text=F2H'">
+        <div class="header-text">
+            <h1>FLIPBOOK STUDIO HTML</h1>
+            <div class="subtitle">Easily Convert Image to Flipbook & HTML Code</div>
+        </div>
+    </header>
+
+    <div class="editor">
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="section-label">Pilihan Tetapan / Style Options</div>
+            <div class="input-box">
+                <label>Saiz Halaman / Page Size</label>
+                <div class="auto-detect-value" id="autoSizeStatus">AUTO DETECT<small>Muat naik fail untuk mengesan nisbah dan orientasi halaman.</small></div>
+            </div>
+            <div class="input-box">
+                <label>Bahasa & Arah Selakan / Language & Flip Direction</label>
+                <select id="direction">
+                    <option value="auto" selected>Auto Detect Language / Direction</option>
+                    <option value="ltr">Standard (Kiri → Kanan)</option>
+                    <option value="rtl">Arabic/Jawi (Kanan → Kiri)</option>
+                </select>
+                <div class="auto-detect-value" id="autoLanguageStatus" style="margin-top:8px;">AUTO DETECT<small>PDF berteks akan dianalisis secara automatik, termasuk tulisan Arab.</small></div>
+            </div>
+        </div>
+
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="section-label">
+                Muat Naik & Susun / Upload & Arrange
+                <span style="display:block; margin-top:5px; font-size:0.75rem; color:var(--primary);" id="imgCount">0 Gambar / Images</span>
+            </div>
+            <div class="upload-zone">
+                <span style="font-size: 3rem; display: block; margin-bottom: 15px;">📂</span>
+                <span class="upload-zone-text">
+                    Klik untuk memuat naik atau seret imej/PDF ke sini<br>
+                    <span class="en">Click to upload images/PDF or drag and drop here</span>
+                </span>
+                <input type="file" id="fileInput" accept="image/*,application/pdf,.pdf" multiple onchange="handleBatchUpload(this)">
+            </div>
+            <div class="sortable-grid" id="sortableGrid"></div>
+        </div>
+
+        <div class="actions">
+            <button class="btn-main" id="btnGenerate" onclick="startPreview()">
+                ✨ JANA FLIPBOOK / GENERATE FLIPBOOK
+            </button>
+        </div>
+    </div>
+
+    <div id="previewArea">
+        <div class="section-label" style="text-align:center; margin-bottom:25px; color:var(--text-main);">Pratonton Eksklusif / Premium Preview</div>
+        
+        <div class="scene">
+            <div id="cornerGuide" class="corner-guide">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+
+            <div class="book" id="bookPreview"></div>
+            <div class="restart-overlay" id="restartOverlay">
+                <button class="btn-restart" onclick="resetBook()">↻ Mula Semula / Restart</button>
+            </div>
+        </div>
+
+        <div class="download-wrapper">
+            <div class="section-label" style="margin-bottom:15px;">Simpan Fail Anda / Save Offline Version</div>
+            <button class="btn-download-final" onclick="downloadHTML()">
+                <span class="dl-icon">💾</span>
+                <div class="dl-text">
+                    <b>MUAT TURUN E-FLIPBOOK.HTML</b>
+                    <span>Click to Download Your Flipbook (Offline HTML)</span>
+                </div>
+            </button>
+            <textarea id="outputCode" style="display:none"></textarea>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>Flipbook Studio HTML 2025© was creatively built and designed using Gemini Canvas by <a href="https://www.tiktok.com/@kiemiftah" target="_blank">Kiemiftah.Com</a>.</p>
+    <p style="color: #64748b; font-size: 0.8rem; margin-top: 8px;">Last Updated on <span id="lastUpdatedDate">14 August 2026</span> | Version 1.9</p>
+</footer>
+
+<script>
+    (() => {
+        const el = document.getElementById('lastUpdatedDate');
+        if (!el) return;
+        const modified = new Date(document.lastModified);
+        const date = Number.isNaN(modified.getTime()) ? new Date() : modified;
+        el.textContent = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    })();
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed:', err));
+        });
+    }
+
+    let uploadedImages = []; 
+    let settings = { dir: 'ltr', ratio: 0.707, width: 0, height: 0, language: 'auto' };
+    let previewCurrentPage = 0;
+    let generatedHTMLContent = "";
+
+    const sortable = new Sortable(document.getElementById('sortableGrid'), {
+        animation: 150,
+        ghostClass: 'dragging',
+        onEnd: function (evt) {
+            const item = uploadedImages.splice(evt.oldIndex, 1)[0];
+            uploadedImages.splice(evt.newIndex, 0, item);
+        }
+    });
+
+    async function handleBatchUpload(input) {
+        const files = Array.from(input.files || []);
+        if (files.length === 0) return;
+
+        const loader = document.getElementById('loadingOverlay');
+        const loaderTitle = loader.querySelector('div:nth-child(2)');
+        const loaderSub = loader.querySelector('div:nth-child(3)');
+        const originalTitle = loaderTitle ? loaderTitle.textContent : '';
+        const originalSub = loaderSub ? loaderSub.textContent : '';
+
+        loader.style.display = 'flex';
+        if (loaderTitle) loaderTitle.textContent = 'Memproses Fail...';
+        if (loaderSub) loaderSub.textContent = 'Reading images / rendering PDF pages';
+
+        try {
+            // Process one selected file at a time so mixed image/PDF uploads keep their original order.
+            for (const file of files) {
+                const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+                if (isPdf) {
+                    await importPdfFile(file, loaderTitle, loaderSub);
+                } else if (file.type.startsWith('image/')) {
+                    const imageObj = await importImageFile(file);
+                    uploadedImages.push(imageObj);
+                    renderGrid();
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Fail tidak dapat diproses. Pastikan PDF atau imej tidak rosak / corrupted.');
+        } finally {
+            input.value = '';
+            loader.style.display = 'none';
+            if (loaderTitle) loaderTitle.textContent = originalTitle || 'Menyusun Halaman...';
+            if (loaderSub) loaderSub.textContent = originalSub || 'Optimizing Flipbook Engine';
+            renderGrid();
+        }
+    }
+
+    function analyseLanguageText(text = '') {
+        const arabic = (String(text).match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
+        const latin = (String(text).match(/[A-Za-z]/g) || []).length;
+        return { arabic, latin };
+    }
+
+    function fileNameRtlHint(name = '') {
+        const n = String(name).toLowerCase();
+        return /[\u0600-\u06FF]/.test(name) || /(^|[ _.-])(arabic|arab|jawi|rtl)([ _.-]|$)/i.test(n);
+    }
+
+    function getDominantGeometry() {
+        if (!uploadedImages.length) return { ratio: 0.707, width: 0, height: 0, orientation: 'Portrait' };
+        const groups = new Map();
+        uploadedImages.forEach((p, idx) => {
+            const r = Number(p.ratio) || 0.707;
+            const key = r.toFixed(3);
+            const entry = groups.get(key) || { count: 0, first: idx, item: p };
+            entry.count++;
+            groups.set(key, entry);
+        });
+        const best = [...groups.values()].sort((a,b) => (b.count-a.count) || (a.first-b.first))[0];
+        const item = best.item;
+        const ratio = Number(item.ratio) || 0.707;
+        return {
+            ratio,
+            width: Number(item.sourceWidth || item.width) || 0,
+            height: Number(item.sourceHeight || item.height) || 0,
+            orientation: Math.abs(ratio - 1) < 0.035 ? 'Square' : (ratio > 1 ? 'Landscape' : 'Portrait')
+        };
+    }
+
+    function getDetectedDirection() {
+        let arabic = 0, latin = 0, rtlHints = 0, textPages = 0;
+        uploadedImages.forEach(p => {
+            arabic += Number(p.arabicChars || 0);
+            latin += Number(p.latinChars || 0);
+            if (p.rtlHint) rtlHints++;
+            if ((p.arabicChars || 0) + (p.latinChars || 0) > 0) textPages++;
+        });
+        const rtl = (arabic >= 8 && arabic > latin * 0.45) || (rtlHints > 0 && arabic >= latin * 0.15);
+        return { dir: rtl ? 'rtl' : 'ltr', arabic, latin, rtlHints, textPages };
+    }
+
+    function updateAutoDetectionUI() {
+        const sizeEl = document.getElementById('autoSizeStatus');
+        const langEl = document.getElementById('autoLanguageStatus');
+        if (!uploadedImages.length) {
+            if (sizeEl) sizeEl.innerHTML = 'AUTO DETECT<small>Muat naik fail untuk mengesan nisbah dan orientasi halaman.</small>';
+            if (langEl) langEl.innerHTML = 'AUTO DETECT<small>PDF berteks akan dianalisis secara automatik, termasuk tulisan Arab.</small>';
+            return;
+        }
+        const g = getDominantGeometry();
+        const d = getDetectedDirection();
+        const ratioLabel = g.ratio.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+        let unitText = '';
+        const rep = uploadedImages.find(p => Math.abs((Number(p.ratio)||0)-g.ratio) < 0.001) || uploadedImages[0];
+        if (rep && rep.sourceType === 'pdf') unitText = `${Math.round(g.width)} × ${Math.round(g.height)} pt`;
+        else if (g.width && g.height) unitText = `${Math.round(g.width)} × ${Math.round(g.height)} px`;
+        if (sizeEl) sizeEl.innerHTML = `AUTO: ${g.orientation} • Ratio ${ratioLabel}<small>${unitText || 'Nisbah halaman dikesan daripada fail.'} • HTML akan ikut nisbah ini secara responsif.</small>`;
+        const label = d.dir === 'rtl' ? 'Arabic / RTL • Kanan → Kiri' : 'LTR • Kiri → Kanan';
+        const confidence = d.textPages ? `Analisis teks PDF: Arabic ${d.arabic.toLocaleString()} aksara, Latin ${d.latin.toLocaleString()} aksara.` : 'Tiada teks PDF boleh dibaca; fallback menggunakan nama fail atau LTR.';
+        if (langEl) langEl.innerHTML = `AUTO: ${label}<small>${confidence}</small>`;
+    }
+
+    function importImageFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = (e) => {
+                const tempImg = new Image();
+                tempImg.onerror = reject;
+                tempImg.onload = () => resolve({
+                    id: Date.now() + Math.random(),
+                    src: e.target.result,
+                    ratio: tempImg.naturalWidth / tempImg.naturalHeight,
+                    width: tempImg.naturalWidth,
+                    height: tempImg.naturalHeight,
+                    sourceType: 'image',
+                    sourceName: file.name,
+                    sourceWidth: tempImg.naturalWidth,
+                    sourceHeight: tempImg.naturalHeight,
+                    arabicChars: analyseLanguageText(file.name).arabic,
+                    latinChars: analyseLanguageText(file.name).latin,
+                    rtlHint: fileNameRtlHint(file.name)
+                });
+                tempImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function importPdfFile(file, loaderTitle, loaderSub) {
+        if (!window.pdfjsLib) throw new Error('PDF.js gagal dimuatkan.');
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const pdf = await pdfjsLib.getDocument({ data: bytes, isEvalSupported: false }).promise;
+
+        for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+            if (loaderTitle) loaderTitle.textContent = `PDF: Halaman ${pageNo} / ${pdf.numPages}`;
+            if (loaderSub) loaderSub.textContent = file.name;
+
+            const page = await pdf.getPage(pageNo);
+            const baseViewport = page.getViewport({ scale: 1 });
+            let pageText = '';
+            try {
+                const textContent = await page.getTextContent();
+                pageText = textContent.items.map(item => item.str || '').join(' ');
+            } catch (textErr) {
+                console.warn('Text detection skipped for PDF page', pageNo, textErr);
+            }
+            const langInfo = analyseLanguageText(pageText);
+            // High-quality preview/export while keeping generated HTML reasonably sized.
+            const maxDimension = 1800;
+            const scale = Math.max(0.5, Math.min(2.25, maxDimension / Math.max(baseViewport.width, baseViewport.height)));
+            const viewport = page.getViewport({ scale });
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            canvas.width = Math.ceil(viewport.width);
+            canvas.height = Math.ceil(viewport.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            uploadedImages.push({
+                id: Date.now() + Math.random(),
+                src: canvas.toDataURL('image/jpeg', 0.94),
+                ratio: canvas.width / canvas.height,
+                width: canvas.width,
+                height: canvas.height,
+                sourceType: 'pdf',
+                sourceName: file.name,
+                pdfPage: pageNo,
+                sourceWidth: baseViewport.width,
+                sourceHeight: baseViewport.height,
+                arabicChars: langInfo.arabic,
+                latinChars: langInfo.latin,
+                rtlHint: fileNameRtlHint(file.name)
+            });
+
+            // Show each rendered page immediately in the existing page-by-page thumbnail preview.
+            renderGrid();
+            page.cleanup();
+        }
+    }
+
+    function renderGrid() {
+        document.getElementById('previewArea').style.display = 'none';
+        const grid = document.getElementById('sortableGrid');
+        const countSpan = document.getElementById('imgCount');
+        grid.innerHTML = '';
+        countSpan.textContent = `${uploadedImages.length} Halaman / Pages`;
+        updateAutoDetectionUI();
+        if (uploadedImages.length === 0) { 
+            grid.innerHTML = '<div style="color:#94a3b8; font-style:italic; padding:20px;">Belum ada gambar yang dipilih</div>'; 
+            return; 
+        }
+        uploadedImages.forEach((imgObj, index) => {
+            const card = document.createElement('div');
+            card.className = 'img-card';
+            card.innerHTML = `<img src="${imgObj.src}" class="img-preview"><div class="card-controls"><button class="ctrl-btn del" onclick="removeImage(${index})">🗑️</button></div>`;
+            grid.appendChild(card);
+        });
+    }
+
+    function removeImage(index) { uploadedImages.splice(index, 1); renderGrid(); }
+
+    function startPreview() {
+        if (uploadedImages.length === 0) { alert("Sila masukkan gambar terlebih dahulu."); return; }
+        const loader = document.getElementById('loadingOverlay');
+        loader.style.display = 'flex';
+        
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                const geometry = getDominantGeometry();
+                const detected = getDetectedDirection();
+                const directionMode = document.getElementById('direction').value;
+                settings.dir = directionMode === 'auto' ? detected.dir : directionMode;
+                settings.language = settings.dir === 'rtl' ? 'ar' : 'ms';
+                settings.ratio = geometry.ratio;
+                settings.width = geometry.width;
+                settings.height = geometry.height;
+                updateAutoDetectionUI();
+
+                const guide = document.getElementById('cornerGuide');
+                if (settings.dir === 'ltr') {
+                    guide.className = 'corner-guide guide-ltr';
+                    // LTR: Kanan menunjuk ke Kiri (180deg)
+                    guide.style.setProperty('--rot', '180deg'); 
+                } else {
+                    guide.className = 'corner-guide guide-rtl';
+                    // RTL: Kiri menunjuk ke Kanan (0deg)
+                    guide.style.setProperty('--rot', '0deg'); 
+                }
+
+                const book = document.getElementById('bookPreview');
+                book.style.setProperty('--ratio', settings.ratio);
+                document.getElementById('previewArea').style.display = 'flex';
+
+                renderBook();
+                generateCode(); 
+                
+                loader.style.display = 'none';
+                document.getElementById('previewArea').scrollIntoView({ behavior: 'smooth' });
+            }, 800);
+        });
+    }
+
+    function renderBook() {
+        const book = document.getElementById('bookPreview');
+        book.innerHTML = '';
+        book.className = `book ${settings.dir}`;
+        previewCurrentPage = 0;
+        document.getElementById('restartOverlay').classList.remove('visible');
+        uploadedImages.forEach((imgObj, i) => {
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.style.zIndex = uploadedImages.length - i;
+            page.innerHTML = `<div class="page-face page-front"><img src="${imgObj.src}" alt="Page ${i + 1}"></div><div class="page-face page-back"></div><div class="curl-layer" aria-hidden="true"></div>`;
+            book.appendChild(page);
+        });
+        const curlShadow = document.createElement('div');
+        curlShadow.className = 'curl-cast-shadow';
+        curlShadow.setAttribute('aria-hidden', 'true');
+        book.appendChild(curlShadow);
+        setupInteraction(book, uploadedImages.length);
+    }
+
+    function setupInteraction(bookEl, total) {
+        let drag = null;
+        let animating = false;
+        const shadow = bookEl.querySelector('.curl-cast-shadow');
+        const stripCount = window.matchMedia('(max-width: 600px)').matches ? 14 : 20;
+        const clamp = v => Math.max(0, Math.min(1, v));
+        const smooth = t => t * t * (3 - 2 * t);
+
+        const ensureCurl = (page, pageIndex) => {
+            const layer = page.querySelector('.curl-layer');
+            if (layer.dataset.ready === '1') return Array.from(layer.children);
+            const src = uploadedImages[pageIndex].src;
+            for (let i = 0; i < stripCount; i++) {
+                const strip = document.createElement('div');
+                const left = (i * 100 / stripCount);
+                const width = (100 / stripCount) + 0.16;
+                const pos = stripCount === 1 ? 0 : (i * 100 / (stripCount - 1));
+                strip.className = 'curl-strip';
+                strip.style.left = left + '%';
+                strip.style.width = width + '%';
+                strip.innerHTML = '<div class="curl-strip-face curl-strip-front"></div><div class="curl-strip-face curl-strip-back"></div>';
+                const front = strip.firstElementChild;
+                front.style.backgroundImage = 'url("' + src.replace(/"/g, '%22') + '")';
+                front.style.backgroundSize = (stripCount * 100) + '% 100%';
+                front.style.backgroundPosition = pos + '% 0';
+                layer.appendChild(strip);
+            }
+            layer.dataset.ready = '1';
+            return Array.from(layer.children);
+        };
+
+        const setCurl = (page, pageIndex, rawProgress) => {
+            const progress = clamp(rawProgress);
+            const strips = ensureCurl(page, pageIndex);
+            const w = Math.max(1, bookEl.clientWidth);
+            const n = strips.length;
+            const sign = settings.dir === 'ltr' ? -1 : 1;
+
+            page.classList.add('curling');
+            page.classList.remove('flipped');
+            page.querySelector('.curl-layer').classList.add('active');
+            page.style.zIndex = total + 30;
+
+            strips.forEach((strip, i) => {
+                const spineU = settings.dir === 'ltr' ? (i + 0.5) / n : (n - i - 0.5) / n;
+                const delay = (1 - spineU) * 0.17;
+                const local = smooth(clamp((progress - delay) / (1 - delay)));
+                const xCenter = (i + 0.5) * w / n;
+                const dxTarget = settings.dir === 'ltr' ? -2 * xCenter : 2 * (w - xCenter);
+                const bend = Math.sin(Math.PI * local);
+                const z = bend * w * (0.105 + 0.055 * spineU);
+                const dx = dxTarget * local;
+                const angle = sign * 180 * local;
+                const squeeze = 1 - bend * (0.045 + 0.025 * spineU);
+                const lift = bend * (spineU - 0.5) * 1.6;
+                strip.style.transform = 'translate3d(' + dx.toFixed(2) + 'px,' + lift.toFixed(2) + 'px,' + z.toFixed(2) + 'px) rotateY(' + angle.toFixed(2) + 'deg) scaleX(' + squeeze.toFixed(4) + ')';
+                strip.style.setProperty('--shine', Math.min(0.72, bend * (0.28 + 0.44 * spineU)).toFixed(3));
+            });
+
+            const arc = Math.sin(Math.PI * progress);
+            const sw = Math.max(24, Math.min(150, w * (0.055 + 0.13 * arc)));
+            const edgeX = settings.dir === 'ltr' ? w * (1 - progress) : w * progress;
+            shadow.style.width = sw + 'px';
+            shadow.style.left = (edgeX - sw / 2) + 'px';
+            shadow.style.opacity = (arc * 0.72).toFixed(3);
+            shadow.style.transform = 'translateZ(7px) scaleY(' + (0.92 + arc * 0.08).toFixed(3) + ')';
+        };
+
+        const finishCurl = (page, pageIndex, target) => {
+            const layer = page.querySelector('.curl-layer');
+            page.classList.remove('curling');
+            layer.classList.remove('active');
+            if (target >= 0.999) page.classList.add('flipped');
+            else page.classList.remove('flipped');
+            shadow.style.opacity = '0';
+            updateState();
+        };
+
+        const animateCurl = (page, pageIndex, from, to, done) => {
+            animating = true;
+            const distance = Math.abs(to - from);
+            const duration = 240 + distance * 430;
+            const start = performance.now();
+            const tick = now => {
+                const t = Math.min(1, (now - start) / duration);
+                const e = 1 - Math.pow(1 - t, 3);
+                const p = from + (to - from) * e;
+                setCurl(page, pageIndex, p);
+                if (t < 1) requestAnimationFrame(tick);
+                else {
+                    setCurl(page, pageIndex, to);
+                    finishCurl(page, pageIndex, to);
+                    animating = false;
+                    if (done) done();
+                }
+            };
+            requestAnimationFrame(tick);
+        };
+
+        const updateState = () => {
+            const pages = bookEl.querySelectorAll('.page');
+            document.getElementById('restartOverlay').classList.toggle('visible', previewCurrentPage >= total);
+            pages.forEach((p, i) => {
+                if (i < previewCurrentPage) {
+                    p.classList.add('flipped');
+                    p.style.zIndex = i;
+                } else {
+                    p.classList.remove('flipped');
+                    p.style.zIndex = total - i;
+                }
+            });
+        };
+        updateState();
+
+        bookEl.onpointerdown = e => {
+            if (animating || total === 0) return;
+            if (document.getElementById('restartOverlay').classList.contains('visible')) return;
+            const rect = bookEl.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const nextSide = settings.dir === 'ltr' ? x >= rect.width / 2 : x <= rect.width / 2;
+            let mode = nextSide ? 'next' : 'prev';
+            if (mode === 'next' && previewCurrentPage >= total) mode = 'prev';
+            if (mode === 'prev' && previewCurrentPage <= 0) mode = 'next';
+            if ((mode === 'next' && previewCurrentPage >= total) || (mode === 'prev' && previewCurrentPage <= 0)) return;
+
+            const pageIndex = mode === 'next' ? previewCurrentPage : previewCurrentPage - 1;
+            const page = bookEl.querySelectorAll('.page')[pageIndex];
+            const startProgress = mode === 'next' ? 0 : 1;
+            drag = { mode, pageIndex, page, startX: e.clientX, startProgress, progress: startProgress, moved: false, width: Math.max(1, rect.width) };
+            setCurl(page, pageIndex, startProgress);
+            bookEl.setPointerCapture?.(e.pointerId);
+            e.preventDefault();
+        };
+
+        bookEl.onpointermove = e => {
+            if (!drag || animating) return;
+            const delta = settings.dir === 'ltr' ? (drag.startX - e.clientX) : (e.clientX - drag.startX);
+            if (Math.abs(delta) > 3) drag.moved = true;
+            drag.progress = clamp(drag.startProgress + (delta / drag.width) * 1.08);
+            setCurl(drag.page, drag.pageIndex, drag.progress);
+            e.preventDefault();
+        };
+
+        const release = e => {
+            if (!drag || animating) return;
+            const d = drag;
+            drag = null;
+            let target;
+            if (!d.moved) target = d.mode === 'next' ? 1 : 0;
+            else target = d.progress >= 0.5 ? 1 : 0;
+            animateCurl(d.page, d.pageIndex, d.progress, target, () => {
+                if (d.mode === 'next' && target === 1) previewCurrentPage++;
+                else if (d.mode === 'prev' && target === 0) previewCurrentPage--;
+                updateState();
+            });
+            if (e) e.preventDefault?.();
+        };
+        bookEl.onpointerup = release;
+        bookEl.onpointercancel = release;
+
+        window.resetBook = () => {
+            if (animating) return;
+            previewCurrentPage = 0;
+            shadow.style.opacity = '0';
+            bookEl.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('curling', 'flipped');
+                p.querySelector('.curl-layer')?.classList.remove('active');
+            });
+            updateState();
+        };
+    }
+
+    function generateCode() {
+        const imgSrcList = uploadedImages.map(o => o.src);
+        const ratio = Number(settings.ratio || 0.707).toFixed(6);
+        const dir = settings.dir;
+        const lang = dir === 'rtl' ? 'ar' : 'ms';
+        const imagesJSON = JSON.stringify(imgSrcList).replace(/</g, '\u003c');
+        const dirJSON = JSON.stringify(dir);
+
+        generatedHTMLContent = `<!DOCTYPE html><html lang="${lang}" dir="${dir}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Generated using eFlip2HTML by Kiemiftah.Com</title><style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:#0f172a}body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;overscroll-behavior:none}.sc{--pad:clamp(6px,2vmin,18px);perspective:4400px;width:100%;height:100vh;height:100svh;height:100dvh;display:flex;align-items:center;justify-content:center;position:relative;padding:var(--pad);overflow:hidden}.bk{--ratio:${ratio};position:relative;transform-style:preserve-3d;cursor:grab;background:#fff;border-radius:4px;box-shadow:0 18px 38px -18px rgba(0,0,0,.56);width:min(calc(100vw - (var(--pad)*2)),calc((100dvh - (var(--pad)*2))*var(--ratio)));height:min(calc(100dvh - (var(--pad)*2)),calc((100vw - (var(--pad)*2))/var(--ratio)));max-width:100%;max-height:100%;user-select:none;-webkit-user-select:none;touch-action:none}@supports not (height:100dvh){.bk{width:min(calc(100vw - (var(--pad)*2)),calc((100vh - (var(--pad)*2))*var(--ratio)));height:min(calc(100vh - (var(--pad)*2)),calc((100vw - (var(--pad)*2))/var(--ratio)))}}.pg{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform;transform:translate3d(0,0,0)}.fc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid rgba(15,23,42,.07);border-radius:2px 5px 5px 2px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}.fr{transform:rotateY(0deg) translateZ(.35px)}.ba{transform:rotateY(180deg) translateZ(.35px);background:linear-gradient(90deg,rgba(15,23,42,.025),transparent 8%,transparent 92%,rgba(15,23,42,.018)),linear-gradient(135deg,#fffefc 0%,#f8f7f2 58%,#eeece5 100%)}.fr img{width:100%;height:100%;object-fit:contain;background:#fff;pointer-events:none;-webkit-user-drag:none}.pg.curling>.fc{opacity:0}.cl{position:absolute;inset:0;opacity:0;pointer-events:none;transform-style:preserve-3d;overflow:visible}.cl.active{opacity:1}.cs{position:absolute;top:0;bottom:0;transform-style:preserve-3d;will-change:transform;transform-origin:center center}.cf{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background-repeat:no-repeat;background-color:#fff}.cff{transform:translateZ(.45px)}.cfb{transform:rotateY(180deg) translateZ(.45px);background:linear-gradient(90deg,#f3f1e9 0%,#fffef9 30%,#f7f5ee 70%,#ece9df 100%)}.cff:after,.cfb:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:var(--shine,0)}.cff:after{background:linear-gradient(90deg,rgba(255,255,255,.88),rgba(255,255,255,.22) 34%,rgba(15,23,42,.18));mix-blend-mode:soft-light}.cfb:after{background:linear-gradient(90deg,rgba(15,23,42,.16),rgba(255,255,255,.34) 52%,rgba(15,23,42,.08))}.shd{position:absolute;top:1%;bottom:1%;left:0;width:80px;opacity:0;pointer-events:none;z-index:999;filter:blur(9px);border-radius:50%;background:linear-gradient(90deg,transparent,rgba(15,23,42,.14) 22%,rgba(15,23,42,.42) 50%,rgba(15,23,42,.14) 78%,transparent);will-change:left,width,opacity,transform}.bk.ltr .pg{transform-origin:left center}.bk.ltr .pg.flipped{transform:translate3d(0,0,1px) rotateY(-180deg)}.bk.rtl .pg{transform-origin:right center}.bk.rtl .pg.flipped{transform:translate3d(0,0,1px) rotateY(180deg)}#ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;pointer-events:none;opacity:0;transition:opacity .35s}#ov.sh{pointer-events:auto;opacity:1}.bt{background:rgba(0,0,0,.82);color:#fff;padding:clamp(12px,2.2vmin,18px) clamp(24px,4vmin,36px);border:2px solid #fff;border-radius:40px;cursor:pointer;font-size:clamp(.88rem,2.8vmin,1rem);font-weight:800;backdrop-filter:blur(5px)}.gd{position:absolute;top:50%;z-index:50;width:clamp(38px,8vmin,60px);height:clamp(38px,8vmin,60px);display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.28;animation:bf 1.5s infinite ease-in-out}.gd svg{width:100%;height:100%;fill:rgba(59,130,246,.6);stroke:#fff;stroke-width:3px}.gl{right:max(10px,env(safe-area-inset-right));--r:180deg}.gr{left:max(10px,env(safe-area-inset-left));--r:0deg}@keyframes bf{0%,100%{opacity:.28;transform:translateY(-50%) scale(1) rotate(var(--r))}50%{opacity:.12;transform:translateY(-50%) scale(.9) rotate(var(--r))}}@media(max-width:480px){.sc{--pad:6px}.gd{opacity:.22}}@media(prefers-reduced-motion:reduce){.gd{animation:none}}
+</style></head><body><div class="sc"><div class="gd ${dir === 'ltr' ? 'gl' : 'gr'}"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="bk ${dir}" id="b" aria-label="Flipbook"></div><div id="ov"><button class="bt" onclick="rs()">↻ Restart</button></div></div><script>
+const im=${imagesJSON},d=${dirJSON},b=document.getElementById('b'),ov=document.getElementById('ov');let c=0,drag=null,anim=false;const N=matchMedia('(max-width:600px)').matches?14:20,cl=v=>Math.max(0,Math.min(1,v)),sm=t=>t*t*(3-2*t);im.forEach(function(s,i){var p=document.createElement('div');p.className='pg';p.style.zIndex=im.length-i;p.innerHTML='<div class="fc fr"><img src="'+s+'" alt="Page '+(i+1)+'"></div><div class="fc ba"></div><div class="cl" aria-hidden="true"></div>';b.appendChild(p)});var shadow=document.createElement('div');shadow.className='shd';shadow.setAttribute('aria-hidden','true');b.appendChild(shadow);
+function ec(p,idx){var l=p.querySelector('.cl');if(l.dataset.ready==='1')return Array.from(l.children);var s=im[idx];for(var i=0;i<N;i++){var st=document.createElement('div'),left=i*100/N,w=100/N+.16,pos=N===1?0:i*100/(N-1);st.className='cs';st.style.left=left+'%';st.style.width=w+'%';st.innerHTML='<div class="cf cff"></div><div class="cf cfb"></div>';var f=st.firstElementChild;f.style.backgroundImage='url("'+s.replace(/"/g,'%22')+'")';f.style.backgroundSize=(N*100)+'% 100%';f.style.backgroundPosition=pos+'% 0';l.appendChild(st)}l.dataset.ready='1';return Array.from(l.children)}
+function curl(p,idx,rp){var pr=cl(rp),ss=ec(p,idx),w=Math.max(1,b.clientWidth),n=ss.length,sg=d==='ltr'?-1:1;p.classList.add('curling');p.classList.remove('flipped');p.querySelector('.cl').classList.add('active');p.style.zIndex=im.length+30;ss.forEach(function(st,i){var u=d==='ltr'?(i+.5)/n:(n-i-.5)/n,delay=(1-u)*.17,local=sm(cl((pr-delay)/(1-delay))),xc=(i+.5)*w/n,tar=d==='ltr'?-2*xc:2*(w-xc),bend=Math.sin(Math.PI*local),z=bend*w*(.105+.055*u),dx=tar*local,ang=sg*180*local,sq=1-bend*(.045+.025*u),lift=bend*(u-.5)*1.6;st.style.transform='translate3d('+dx.toFixed(2)+'px,'+lift.toFixed(2)+'px,'+z.toFixed(2)+'px) rotateY('+ang.toFixed(2)+'deg) scaleX('+sq.toFixed(4)+')';st.style.setProperty('--shine',Math.min(.72,bend*(.28+.44*u)).toFixed(3))});var arc=Math.sin(Math.PI*pr),sw=Math.max(24,Math.min(150,w*(.055+.13*arc))),edge=d==='ltr'?w*(1-pr):w*pr;shadow.style.width=sw+'px';shadow.style.left=(edge-sw/2)+'px';shadow.style.opacity=(arc*.72).toFixed(3);shadow.style.transform='translateZ(7px) scaleY('+(0.92+arc*.08).toFixed(3)+')'}
+function state(){var ps=b.querySelectorAll('.pg');ov.classList.toggle('sh',c>=im.length);ps.forEach(function(p,i){if(i<c){p.classList.add('flipped');p.style.zIndex=i}else{p.classList.remove('flipped');p.style.zIndex=im.length-i}})}function fin(p,t){p.classList.remove('curling');p.querySelector('.cl').classList.remove('active');if(t>=.999)p.classList.add('flipped');else p.classList.remove('flipped');shadow.style.opacity='0';state()}function ac(p,idx,fr,to,done){anim=true;var dis=Math.abs(to-fr),du=240+dis*430,st=performance.now();function tk(now){var t=Math.min(1,(now-st)/du),e=1-Math.pow(1-t,3),v=fr+(to-fr)*e;curl(p,idx,v);if(t<1)requestAnimationFrame(tk);else{curl(p,idx,to);fin(p,to);anim=false;if(done)done()}}requestAnimationFrame(tk)}
+b.onpointerdown=function(e){if(anim||!im.length||ov.classList.contains('sh'))return;var r=b.getBoundingClientRect(),x=e.clientX-r.left,ns=d==='ltr'?x>=r.width/2:x<=r.width/2,mode=ns?'next':'prev';if(mode==='next'&&c>=im.length)mode='prev';if(mode==='prev'&&c<=0)mode='next';if((mode==='next'&&c>=im.length)||(mode==='prev'&&c<=0))return;var idx=mode==='next'?c:c-1,p=b.querySelectorAll('.pg')[idx],sp=mode==='next'?0:1;drag={mode:mode,idx:idx,p:p,sx:e.clientX,sp:sp,pr:sp,mv:false,w:Math.max(1,r.width)};curl(p,idx,sp);if(b.setPointerCapture)b.setPointerCapture(e.pointerId);e.preventDefault()};b.onpointermove=function(e){if(!drag||anim)return;var de=d==='ltr'?drag.sx-e.clientX:e.clientX-drag.sx;if(Math.abs(de)>3)drag.mv=true;drag.pr=cl(drag.sp+(de/drag.w)*1.08);curl(drag.p,drag.idx,drag.pr);e.preventDefault()};function rel(e){if(!drag||anim)return;var q=drag;drag=null;var t=!q.mv?(q.mode==='next'?1:0):(q.pr>=.5?1:0);ac(q.p,q.idx,q.pr,t,function(){if(q.mode==='next'&&t===1)c++;else if(q.mode==='prev'&&t===0)c--;state()});if(e&&e.preventDefault)e.preventDefault()}b.onpointerup=rel;b.onpointercancel=rel;function rs(){if(anim)return;c=0;shadow.style.opacity='0';b.querySelectorAll('.pg').forEach(function(p){p.classList.remove('curling','flipped');var l=p.querySelector('.cl');if(l)l.classList.remove('active')});state()}window.rs=rs;state();
+<\/script></body></html>`;
+        document.getElementById('outputCode').value = generatedHTMLContent;
+    }
+
+    function downloadHTML() {
+        if (!generatedHTMLContent) { alert("Sila jana buku terlebih dahulu."); return; }
+        const blob = new Blob([generatedHTMLContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'eFlipbook.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    renderGrid();
+</script>
+
+</body>
+</html>

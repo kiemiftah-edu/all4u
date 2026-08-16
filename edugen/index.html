@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGen Suite | Interactive Game Builder</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="img/logoedugen.png">
+    <link rel="icon" type="image/png" href="img/logoedugen.png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SXNL0TEMNX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-SXNL0TEMNX');
+    </script>
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS (External) -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-100 flex flex-col font-sans text-gray-800 min-h-screen lg:h-screen lg:overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm z-50 px-4 py-2 flex justify-between items-center border-b border-gray-200 sticky top-0 lg:static shrink-0 h-16">
+        <div class="flex items-center gap-3">
+            <!-- LOGO: logoedugen.png (Unified) -->
+            <div class="relative group cursor-pointer shrink-0" onclick="window.app.renderLanding()">
+                <img src="img/logoedugen.png" 
+                     class="h-10 w-10 sm:h-12 sm:w-12 object-contain app-logo-style" 
+                     alt="EduGen Logo"
+                     onerror="this.style.display='none'; document.getElementById('fallback-logo').classList.remove('hidden');">
+                
+                <div id="fallback-logo" class="hidden h-10 w-10 sm:h-12 sm:w-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-cubes"></i>
+                </div>
+            </div>
+
+            <div class="flex flex-col justify-center">
+                <h1 class="text-xl sm:text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-slate-800 via-indigo-900 to-slate-800 leading-none">EduGen Suite</h1>
+                <!-- UPDATED SUBTITLE -->
+                <p id="app-subtitle" class="text-[0.4rem] sm:text-[0.5rem] font-bold text-slate-500 tracking-tight mt-0.5 uppercase truncate max-w-[220px] sm:max-w-none">Penjana Permainan Pendidikan Interaktif</p>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE CONTROLS -->
+        <div class="flex items-center gap-3">
+            <!-- Home Icon (Next to Language Toggle) -->
+            <button onclick="window.app.showLanding()" class="text-gray-500 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" id="btn-home" title="Laman Utama">
+                <i class="fas fa-home fa-lg"></i>
+            </button>
+
+            <!-- Language Toggle -->
+            <div class="flex bg-gray-100 p-1 rounded-md border border-gray-200">
+                <div id="btn-lang-ms" class="lang-btn active" onclick="window.app.setLang('ms')">BM</div>
+                <div id="btn-lang-en" class="lang-btn inactive" onclick="window.app.setLang('en')">EN</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- LANDING PAGE -->
+    <div id="landing-page" class="flex-1 p-4 sm:p-8 lg:overflow-y-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-8 sm:mb-12 relative">
+                <h2 id="landing-title" class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">Apa yang anda ingin bina hari ini?</h2>
+                <p id="landing-desc" class="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">Pilih templat permainan di bawah, masukkan kandungan anda, dan muat turun fail HTML interaktif sedia untuk digunakan. Tiada koding diperlukan.</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6" id="game-grid"></div>
+        </div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div id="workspace" class="hidden flex-1 flex flex-col lg:flex-row lg:overflow-hidden">
+        
+        <!-- LEFT PANEL: BUILDER -->
+        <div class="w-full lg:w-5/12 bg-white flex flex-col border-r border-gray-200 lg:h-full">
+            
+            <!-- EDITOR TOOLBAR (Moved Here) -->
+            <div class="p-2 border-b bg-gray-50 flex flex-wrap gap-2 justify-between items-center sticky top-0 z-10 lg:static">
+                <h3 class="font-bold text-gray-700 flex items-center gap-2 text-xs sm:text-sm hidden sm:flex"><i class="fas fa-pen text-indigo-500"></i> <span id="editor-title">Editor</span></h3>
+                
+                <div class="flex items-center gap-1 sm:gap-2 flex-1 justify-end w-full sm:w-auto">
+                    <!-- Theme Selector -->
+                    <select id="theme-selector" class="border rounded px-1 py-1.5 text-xs bg-white focus:ring-2 focus:ring-indigo-500 outline-none max-w-[80px] sm:max-w-[120px] cursor-pointer" title="Pilih Tema"></select>
+                    
+                    <!-- Export Button -->
+                    <button onclick="window.app.downloadHTML()" class="bg-green-600 hover:bg-green-700 text-white px-2 sm:px-3 py-1.5 rounded text-xs font-bold transition shadow-sm flex items-center gap-1" title="Eksport HTML">
+                        <i class="fas fa-download"></i> <span class="hidden md:inline" id="btn-export-text">Eksport</span>
+                    </button>
+
+                    <!-- Import Button -->
+                    <button id="btn-import" onclick="document.getElementById('global-file-input').click()" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 sm:px-3 py-1.5 rounded text-xs font-medium shadow-sm flex items-center gap-1 transition" title="Import Fail">
+                        <i class="fas fa-folder-open"></i> <span class="hidden md:inline">Import</span>
+                    </button>
+                    <input type="file" id="global-file-input" class="hidden" accept=".txt,.csv,.json" onchange="window.app.handleFileUpload(this)">
+                    
+                    <!-- Sample Data Button -->
+                    <button onclick="window.app.loadSampleData()" id="btn-sample" class="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-2 sm:px-3 py-1.5 rounded text-xs font-medium transition border border-transparent hover:border-indigo-100" title="Isi Contoh Data">
+                        <i class="fas fa-magic"></i> <span class="hidden md:inline">Contoh</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="builder-container" class="flex-1 p-4 space-y-6 lg:overflow-y-auto"></div>
+
+            <div class="p-4 border-t bg-gray-50 sticky bottom-0 lg:static z-10">
+                <button onclick="window.app.updatePreview()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded shadow-lg font-bold transition flex justify-center items-center gap-2">
+                    <i class="fas fa-sync-alt"></i> <span id="btn-preview">Kemas Kini Pratonton</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- RIGHT PANEL: PREVIEW & CODE -->
+        <div class="w-full lg:w-7/12 bg-gray-100 flex flex-col h-[500px] lg:h-auto border-t lg:border-t-0 lg:border-l border-gray-300">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-300 bg-gray-200 shrink-0">
+                <button class="flex-1 py-2 px-4 text-sm font-bold text-gray-700 bg-white border-r border-gray-300 hover:bg-white transition" id="tab-btn-preview" onclick="window.app.switchTab('preview')">
+                    <i class="fas fa-play-circle mr-2"></i> <span id="lbl-tab-preview">Pratonton</span>
+                </button>
+                <button class="flex-1 py-2 px-4 text-sm font-bold text-gray-500 hover:bg-gray-50 transition" id="tab-btn-code" onclick="window.app.switchTab('code')">
+                    <i class="fas fa-code mr-2"></i> <span id="lbl-tab-code">Kod HTML</span>
+                </button>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 relative overflow-hidden">
+                <div id="panel-preview" class="absolute inset-0 p-4 flex justify-center items-center bg-gray-100">
+                     <iframe id="preview-frame" class="w-full h-full bg-white shadow-lg rounded-lg border border-gray-300"></iframe>
+                </div>
+                <div id="panel-code" class="absolute inset-0 hidden">
+                    <textarea id="code-output" class="w-full h-full p-4 font-mono text-xs bg-slate-800 text-green-400 resize-none focus:outline-none" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white py-2 text-center text-[10px] sm:text-xs shrink-0 z-10 border-t border-slate-800">
+        <p>
+            EduGen Suite <span id="footer-year"></span>&copy; was creatively built and designed using Gemini Canvas by 
+            <a href="https://www.tiktok.com/@kiemiftah" target="_blank" class="text-indigo-300 hover:text-white transition font-semibold hover:underline">Kiemiftah.Com</a>.
+        </p>
+        <p class="text-slate-500 mt-0.5 text-[9px] sm:text-[10px]">
+            Last Updated on <span id="footer-date"></span>
+            <span class="mx-1 opacity-50">|</span>
+            Hitstat: <span id="hitstatTotal" class="text-indigo-300 font-mono">...</span>
+        </p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+    // --- 1. DATA & CONFIGURATION ---
+    
+    window.UI_STRINGS = {
+        ms: {
+            subtitle: "Penjana Permainan Pendidikan Interaktif", landing_title: "Apa yang anda ingin bina hari ini?", landing_desc: "Pilih templat permainan di bawah, masukkan kandungan anda, dan muat turun fail HTML interaktif sedia untuk digunakan. Tiada koding diperlukan.", editor_title: "Editor Kandungan", btn_import: "Import", btn_sample: "Contoh", btn_preview: "Kemas Kini Pratonton", btn_export: "Eksport", preview_label: "Pratonton Langsung (Interaktif)",
+            lbl_title: "Tajuk", lbl_data: "Data", lbl_grid: "Saiz Grid", lbl_img: "URL Imej", lbl_pairs: "Pasangan", lbl_tiles: "Petak (Tiles)", lbl_words: "Senarai Perkataan", lbl_sentences: "Ayat", lbl_targets: "Sasaran", lbl_story: "Aliran Cerita", lbl_settings: "Tetapan", lbl_shuffle: "Kocok Soalan/Item?", lbl_hint: "Klu/Petunjuk", lbl_answer: "Jawapan Betul",
+            lbl_content: "Kandungan Senario (Format Khas)", lbl_board_size: "Saiz Papan (Petak)", lbl_players: "Bilangan Pemain", 
+            lbl_snakes: "Ular (Turun: Besar -> Kecil)", lbl_ladders: "Tangga (Naik: Kecil -> Besar)",
+            lbl_board_tiles: "Kandungan Petak (No: Teks)", lbl_show_grid: "Tunjuk Grid & Garisan",
+            lbl_lang_mode: "Mod Bahasa (TTS)", lbl_items_order: "Item (Ikut Turutan Betul)",
+            hint_format_q: "Format Disokong:", hint_story: "Format: ID | Teks | Pilihan->ID",
+            game_check: "Semak",
+            game_start: "Mula", game_next: "Seterusnya", game_prev: "Undur", game_reset: "Mula Semula", game_correct: "Betul!", game_wrong: "Salah, cuba lagi.", game_congrats: "Tahniah!", game_score: "Skor Akhir", game_q: "Soalan", game_roll: "Baling Dadu", game_submit: "Hantar", game_turn: "Giliran anda.", game_all_found: "Semua ditemui.", game_listen: "Dengar",
+            tab_preview: "Pratonton", tab_code: "Kod HTML", game_review: "Semak Jawapan", game_your_ans: "Jawapan Anda", game_corr_ans: "Jawapan Sebenar", game_explain: "Huraian", game_unanswered: "Tiada Jawapan",
+            scen_feedback: "Maklum Balas", scen_continue: "Teruskan", scen_end_pos: "Tahniah! Anda berjaya.", scen_end_neg: "Tamat. Cuba lagi.", scen_end_neu: "Tamat. Keputusan neutral."
+        },
+        en: {
+            subtitle: "Interactive Educational Game Builder", landing_title: "What do you want to build today?", landing_desc: "Choose a game template below, enter your content, and download a ready-to-use interactive HTML file. No coding required.", editor_title: "Content Editor", btn_import: "Import", btn_sample: "Sample", btn_preview: "Update Preview", btn_export: "Export", preview_label: "Live Preview (Interactive)",
+            lbl_title: "Title", lbl_data: "Data", lbl_grid: "Grid Size", lbl_img: "Image URL", lbl_pairs: "Pairs", lbl_tiles: "Tiles", lbl_words: "Word List", lbl_sentences: "Sentences", lbl_targets: "Targets", lbl_story: "Story Flow", lbl_settings: "Settings", lbl_shuffle: "Shuffle Questions/Items?", lbl_hint: "Clue/Hint", lbl_answer: "Correct Answer",
+            lbl_content: "Scenario Content (Special Format)", lbl_board_size: "Board Size (Tiles)", lbl_players: "Number of Players", 
+            lbl_snakes: "Snakes (Down: Big -> Small)", lbl_ladders: "Ladders (Up: Small -> Big)",
+            lbl_board_tiles: "Tile Content (No: Text)", lbl_show_grid: "Show Grid & Lines",
+            lbl_lang_mode: "Language Mode (TTS)", lbl_items_order: "Items (In Correct Order)",
+            hint_format_q: "Supported Format:", hint_story: "Format: ID | Text | Choice->ID",
+            game_check: "Check",
+            game_start: "Start", game_next: "Next", game_prev: "Back", game_reset: "Reset", game_correct: "Correct!", game_wrong: "Wrong, try again.", game_congrats: "Congratulations!", game_score: "Final Score", game_q: "Question", game_roll: "Roll Dice", game_submit: "Submit", game_turn: "Your turn.", game_all_found: "All found.", game_listen: "Listen",
+            tab_preview: "Preview", tab_code: "HTML Code", game_review: "Review Answers", game_your_ans: "Your Answer", game_corr_ans: "Correct Answer", game_explain: "Explanation", game_unanswered: "Unanswered",
+            scen_feedback: "Feedback", scen_continue: "Continue", scen_end_pos: "Success! Well done.", scen_end_neg: "Game Over. Try again.", scen_end_neu: "Game Over. Neutral outcome."
+        }
+    };
+
+    window.gradients = {
+        light: (col1, col2) => `radial-gradient(circle at 10% 10%, ${col1}20, transparent 70%), radial-gradient(circle at 90% 90%, ${col2}20, transparent 70%), linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)`,
+        dark: (bg, col1, col2) => `radial-gradient(1200px 700px at 15% 10%, ${col1}30, transparent 55%), radial-gradient(900px 600px at 85% 20%, ${col2}20, transparent 50%), linear-gradient(180deg, ${bg}, #020617 100%)`,
+        warm: (bg) => `linear-gradient(120deg, ${bg} 0%, #fff1eb 100%)`,
+        soft: (bg, col) => `radial-gradient(circle at 50% 0%, ${col}15, transparent 60%), linear-gradient(to bottom, ${bg}, #ffffff)`
+    };
+
+    window.THEMES = {
+        "github-light": { name: "GitHub Light", primary:"#0969da", accent:"#1a7f37", bg:"#ffffff", card:"#f6f8fa", text:"#24292f", grad: window.gradients.soft("#ffffff", "#0969da") },
+        "material-light": { name: "Material Light", primary:"#1a73e8", accent:"#34a853", bg:"#f8fafc", card:"#ffffff", text:"#0f172a", grad: window.gradients.light("#1a73e8", "#34a853") },
+        "tailwind-light": { name: "Tailwind Light", primary:"#4f46e5", accent:"#16a34a", bg:"#f3f4f6", card:"#ffffff", text:"#1f2937", grad: window.gradients.light("#4f46e5", "#ec4899") },
+        "bootstrap-light": { name: "Bootstrap Light", primary:"#0d6efd", accent:"#198754", bg:"#f8f9fa", card:"#ffffff", text:"#212529", grad: window.gradients.light("#0d6efd", "#ffc107") },
+        "catppuccin-latte": { name: "Catppuccin Latte", primary:"#1e66f5", accent:"#40a02b", bg:"#eff1f5", card:"#ffffff", text:"#4c4f69", grad: window.gradients.soft("#eff1f5", "#1e66f5") },
+        "solarized-light": { name: "Solarized Light", primary:"#268bd2", accent:"#859900", bg:"#fdf6e3", card:"#fffaf0", text:"#586e75", grad: window.gradients.warm("#fdf6e3") },
+        "paper-light": { name: "Paper Light", primary:"#0366d6", accent:"#22863a", bg:"#ffffff", card:"#fafbfc", text:"#24292e", grad: "linear-gradient(to bottom, #ffffff, #f0f0f0)" },
+        "tailwind-indigo": { name: "Tailwind Indigo (Dark)", primary:"#818cf8", accent:"#34d399", bg:"#0f172a", card:"#1e293b", text:"#f1f5f9", grad: window.gradients.dark("#0f172a", "#6366f1", "#22c55e") },
+        "dracula": { name: "Dracula (Dark)", primary:"#bd93f9", accent:"#ff79c6", bg:"#282a36", card:"#44475a", text:"#f8f8f2", grad: window.gradients.dark("#282a36", "#bd93f9", "#ff79c6") },
+        "nord": { name: "Nord (Dark)", primary:"#88c0d0", accent:"#a3be8c", bg:"#2e3440", card:"#3b4252", text:"#eceff4", grad: window.gradients.dark("#2e3440", "#88c0d0", "#5e81ac") },
+        "material-blue": { name: "Material Blue (Dark)", primary:"#64b5f6", accent:"#81c784", bg:"#0d1117", card:"#161b22", text:"#c9d1d9", grad: window.gradients.dark("#0d1117", "#2196f3", "#4caf50") },
+        "solarized-dark": { name: "Solarized Dark", primary:"#268bd2", accent:"#2aa198", bg:"#002b36", card:"#073642", text:"#93a1a1", grad: window.gradients.dark("#002b36", "#268bd2", "#859900") },
+        "bootstrap-dark": { name: "Bootstrap Dark", primary:"#0d6efd", accent:"#198754", bg:"#212529", card:"#2c3034", text:"#f8f9fa", grad: window.gradients.dark("#212529", "#0d6efd", "#adb5bd") }
+    };
+
+    window.parseQuizText = function(text) {
+        if (!text) return [];
+        const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+        const qs = []; let cur = null;
+        lines.forEach(l => {
+            if(l.match(/^(Q[:\.]|Soalan[:\.])/i)) {
+                if(cur && cur.options.length > 1) qs.push(cur);
+                cur = { q: l.replace(/^(Q[:\.]|Soalan[:\.])\s*/i, ""), options: [], correct: 0, explain: "" };
+            } else if(cur && l.match(/^[A-Z][\)\.]/i)) {
+                cur.options.push(l.replace(/^[A-Z][\)\.]\s*/i, ""));
+            } else if(cur && l.match(/^(Answer|Jawapan)[:\.]/i)) {
+                const ansChar = l.split(/[:\.]/)[1].trim().toUpperCase();
+                cur.correct = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(ansChar);
+            } else if(cur && l.match(/^(Explanation|Huraian)[:\.]/i)) {
+                cur.explain = l.split(/[:\.]/)[1].trim();
+            }
+        });
+        if(cur && cur.options.length > 1) qs.push(cur);
+        return qs;
+    };
+
+    window.parseScenarioText = function(text) {
+        if(!text) return [];
+        const scenes = [];
+        const blocks = text.split(/\[SCENE\s+(.+?)\]/i).slice(1);
+        for(let i=0; i<blocks.length; i+=2) {
+            const id = blocks[i].trim();
+            const content = blocks[i+1];
+            const lines = content.split('\n').filter(l=>l.trim());
+            let sit = "";
+            const choices = [];
+            lines.forEach(l => {
+                if(l.match(/^Situasi:/i)) sit = l.replace(/^Situasi:/i, "").trim();
+                else if(l.match(/^[A-Z]:/)) {
+                    // format: A: text -> feedback: fb -> next: id
+                    const parts = l.split('->');
+                    const label = parts[0].replace(/^[A-Z]:/, "").trim();
+                    let fb = "", nxt = "";
+                    parts.forEach(p => {
+                        if(p.trim().toLowerCase().startsWith("feedback:")) fb = p.trim().substring(9).trim();
+                        if(p.trim().toLowerCase().startsWith("next:")) nxt = p.trim().substring(5).trim();
+                        if(p.trim().toLowerCase().startsWith("end:")) nxt = "end_" + p.trim().substring(4).trim();
+                    });
+                    choices.push({ label, feedback: fb, next: nxt });
+                }
+            });
+            scenes.push({ id, text: sit, choices });
+        }
+        return scenes;
+    };
+
+    // --- HELPER FOR SPELLING BEE (LANG DETECTION) ---
+    // Improved detection to prevent false positive English as Malay (e.g. "Singing" -> "ng" -> Malay)
+    window.detectLang = function(word) {
+        if (/[\u0600-\u06FF]/.test(word)) return 'ar-SA';
+        
+        // Strict Malay checks (avoiding just 'ng', 'ny' anywhere)
+        // Checks for: prefix 'me', 'be', 'ke', 'di', 'se' OR suffix 'kan', 'an', 'nya', 'lah', 'kah'
+        // OR specific common substrings that are rare in English like 'kh', 'sy', 'gh', 'ua', 'ia' (except typical english suffixes)
+        // OR words starting with 'ny' (Nyanyi) or 'ng' (Nganga)
+        if (/(^(me|be|ke|di|se)|(kan|an|nya|lah|kah|i)$)/i.test(word) || /(sy|kh|gh|ua|ia|au$|ai$|oi$)/i.test(word) || /^(ny|ng)/i.test(word)) return 'ms-MY';
+        
+        return 'en-US';
+    };
+
+    // --- GAME LOGIC TEMPLATES ---
+    window.LOGIC = {
+        FILLBLANK: `const c=document.getElementById('game-area'); 
+        let allAnswers = [];
+        if(gameData.sentences) {
+            gameData.sentences.forEach(s => {
+                const matches = s.match(/\\[(.*?)\\]/g);
+                if(matches) matches.forEach(m => allAnswers.push(m.slice(1, -1)));
+            });
+        }
+        allAnswers.sort(() => Math.random() - 0.5);
+
+        if(gameData.shuffle && gameData.sentences) gameData.sentences.sort(()=>Math.random()-.5);
+        
+        const parsed=gameData.sentences.map(s=>{
+            const parts=s.split(/(\\[.*?\\])/);
+            return parts.map(p=>{
+                if(p.startsWith('[')&&p.endsWith(']')) {
+                    return {type:'inp', ans:p.slice(1,-1)};
+                }
+                return {type:'txt', val:p};
+            });
+        }); 
+
+        function render(){
+            c.innerHTML=parsed.map((l,i)=>\`<div class="card sentence-box" style="line-height:2.5">\${l.map((p,pi)=>{
+                if(p.type==='txt') return p.val;
+                return \`<select class="blank-input" id="in-\${i}-\${pi}" style="border-bottom:2px solid #ccc;padding:0 5px;text-align:center;background:transparent;color:var(--text);font-weight:bold;cursor:pointer">
+                    <option value="">...</option>
+                    \${allAnswers.map(ans => \`<option value="\${ans}">\${ans}</option>\`).join('')}
+                </select>\`;
+            }).join('')}</div>\`).join('')+\`<div id="res-box" style="text-align:center;margin-top:20px"></div><div style="text-align:center"><button class="btn" onclick="check()">\${T.game_check}</button></div>\`;
+        } 
+        
+        window.check=()=>{
+            let sc=0, tot=0; 
+            parsed.forEach((l,i)=>{l.forEach((p,pi)=>{if(p.type==='inp'){
+                tot++; const el=document.getElementById(\`in-\${i}-\${pi}\`); 
+                if(el && el.value.toLowerCase().trim()===p.ans.toLowerCase().trim()){
+                    el.style.borderColor='#22c55e';el.style.color='#22c55e';sc++;
+                } else if(el) {
+                    el.style.borderColor='#ef4444';el.style.color='#ef4444'; 
+                }
+            }})}); 
+            document.getElementById('res-box').innerHTML = \`<h3>\${T.game_score}: \${sc} / \${tot}</h3>\`;
+        } 
+        render();`,
+
+        FLASHCARD: `let i=0; if(gameData.shuffle) gameData.items.sort(()=>Math.random()-.5); const c=document.getElementById('game-area'); function r(){const d=gameData.items[i]; c.innerHTML=\`<div style="text-align:center;margin-bottom:10px;font-weight:bold">\${i+1} / \${gameData.items.length}</div><div class="scene" onclick="this.querySelector('.flashcard').classList.toggle('is-flipped')"><div class="flashcard"><div class="card__face"><div style="font-size:2rem">\${d.front}</div><small style="opacity:0.7; margin-top:10px">(Klik)</small></div><div class="card__face card__face--back"><div style="font-size:2rem">\${d.back}</div></div></div></div><div style="margin-top:20px; display:flex; justify-content:center; gap:15px"><button class="btn" onclick="if(i>0){i--;r()}">&larr; \${T.game_prev}</button><button class="btn" onclick="if(i<gameData.items.length-1){i++;r()}">\${T.game_next} &rarr;</button></div>\`;} r();`,
+        
+        QUIZ: `let qI=0,ans=[]; if(gameData.shuffle) gameData.questions.sort(()=>Math.random()-.5); const c=document.getElementById('game-area'); 
+        function r(){
+            if(qI>=gameData.questions.length) return res(); 
+            const q=gameData.questions[qI]; const pct=Math.round(((qI)/gameData.questions.length)*100); 
+            c.innerHTML=\`<div style="width:100%;background:#ddd;height:10px;border-radius:5px;margin-bottom:20px"><div style="width:\${pct}%;background:var(--primary);height:100%;border-radius:5px;transition:0.3s"></div></div>
+            <div class="card"><h3>\${T.game_q} \${qI+1}</h3><p style="font-size:1.2rem;margin-top:10px">\${q.q}</p></div>
+            \${q.options.map((o,x)=>\`<button id="b\${x}" class="option \${ans[qI]===x?'selected':''}" style="\${ans[qI]===x?'border-color:var(--primary);background:var(--bg)':''}" onclick="sel(\${x})">\${o}</button>\`).join('')}
+            <div style="margin-top:20px;display:flex;justify-content:space-between">
+                <button class="btn" onclick="nav(-1)" \${qI===0?'disabled style="opacity:0.5"':''}>\${T.game_prev}</button>
+                <button class="btn" onclick="nav(1)">\${qI===gameData.questions.length-1?'Tamat':T.game_next} &rarr;</button>
+            </div>\`;
+        }
+        window.sel=(x)=>{ans[qI]=x; r();};
+        window.nav=(d)=>{qI+=d; r();};
+        function res(){
+            let sc=0; ans.forEach((a,i)=>{if(a===gameData.questions[i].correct)sc++});
+            const p=Math.round((sc/gameData.questions.length)*100);
+            c.innerHTML=\`<div class="card" style="text-align:center"><h2>\${T.game_score}</h2><h1 style="font-size:3rem">\${sc} / \${gameData.questions.length}</h1><p>\${p}%</p><div style="display:flex;gap:10px;justify-content:center;margin-top:20px"><button class="btn" onclick="rev()">\${T.game_review}</button><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div></div>\`;
+        }
+        window.rev=()=>{
+            c.innerHTML = '<h2 style="text-align:center;margin-bottom:20px">'+T.game_review+'</h2>' + gameData.questions.map((q,i)=>{
+                const u=ans[i], k=q.correct, isC=u===k;
+                return \`<div class="card" style="margin-bottom:15px; border-left: 5px solid \${isC?'#22c55e':'#ef4444'}">
+                    <p style="font-weight:bold">\${i+1}. \${q.q}</p>
+                    <p style="font-size:0.9rem;margin-top:5px"><span style="color:\${isC?'green':'red'}">\${T.game_your_ans}: \${u!==undefined?q.options[u]:T.game_unanswered}</span></p>
+                    \${!isC ? \`<p style="font-size:0.9rem;color:green;font-weight:bold">\${T.game_corr_ans}: \${q.options[k]}</p>\` : ''}
+                    \${q.explain && !isC ? \`<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,0.05);border-radius:5px;font-size:0.85rem"><strong>\${T.game_explain}:</strong> \${q.explain}</div>\` : ''}
+                </div>\`;
+            }).join('') + \`<div style="text-align:center;margin-top:20px"><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div>\`;
+        }
+        r();`,
+
+        HOTSPOT: `let qIdx=0; if(gameData.shuffle) gameData.targets.sort(()=>Math.random()-.5); const c=document.getElementById('game-area'); function render(){if(qIdx>=gameData.targets.length)return c.innerHTML=\`<div class="card" style="text-align:center"><h2>\${T.game_congrats}</h2><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div>\`; const t=gameData.targets[qIdx]; c.innerHTML=\`<div class="card" style="text-align:center"><h3 style="margin-bottom:10px">\${T.game_q} \${qIdx+1}: \${t.q}</h3></div><div class="hotspot-container" onclick="check(event)"><img src="\${gameData.imageUrl}" class="hotspot-img"></div>\`;} window.check=(e)=>{const r=e.target.getBoundingClientRect(); const x=((e.clientX-r.left)/r.width)*100; const y=((e.clientY-r.top)/r.height)*100; const t=gameData.targets[qIdx]; const d=Math.sqrt(Math.pow(x-t.x,2)+Math.pow(y-t.y,2)); if(d<=t.r){alert(T.game_correct); qIdx++; render();}else{alert(T.game_wrong);}} render();`,
+        
+        WORDSEARCH: `const sz=gameData.gridSize||12, w=gameData.words, g=Array(sz).fill().map(()=>Array(sz).fill('')); w.forEach(wd=>{let p=false,att=0;while(!p&&att<100){att++;const d=Math.random()>.5,r=Math.floor(Math.random()*sz),c=Math.floor(Math.random()*sz);if((d&&c+wd.length<=sz)||(!d&&r+wd.length<=sz)){let f=true;for(let k=0;k<wd.length;k++)if(g[d?r:r+k][d?c+k:c]!==''&&g[d?r:r+k][d?c+k:c]!==wd[k])f=false;if(f){for(let k=0;k<wd.length;k++)g[d?r:r+k][d?c+k:c]=wd[k];p=true}}}}); for(let r=0;r<sz;r++)for(let c=0;c<sz;c++)if(!g[r][c])g[r][c]="ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)]; const c=document.getElementById('game-area'); let sel=[],dn=[]; function dr(){c.innerHTML=\`<div id="grid" style="grid-template-columns:repeat(\${sz},1fr)">\${g.flatMap((rw,r)=>rw.map((l,col)=>\`<div class="cell" data-r="\${r}" data-c="\${col}" onmousedown="s(\${r},\${col})" onmouseenter="e(\${r},\${col})" onmouseup="xn()" ontouchstart="s(\${r},\${col})" ontouchend="xn()">\${l}</div>\`)).join('')}</div><div style="margin-top:20px;text-align:center">\${w.map(x=>\`<span class="word-item \${dn.includes(x)?'done':''}">\${x}</span>\`).join('')}</div><div style="margin-top:20px;text-align:center"><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div>\`;} let isD=false,st=null; window.s=(r,c)=>{isD=true;st={r,c};h(r,c,r,c)}; window.e=(r,c)=>{if(isD)h(st.r,st.c,r,c)}; window.xn=()=>{if(isD){isD=false;ck();sel=[];document.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'))}}; function h(r1,c1,r2,c2){document.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));sel=[];let dr=r2-r1,dc=c2-c1,stp=Math.max(Math.abs(dr),Math.abs(dc));if(dr===0||dc===0||Math.abs(dr)===Math.abs(dc)){for(let i=0;i<=stp;i++)sel.push({r:r1+(dr?dr/Math.abs(dr)*i:0),c:c1+(dc?dc/Math.abs(dc)*i:0)})}sel.forEach(p=>document.querySelector(\`.cell[data-r="\${p.r}"][data-c="\${p.c}"]\`).classList.add('selected'))} function ck(){let txt=sel.map(p=>g[p.r][p.c]).join(''); if((w.includes(txt)&&!dn.includes(txt))||(w.includes(txt.split('').reverse().join(''))&&!dn.includes(txt.split('').reverse().join('')))){let f=w.includes(txt)?txt:txt.split('').reverse().join('');dn.push(f);sel.forEach(p=>document.querySelector(\`.cell[data-r="\${p.r}"][data-c="\${p.c}"]\`).classList.add('found'));dr()}} dr();`,
+        
+        DRAGDROP: `const cats=[...new Set(gameData.items.map(i=>i.cat))]; let sc=0; const c=document.getElementById('game-area'); c.innerHTML=\`<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px" id="pool">\${gameData.items.map((i,idx)=>\`<div class="draggable" draggable="true" id="d-\${idx}" ondragstart="event.dataTransfer.setData('t','text/plain'); event.dataTransfer.setData('cat','\${i.cat}'); event.dataTransfer.setData('id','d-\${idx}');">\${i.item}</div>\`).join('')}</div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap">\${cats.map(cat=>\`<div class="drop-zone" style="flex:1;min-width:200px" ondragover="event.preventDefault()" ondrop="dp(event,'\${cat}')"><h3 style="text-align:center">\${cat}</h3></div>\`).join('')}</div>\`; window.dp=(e,cat)=>{e.preventDefault();const t=e.dataTransfer.getData('cat');const id=e.dataTransfer.getData('id');if(t===cat){e.target.closest('.drop-zone').appendChild(document.getElementById(id));sc++;if(sc===gameData.items.length)setTimeout(()=>alert(T.game_congrats),100)}else{alert(T.game_wrong)}}`,
+        
+        MEMORY: `let cards=[],f1=null,f2=null,lck=false; gameData.pairs.forEach((p,i)=>{let[a,b]=p.split('|').map(x=>x.trim());if(!b)b=a;cards.push({id:i,val:a},{id:i,val:b})}); cards.sort(()=>Math.random()-.5); const c=document.getElementById('game-area'); c.innerHTML=\`<div class="mem-grid">\${cards.map((x,n)=>\`<div class="mem-card" id="c-\${n}" onclick="fl(\${n})"><div class="back"><div style="transform:rotateY(180deg);display:inline-block"></div></div></div>\`).join('')}</div><div style="text-align:center;margin-top:20px"><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div>\`; window.fl=(n)=>{if(lck||document.getElementById('c-'+n).classList.contains('flipped'))return;let el=document.getElementById('c-'+n);el.innerHTML='<div style="transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;height:100%">'+cards[n].val+'</div>';el.classList.add('flipped');if(!f1)f1={n,id:cards[n].id};else{f2={n,id:cards[n].id};lck=true;if(f1.id===f2.id){setTimeout(()=>{document.getElementById('c-'+f1.n).classList.add('matched');document.getElementById('c-'+f2.n).classList.add('matched');reset()},500)}else{setTimeout(()=>{document.getElementById('c-'+f1.n).innerHTML='';document.getElementById('c-'+f1.n).classList.remove('flipped');document.getElementById('c-'+f2.n).innerHTML='';document.getElementById('c-'+f2.n).classList.remove('flipped');reset()},1000)}}}; function reset(){f1=null;f2=null;lck=false}`,
+        
+        PUZZLE: `const sz=gameData.gridSize, url=gameData.imageUrl, szPx=300, tSz=szPx/sz;
+        let tiles=[], emp={x:sz-1,y:sz-1}, isSolved=false;
+        const c=document.getElementById('game-area');
+        if(document.querySelector('h1')) document.querySelector('h1').style.display = 'none';
+        c.innerHTML=\`
+            <div style="text-align:center;margin-bottom:15px;background:var(--card);padding:10px;border-radius:10px">
+                <strong>\${T.lbl_hint}:</strong> \${gameData.hint}
+            </div>
+            <div id="puz-board" style="width:\${szPx}px;height:\${szPx}px;margin:0 auto;position:relative;background:#000"></div>
+            <div id="solve-section" style="display:none;margin-top:20px;text-align:center;background:var(--card);padding:15px;border-radius:10px">
+                <p style="margin-bottom:10px;font-weight:bold">\${T.game_congrats}</p>
+                <input type="text" id="ans-inp" class="blank-input" style="width:200px;margin-bottom:10px" placeholder="\${T.game_your_ans}...">
+                <button class="btn" onclick="checkAns()">\${T.game_check}</button>
+            </div>
+            <div style="text-align:center;margin-top:20px"><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div>
+        \`;
+        const b=document.getElementById('puz-board');
+        for(let y=0;y<sz;y++){
+            for(let x=0;x<sz;x++){
+                if(y===sz-1 && x===sz-1) continue; 
+                let t=document.createElement('div');
+                t.className='tile'; t.style.width=tSz+'px'; t.style.height=tSz+'px'; t.style.position='absolute';
+                t.style.left=(x*tSz)+'px'; t.style.top=(y*tSz)+'px';
+                t.style.backgroundImage=\`url('\${url}')\`; t.style.backgroundSize=\`\${szPx}px \${szPx}px\`; t.style.backgroundPosition=\`-\${x*tSz}px -\${y*tSz}px\`;
+                t.style.transition='all 0.2s'; t.dataset.x=x; t.dataset.y=y; t.dataset.ox=x; t.dataset.oy=y;
+                t.onclick=()=>mv(t); b.appendChild(t); tiles.push(t);
+            }
+        }
+        for(let i=0;i<150;i++){
+            let m=tiles.filter(t=>(Math.abs(t.dataset.x-emp.x)+Math.abs(t.dataset.y-emp.y))===1);
+            if(m.length){ let r=m[Math.floor(Math.random()*m.length)]; swap(r,true); }
+        }
+        window.mv=(t)=>{
+            if(isSolved) return;
+            if((Math.abs(t.dataset.x-emp.x)+Math.abs(t.dataset.y-emp.y))===1){ swap(t,false); check(); }
+        };
+        function swap(t,silent){
+            let tx=t.dataset.x, ty=t.dataset.y; t.style.left=(emp.x*tSz)+'px'; t.style.top=(emp.y*tSz)+'px';
+            t.dataset.x=emp.x; t.dataset.y=emp.y; emp={x:parseInt(tx), y:parseInt(ty)};
+        }
+        function check(){
+            let win=true; tiles.forEach(t=>{ if(t.dataset.x != t.dataset.ox || t.dataset.y != t.dataset.oy) win=false; });
+            if(win){
+                isSolved=true;
+                let lastTile = document.createElement('div'); lastTile.style.width=tSz+'px'; lastTile.style.height=tSz+'px'; lastTile.style.position='absolute';
+                lastTile.style.left=(emp.x*tSz)+'px'; lastTile.style.top=(emp.y*tSz)+'px';
+                lastTile.style.backgroundImage=\`url('\${url}')\`; lastTile.style.backgroundSize=\`\${szPx}px \${szPx}px\`; lastTile.style.backgroundPosition=\`-\${emp.x*tSz}px -\${emp.y*tSz}px\`;
+                b.appendChild(lastTile);
+                document.getElementById('solve-section').style.display='block';
+            }
+        }
+        window.checkAns = () => {
+            let u = document.getElementById('ans-inp').value.toLowerCase().trim();
+            let a = gameData.answer.toLowerCase().trim();
+            if(u === a) alert(T.game_congrats); else alert(T.game_wrong);
+        }`,
+        
+        BOARD: `
+        const sz=gameData.size||81; 
+        const cols=9; 
+        const rows=Math.ceil(sz/cols);
+        const players=gameData.players||1;
+        let pos = Array(players).fill(0);
+        let turn=0; 
+        let showGrid = gameData.showGrid; // Expecting boolean true/false
+        if(typeof showGrid === 'undefined') showGrid = true;
+
+        const snakes = gameData.snakes || [];
+        const tiles = gameData.tiles || {};
+        const c=document.getElementById('game-area');
+        const img = gameData.imageUrl; 
+        
+        const modalStyle = \`<style>.custom-modal { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:9999;backdrop-filter:blur(3px); } .modal-content { background:white;padding:25px;border-radius:15px;width:90%;max-width:400px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);animation:popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); } @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} } .modal-btn { margin-top:15px;background:var(--primary);color:white;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-weight:bold; } 
+        .dice-wrap { perspective: 600px; width: 60px; height: 60px; margin: 10px auto; cursor: pointer; }
+        .dice { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: translateZ(-30px); transition: transform 1s; }
+        .dice.rolling { animation: spin 0.5s linear infinite; }
+        @keyframes spin { 0% { transform: translateZ(-30px) rotateX(0deg) rotateY(0deg); } 100% { transform: translateZ(-30px) rotateX(360deg) rotateY(360deg); } }
+        .side { position: absolute; width: 60px; height: 60px; background: white; border: 2px solid #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+        .front  { transform: rotateY(  0deg) translateZ(30px); }
+        .back   { transform: rotateY(180deg) translateZ(30px); }
+        .right  { transform: rotateY( 90deg) translateZ(30px); }
+        .left   { transform: rotateY(-90deg) translateZ(30px); }
+        .top    { transform: rotateX( 90deg) translateZ(30px); }
+        .bottom { transform: rotateX(-90deg) translateZ(30px); }
+        .grid-cell { display:flex; align-items:center; justify-content:center; position:relative; font-size:0.7rem; font-weight:bold; }
+        .player-token { position:absolute; width:40%; height:40%; border-radius:50%; border:1px solid white; box-shadow:0 1px 3px rgba(0,0,0,0.4); z-index:10; display:flex; align-items:center; justify-content:center; color:white; font-size:0.5rem; font-weight:bold; }
+        .p1 { background: #3b82f6; top: 10%; left: 10%; }
+        .p2 { background: #ef4444; top: 10%; right: 10%; }
+        .p3 { background: #22c55e; bottom: 10%; left: 10%; }
+        .p4 { background: #eab308; bottom: 10%; right: 10%; }
+        </style>\`;
+        
+        if(!document.getElementById('game-modal')) {
+             document.body.insertAdjacentHTML('beforeend', modalStyle + '<div id="game-modal" class="custom-modal"><div class="modal-content"><h3 id="m-title"></h3><p id="m-text"></p><button class="modal-btn" onclick="document.getElementById(\\'game-modal\\').style.display=\\'none\\'">OK</button></div></div>');
+        }
+
+        function showModal(title, text) {
+            let m = document.getElementById('game-modal');
+            document.getElementById('m-title').innerText = title; 
+            document.getElementById('m-text').innerText = text; 
+            m.style.display = 'flex';
+        }
+        
+        function getCoords(n) {
+            // Returns % x,y for center of tile n (1-81)
+            // Grid 9x9.
+            if(n<1) n=1; if(n>sz) n=sz;
+            let rIdx = Math.floor((n-1)/cols); // 0 (bottom) to 8 (top)
+            let cIdx = (n-1) % cols; // 0 to 8
+            
+            // Adjust col for ZigZag
+            let effectiveCol = cIdx;
+            if(rIdx % 2 !== 0) { // Odd rows (1,3..) go Right->Left
+                effectiveCol = (cols - 1) - cIdx;
+            }
+            
+            // Convert to % from Top-Left
+            // Row 0 is at bottom (y=8), Row 8 is at top (y=0)
+            let yPct = ((rows - 1 - rIdx) + 0.5) * (100/rows);
+            let xPct = (effectiveCol + 0.5) * (100/cols);
+            
+            return { x: xPct, y: yPct };
+        }
+
+        function dr(){
+            // BOARD HTML GENERATION (Zig-Zag / Serpentine)
+            let containerStyle = 'width:100%; max-width:450px; aspect-ratio:1/1; margin:0 auto; border:4px solid #333; border-radius:8px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.1); position:relative;';
+            if(img) containerStyle += 'background-image:url(\\''+img+'\\');background-size:100% 100%;';
+            else containerStyle += 'background:#fff;';
+
+            // SVG Overlay for Lines
+            let svg = \`<svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:\${showGrid?1:0};transition:opacity 0.3s" viewBox="0 0 100 100" preserveAspectRatio="none">\`;
+            snakes.forEach(s => {
+                let p1 = getCoords(s.from);
+                let p2 = getCoords(s.to);
+                // Color: Red if snake (down), Green if ladder (up)
+                let col = (s.to > s.from) ? '#22c55e' : '#ef4444'; // Green : Red
+                // Line
+                svg += \`<line x1="\${p1.x}" y1="\${p1.y}" x2="\${p2.x}" y2="\${p2.y}" stroke="\${col}" stroke-width="1.5" stroke-linecap="round" />\`;
+                // Arrowhead circle
+                svg += \`<circle cx="\${p2.x}" cy="\${p2.y}" r="1.5" fill="\${col}" />\`;
+            });
+            svg += '</svg>';
+
+            let html = '<div style="'+containerStyle+' display:grid; grid-template-columns:repeat('+cols+', 1fr);">' + svg;
+            
+            // Generate rows from Top (r=rows) to Bottom (r=1)
+            for(let r=rows; r>=1; r--) {
+                let startVal, step;
+                if(r % 2 !== 0) { // Odd Row (1, 3...) -> Left to Right
+                     startVal = (r-1)*cols + 1;
+                     step = 1;
+                } else { // Even Row (2, 4...) -> Right to Left
+                     startVal = r*cols;
+                     step = -1;
+                }
+                
+                let current = startVal;
+                for(let c=0; c<cols; c++) {
+                    let n = current;
+                    
+                    let content = n; 
+                    if(tiles[n]) content += '<br><span style="color:#e11d48">★</span>';
+                    
+                    let borderStyle = showGrid ? '1px solid rgba(0,0,0,0.1)' : 'none';
+                    let bg = showGrid ? (img ? 'rgba(255,255,255,0.2)' : ((n%2===0) ? '#f8fafc' : '#fff')) : 'transparent';
+                    
+                    // Specific highlights logic if grid shown and no image
+                    if(showGrid && !img) {
+                         if(snakes.find(s=>s.from===n)) bg='#fee2e2';
+                         if(snakes.find(s=>s.to===n)) bg='#dcfce7';
+                    }
+
+                    // Render tokens loop
+                    let tokensHTML = '';
+                    for(let p=0; p<players; p++) {
+                        if(pos[p] === (n-1)) {
+                            tokensHTML += \`<div class="player-token p\${p+1}">P\${p+1}</div>\`;
+                        }
+                    }
+
+                    html += \`<div class="grid-cell" style="background:\${bg}; border:\${borderStyle}; color:\${img && !showGrid ? 'transparent' : 'rgba(0,0,0,0.6)'}; text-shadow:none">
+                        \${showGrid || !img ? content : ''}
+                        \${tokensHTML}
+                    </div>\`;
+                    
+                    current += step;
+                }
+            }
+            html += '</div>';
+            
+            // CONTROLS HTML
+            html += \`
+                <div style="margin-top:20px;text-align:center;padding:20px;background:var(--card);border-radius:15px;box-shadow:0 4px 6px rgba(0,0,0,0.05)">
+                    <h3 style="color:var(--primary)">Giliran: P\${turn+1}</h3>
+                    
+                    <div class="dice-wrap" onclick="roll()">
+                        <div class="dice" id="dice">
+                            <div class="side front">1</div>
+                            <div class="side back">6</div>
+                            <div class="side right">3</div>
+                            <div class="side left">4</div>
+                            <div class="side top">2</div>
+                            <div class="side bottom">5</div>
+                        </div>
+                    </div>
+
+                    <div style="margin:10px 0;font-size:1rem;font-weight:bold;color:var(--text)" id="msg">Klik dadu</div>
+                    
+                    <button class="btn" style="width:100%;max-width:200px;padding:10px;font-size:1rem" onclick="roll()">🚀 Gerak</button>
+                    
+                    <div style="margin-top:10px"><button class="btn" onclick="location.reload()" style="background:#94a3b8;font-size:0.8rem;padding:5px 10px">Mula Semula</button></div>
+                </div>
+            \`;
+            
+            c.innerHTML = html;
+        }
+
+        window.roll = () => {
+            const dice = document.getElementById('dice');
+            if(dice.classList.contains('rolling')) return; 
+
+            dice.classList.add('rolling');
+            document.getElementById('msg').innerText = "Membaling...";
+            
+            setTimeout(() => {
+                dice.classList.remove('rolling');
+                let move = Math.ceil(Math.random()*6);
+                let rx = 0, ry = 0;
+                switch(move) {
+                    case 1: rx=0; ry=0; break;
+                    case 2: rx=-90; ry=0; break;
+                    case 3: rx=0; ry=-90; break;
+                    case 4: rx=0; ry=90; break;
+                    case 5: rx=90; ry=0; break;
+                    case 6: rx=0; ry=180; break;
+                }
+                dice.style.transform = \`translateZ(-30px) rotateX(\${rx + 360*2}deg) rotateY(\${ry + 360*2}deg)\`;
+                document.getElementById('msg').innerText = "Dadu: " + move;
+                processMove(move);
+            }, 600);
+        }
+        
+        function processMove(move) {
+             let p = pos[turn]; p += move; if(p >= sz-1) p = sz - 1; 
+            pos[turn] = p; dr();
+            setTimeout(() => {
+                let landed = p + 1; 
+                let s = snakes.find(x => x.from === landed);
+                if(s) { showModal("Ular/Tangga", "Bergerak ke petak " + s.to); pos[turn] = s.to - 1; dr(); return; }
+                if(tiles[landed]) {
+                    let t = tiles[landed]; let txt = t.content || t; showModal("Info Petak " + landed, txt);
+                    let txtLower = txt.toLowerCase(); let bonusMove = 0;
+                    if(txtLower.includes('undur') || txtLower.includes('back')) { let m = txtLower.match(/\\d+/); bonusMove = m ? -parseInt(m[0]) : -1; } else if(txtLower.includes('maju') || txtLower.includes('move')) { let m = txtLower.match(/\\d+/); bonusMove = m ? parseInt(m[0]) : 1; }
+                    if(bonusMove !== 0) { setTimeout(()=>{ pos[turn] = Math.max(0, Math.min(sz-1, pos[turn]+bonusMove)); dr(); }, 1500); }
+                }
+                // Next turn
+                turn = (turn + 1) % players; 
+                dr();
+            }, 800);
+        }
+        dr();`,
+            
+        SPELLING: `let idx=0; if(gameData.shuffle) gameData.words.sort(()=>Math.random()-.5); const w=gameData.words; const c=document.getElementById('game-area'); 
+        
+        // Modal Style for Spelling Bee
+        const spModalStyle = \`<style>
+        .custom-modal { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:9999;backdrop-filter:blur(3px); }
+        .modal-content { background:white;padding:25px;border-radius:15px;width:90%;max-width:400px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);animation:popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .modal-btn { margin-top:15px;background:var(--primary);color:white;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-weight:bold; }
+        </style>\`;
+        if(!document.getElementById('sp-modal')) document.body.insertAdjacentHTML('beforeend', spModalStyle + '<div id="sp-modal" class="custom-modal"><div class="modal-content"><h3 id="sp-title" style="margin-bottom:10px;"></h3><p id="sp-text" style="font-size:1.1rem;"></p><button id="sp-btn" class="modal-btn">OK</button></div></div>');
+
+        function showModal(title, text, callback) {
+            let m = document.getElementById('sp-modal');
+            document.getElementById('sp-title').innerText = title;
+            document.getElementById('sp-text').innerText = text;
+            let btn = document.getElementById('sp-btn');
+            btn.onclick = () => { m.style.display='none'; if(callback) callback(); };
+            m.style.display = 'flex';
+        }
+
+        // --- IMPROVED VOICE SELECTION LOGIC (Bahasa Betul-Betul + Fallback Indonesia) ---
+        function getVoice(l) {
+            const v = window.speechSynthesis.getVoices();
+            if(!v.length) return null;
+            
+            // Normalize requested lang code
+            l = l.toLowerCase();
+            const shortL = l.split('-')[0];
+
+            let found = null;
+
+            // 1. MALAY (BM)
+            if (shortL === 'ms') {
+                // Priority A: Exact 'ms-MY' (Malaysia)
+                found = v.find(x => x.lang === 'ms-MY');
+                // Priority B: Name contains 'Melayu' or 'Malay'
+                if (!found) found = v.find(x => x.name.toLowerCase().includes('melayu') || x.name.toLowerCase().includes('malay'));
+                // Priority C: Any 'ms' code
+                if (!found) found = v.find(x => x.lang.toLowerCase().startsWith('ms'));
+                
+                // Priority D (CRITICAL FALLBACK): Indonesian (id-ID)
+                // Jika tiada Melayu, guna Indonesia (bunyi lebih tepat dari English)
+                if (!found) found = v.find(x => x.lang === 'id-ID');
+                if (!found) found = v.find(x => x.lang.toLowerCase().startsWith('id') || x.name.toLowerCase().includes('indonesi'));
+            }
+            
+            // 2. ARABIC
+            else if (shortL === 'ar') {
+                found = v.find(x => x.lang === 'ar-SA');
+                if (!found) found = v.find(x => x.lang.toLowerCase().startsWith('ar'));
+            }
+            
+            // 3. ENGLISH
+            else if (shortL === 'en') {
+                found = v.find(x => x.lang === 'en-GB'); // British preferred
+                if (!found) found = v.find(x => x.lang === 'en-US');
+                if (!found) found = v.find(x => x.lang.toLowerCase().startsWith('en'));
+            }
+
+            // 4. Exact match fallback
+            if (!found) found = v.find(x => x.lang.toLowerCase() === l);
+            
+            return found;
+        }
+
+        function dr(){
+            if(idx>=w.length)return c.innerHTML=\`<div class='card' style='text-align:center'><h2>\${T.game_congrats}</h2><button class='btn' onclick='location.reload()'>\${T.game_reset}</button></div>\`; 
+            const pct=Math.round((idx/w.length)*100); 
+            c.innerHTML=\`<div style="width:100%;background:#ddd;height:10px;border-radius:5px;margin-bottom:20px"><div style="width:\${pct}%;background:var(--primary);height:100%;border-radius:5px"></div></div><div class="card" style="text-align:center"><p>\${T.game_q} \${idx+1}</p><button class="btn" style="margin-top:10px" onclick="spk()">🔊 \${T.game_listen}</button></div><input type="text" class="big-inp" id="inp" placeholder="..." autocomplete="off"><div style="text-align:center"><button class="btn" onclick="sub()">\${T.game_submit}</button></div>\`;
+        } 
+        
+        window.spk=()=>{
+            const wordObj = w[idx]; const text = wordObj.w || wordObj; const lang = wordObj.l || 'en-US'; 
+            
+            if('speechSynthesis' in window){
+                window.speechSynthesis.cancel();
+                
+                const speakNow = () => {
+                    const u = new SpeechSynthesisUtterance(text); 
+                    u.lang = lang; // Set requested lang first
+                    
+                    const v = getVoice(lang);
+                    if(v) {
+                        u.voice = v;
+                        u.lang = v.lang; // Update to match voice exactly
+                        console.log("TTS Voice Found:", v.name, v.lang);
+                    } else {
+                        // Jika target 'ms' tapi tiada voice, paksa 'id-ID' pada utterance
+                        // Ini membantu browser mobile menukar enjin walaupun 'voice' object tak dijumpai
+                        if(lang.startsWith('ms')) {
+                            u.lang = 'id-ID';
+                            console.log("TTS Fallback: Forcing id-ID for Malay");
+                        }
+                    }
+                    
+                    u.rate = 0.8; // Slightly slower for clarity
+                    window.speechSynthesis.speak(u);
+                };
+
+                if(window.speechSynthesis.getVoices().length === 0) { 
+                    window.speechSynthesis.onvoiceschanged = speakNow; 
+                } else { 
+                    speakNow(); 
+                }
+            } else { alert("Audio tidak disokong"); }
+        }; 
+        
+        window.sub=()=>{
+            let v=document.getElementById('inp').value.trim().toLowerCase();
+            let ans=(w[idx].w || w[idx]).trim().toLowerCase();
+            if(v===ans){ 
+                showModal(T.game_correct, "Tahniah! Jawapan anda tepat.", () => { idx++; dr(); });
+            } else { 
+                showModal(T.game_wrong, "Sila cuba lagi."); 
+            }
+        } 
+        dr();`,
+            
+        TRIVIA: `let qI=0,sc=0,tm=10; if(gameData.shuffle) gameData.questions.sort(()=>Math.random()-.5); const c=document.getElementById('game-area'); let timer; 
+        function dr(){
+            if(!gameData.questions || qI>=gameData.questions.length) return c.innerHTML=\`<div class="card" style="text-align:center"><h2>\${T.game_score}: \${sc}</h2><button class="btn" onclick="location.reload()">\${T.game_reset}</button></div>\`; 
+            const q=gameData.questions[qI]; tm=10; const pct=Math.round((qI/gameData.questions.length)*100); 
+            c.innerHTML=\`<div style="width:100%;background:#ddd;height:5px;margin-bottom:10px;border-radius:3px"><div style="width:\${pct}%;background:var(--accent);height:100%;border-radius:3px"></div></div><div class="timer-bar"><div class="fill" id="bar"></div></div><div class="card"><span style="background:var(--primary);color:white;padding:4px 10px;border-radius:4px;font-size:0.8rem">\${q.cat}</span><h3 style="margin-top:10px">\${q.q}</h3></div><input type="text" id="ans" class="big-inp" style="font-size:1.5rem" placeholder="..."><div style="text-align:center"><button class="btn" onclick="sub()">\${T.game_submit}</button></div>\`; 
+            clearInterval(timer); timer=setInterval(()=>{tm--;document.getElementById('bar').style.width=(tm*10)+'%';if(tm<=0)next(false)},1000)
+        } 
+        window.sub=()=>{
+            let v=document.getElementById('ans').value; next(v.toLowerCase()===gameData.questions[qI].a.toLowerCase())
+        }; 
+        function next(win){clearInterval(timer);if(win){sc+=10;alert(T.game_correct)}else{alert(T.game_wrong)}qI++;dr()} dr();`,
+            
+        SCENARIO: `let cur='1'; const n=gameData.scenes; const c=document.getElementById('game-area'); 
+        
+        // Custom Modal CSS for Scenario feedback
+        const scModalStyle = \`<style>
+        .custom-modal { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:2000; }
+        .sc-content { background:white;padding:30px;border-radius:15px;width:90%;max-width:400px;text-align:center; }
+        </style>\`;
+        
+        // Remove old modal if exists
+        if(!document.getElementById('sc-modal')) document.body.insertAdjacentHTML('beforeend', scModalStyle + '<div id="sc-modal" class="sc-modal"><div class="sc-content"><p id="sc-text" style="font-size:1.2rem;margin-bottom:20px"></p><button id="sc-btn" class="modal-btn">'+T.scen_continue+'</button></div></div>');
+
+        function showFeedback(text, callback) {
+            let m = document.getElementById('sc-modal');
+            document.getElementById('sc-text').innerText = text;
+            let btn = document.getElementById('sc-btn');
+            btn.onclick = () => { m.style.display='none'; if(callback) callback(); };
+            m.style.display = 'flex';
+        }
+
+        function dr(){
+            // Safety check
+            if(!n) return c.innerHTML="Error: No Scenes Data. Please use 'Sample' to load data.";
+            
+            // Normalize current scene ID for comparison
+            let sc = n.find(s => String(s.id).trim() === String(cur).trim());
+            
+            // --- ENDING SCREEN ---
+            if(String(cur).startsWith('end_')){
+                let msg = (cur==='end_pos') ? T.scen_end_pos : (cur==='end_neu') ? T.scen_end_neu : T.scen_end_neg;
+                let color = (cur==='end_pos') ? '#dcfce7' : (cur==='end_neg') ? '#fee2e2' : '#f1f5f9';
+                c.innerHTML=\`<div class="card" style="text-align:center;padding:40px;background:\${color}"><h2>\${msg}</h2><button class="btn" style="margin-top:20px" onclick="location.reload()">\${T.game_reset}</button></div>\`;
+                return;
+            }
+
+            if(!sc) return c.innerHTML="Error: Scene '"+cur+"' not found.";
+
+            // --- SCENE LAYOUT ---
+            // Badge for Scene ID + Box for Scenario Text + Separate Choices
+            c.innerHTML=\`
+                <div style="background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;border-left:5px solid var(--primary);box-shadow:0 4px 6px rgba(0,0,0,0.1); position:relative;">
+                    <div style="position:absolute; top:-12px; left:20px; background:var(--primary); color:white; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; letter-spacing:1px; z-index:2; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                        SCENE \${sc.id}
+                    </div>
+                    <div style="font-size:1.2rem;line-height:1.6;font-weight:500; margin-top:10px;">\${sc.text}</div>
+                </div>
+                
+                <h3 style="margin-bottom:15px;color:var(--text);font-size:0.9rem;text-align:center;opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Pilihan Tindakan</h3>
+                
+                <div id="choices-area" style="display:flex;flex-direction:column;gap:12px">
+                    \${sc.choices.map((ch, idx) => \`
+                        <button class="story-btn" onclick="choose(\${idx})" style="text-align:left;padding:15px 20px;background:white;border:2px solid #e2e8f0;border-radius:12px;font-weight:600;transition:all 0.2s;font-size:1rem;color:var(--text);box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; align-items:center;">
+                            <span style="background:var(--accent); color:white; width:24px; height:24px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:0.8rem; margin-right:12px; flex-shrink:0;">\${idx+1}</span>
+                            \${ch.label}
+                        </button>
+                    \`).join('')}
+                </div>
+            \`;
+            
+            // Hover effects (Inline JS for portability)
+            document.querySelectorAll('.story-btn').forEach(btn => {
+                btn.onmouseover = () => { btn.style.borderColor = 'var(--primary)'; btn.style.transform = 'translateY(-2px)'; btn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; };
+                btn.onmouseout = () => { btn.style.borderColor = '#e2e8f0'; btn.style.transform = 'none'; btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; };
+            });
+        } 
+        
+        window.choose=(idx)=>{
+            let sc = n.find(s => String(s.id).trim() === String(cur).trim()); 
+            let ch = sc.choices[idx];
+            
+            if(ch.feedback && ch.feedback !== "") {
+                showFeedback(ch.feedback, () => {
+                    cur = ch.next;      
+                    dr();   
+                });
+            } else {
+                cur = ch.next;
+                dr();
+            }            
+        }
+        dr();`,
+
+        ORDERING: `const items = gameData.items; let currentOrder = [...items].sort(() => Math.random() - 0.5); const c = document.getElementById('game-area');
+        function render() {
+            c.innerHTML = '<style>.order-list{list-style:none;padding:0;max-width:400px;margin:0 auto}.order-item{background:var(--card);padding:15px;margin-bottom:10px;border:1px solid #ccc;border-radius:8px;cursor:grab;display:flex;justify-content:space-between;align-items:center}.order-item.dragging{opacity:0.5;border:2px dashed var(--primary)}.order-item:hover{background:rgba(255,255,255,0.1)}.btn-move{background:none;border:none;cursor:pointer;color:var(--text);font-size:1.2rem;padding:5px}</style>' +
+                '<ul class="order-list" id="sortable-list">' +
+                currentOrder.map((item, index) => \`<li class="order-item" draggable="true" data-index="\${index}"><span>\${item}</span><div><button class="btn-move" onclick="move(\${index}, -1)">▲</button><button class="btn-move" onclick="move(\${index}, 1)">▼</button></div></li>\`).join('') +
+                '</ul><div style="text-align:center;margin-top:20px"><button class="btn" onclick="checkOrder()">' + T.game_check + '</button></div>';
+            addDnD();
+        }
+        window.move = (idx, dir) => {
+            if (idx + dir < 0 || idx + dir >= currentOrder.length) return;
+            const temp = currentOrder[idx]; currentOrder[idx] = currentOrder[idx + dir]; currentOrder[idx + dir] = temp; render();
+        };
+        window.checkOrder = () => {
+            let correct = true; for(let i=0; i<items.length; i++) { if(items[i] !== currentOrder[i]) correct = false; }
+            if(correct) alert(T.game_congrats); else alert(T.game_wrong);
+        };
+        function addDnD() {
+            const list = document.getElementById('sortable-list'); let draggedItem = null;
+            list.addEventListener('dragstart', (e) => { draggedItem = e.target.closest('li'); setTimeout(() => draggedItem.classList.add('dragging'), 0); });
+            list.addEventListener('dragend', () => { draggedItem.classList.remove('dragging'); draggedItem = null; const newOrder = []; document.querySelectorAll('.order-item span').forEach(span => newOrder.push(span.innerText)); currentOrder = newOrder; });
+            list.addEventListener('dragover', (e) => { e.preventDefault(); const afterElement = getDragAfterElement(list, e.clientY); const draggable = document.querySelector('.dragging'); if (afterElement == null) { list.appendChild(draggable); } else { list.insertBefore(draggable, afterElement); } });
+            function getDragAfterElement(container, y) { const draggableElements = [...container.querySelectorAll('.order-item:not(.dragging)')]; return draggableElements.reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2; if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; } }, { offset: Number.NEGATIVE_INFINITY }).element; }
+        }
+        render();`
+    };
+
+    // --- 2. GAME DEFINITIONS & BUILDERS ---
+    window.GAMES = {
+        flashcard: {
+            id: 'flashcard', name: { ms: '<i>Flashcard</i>', en: 'Flashcard' }, icon: '🗂️', color: 'bg-orange-50 text-orange-600',
+            desc: { ms: 'Hafalan pantas.', en: 'Quick memorization.' },
+            defaultData: { title: "B. Arab", items: [ { front: "Buku", back: "Book" }, { front: "Kucing", back: "Cat" }, { front: "Matahari", back: "Sun" }, { front: "Air", back: "Water" }, { front: "Api", back: "Fire" } ] },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||'Flashcard'}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_data}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded font-mono text-sm">${d.items?d.items.map(i=>`${i.front}|${i.back}`).join('\n'):''}</textarea></div><div class="flex items-center gap-2"><input type="checkbox" id="inp-shuffle" ${d.shuffle?'checked':''}><label for="inp-shuffle" class="text-sm">${window.UI_STRINGS[window.app.lang].lbl_shuffle}</label></div></div>`,
+            parseData: () => ({ title: document.getElementById('inp-title').value, items: document.getElementById('inp-content').value.split('\n').filter(l=>l.includes('|')).map(l=>{const p=l.split('|');return{front:p[0]?.trim(),back:p[1]?.trim()}}), shuffle: document.getElementById('inp-shuffle').checked })
+        },
+        quiz: {
+            id: 'quiz', name: { ms: 'Kuiz MCQ', en: 'MCQ Quiz' }, icon: '❓', color: 'bg-blue-50 text-blue-600',
+            desc: { ms: 'Kuiz pilihan.', en: 'Multiple choice.' },
+            defaultData: { title: "Uji Minda", rawText: "Q: Ibu negara Malaysia?\nA) Johor\nB) Kuala Lumpur\nC) Sabah\nAnswer: B\nExplanation: Kuala Lumpur ialah ibu negara Malaysia.\n\nQ: Berapakah jalur pada bendera Malaysia?\nA) 14\nB) 10\nC) 13\nAnswer: A\nExplanation: 14 jalur melambangkan 13 negeri dan 1 wilayah persekutuan.\n\nQ: Rukun Negara ada berapa?\nA) 3\nB) 4\nC) 5\nAnswer: C\n\nQ: Mata wang Malaysia?\nA) Dollar\nB) Rupiah\nC) Ringgit\nAnswer: C\n\nQ: Bunga kebangsaan?\nA) Orkid\nB) Raya\nC) Mawar\nAnswer: B" },
+            renderBuilder: (c, d) => { const t=window.UI_STRINGS[window.app.lang]; let txt=d.rawText||""; if(!txt&&d.questions) txt=d.questions.map(q=>`Q: ${q.q}\n${q.options.map((o,i)=>"ABCDEF"[i]+") "+o).join('\n')}\nAnswer: ${"ABCDEF"[q.correct]}\nExplanation: ${q.explain||""}`).join('\n\n'); c.innerHTML=`<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${t.lbl_title}</label><input type="text" id="inp-title" value="${d.title||'Quiz'}" class="w-full border p-2 rounded"></div><div class="bg-blue-50 p-2 text-xs text-blue-800">Format: Q: .. A).. Answer: A Explanation: ...</div><div><label class="block text-sm font-bold mb-1">${t.game_q}</label><textarea id="inp-content" rows="12" class="w-full border p-2 rounded font-mono text-sm">${txt}</textarea></div><div class="flex items-center gap-2"><input type="checkbox" id="inp-shuffle" ${d.shuffle?'checked':''}><label for="inp-shuffle" class="text-sm">${t.lbl_shuffle}</label></div></div>`; },
+            parseData: () => ({ title: document.getElementById('inp-title').value, questions: window.parseQuizText(document.getElementById('inp-content').value), shuffle: document.getElementById('inp-shuffle').checked })
+        },
+        fillblank: {
+            id: 'fillblank', name: { ms: 'Isi Tempat Kosong', en: 'Fill in the Blank' }, icon: '📝', color: 'bg-green-50 text-green-600',
+            desc: { ms: 'Lengkapkan ayat.', en: 'Complete sentences.' },
+            defaultData: { title: "Latihan Bahasa", sentences: ["Saya suka makan [nasi] lemak.", "Bunga [Raya] adalah bunga kebangsaan.", "Kucing berkaki [empat].", "Matahari terbit di [Timur].", "[Merdeka] disambut pada 31 Ogos."] },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_sentences}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded font-mono text-sm">${d.sentences?d.sentences.join('\n'):''}</textarea></div><div class="flex items-center gap-2"><input type="checkbox" id="inp-shuffle" ${d.shuffle?'checked':''}><label for="inp-shuffle" class="text-sm">${window.UI_STRINGS[window.app.lang].lbl_shuffle}</label></div></div>`,
+            parseData: () => ({ title: document.getElementById('inp-title').value, sentences: document.getElementById('inp-content').value.split('\n').filter(s=>s.trim()), shuffle: document.getElementById('inp-shuffle').checked })
+        },
+        wordsearch: {
+            id: 'wordsearch', name: { ms: 'Cari Perkataan', en: 'Word Search' }, icon: '🔍', color: 'bg-yellow-50 text-yellow-600',
+            desc: { ms: 'Cari perkataan.', en: 'Find words.' },
+            defaultData: { title: "Buah-buahan", words: ["DURIAN", "MANGGIS", "RAMBUTAN", "LANGSAT", "CEMPEDAK", "BETIK", "PISANG", "NENAS"], gridSize: 12 },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_grid}</label><input type="number" id="inp-size" value="${d.gridSize||12}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_words}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded uppercase">${d.words?d.words.join('\n'):''}</textarea></div></div>`,
+            parseData: () => ({ title: document.getElementById('inp-title').value, gridSize: parseInt(document.getElementById('inp-size').value)||12, words: document.getElementById('inp-content').value.toUpperCase().split('\n').map(w=>w.trim()).filter(w=>w) })
+        },
+        dragdrop: {
+            id: 'dragdrop', name: { ms: '<i>Drag & Drop</i>', en: 'Drag & Drop' }, icon: '🖐️', color: 'bg-purple-50 text-purple-600',
+            desc: { ms: 'Kategorikan item.', en: 'Categorize items.' },
+            defaultData: { title: "Kategori Haiwan", items: [{cat:"Mamalia",item:"Kucing"},{cat:"Reptilia",item:"Ular"},{cat:"Mamalia",item:"Lembu"},{cat:"Reptilia",item:"Buaya"},{cat:"Burung",item:"Helang"}] },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_data}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded text-sm">${d.items?d.items.map(i=>`${i.cat}|${i.item}`).join('\n'):''}</textarea></div><div class="flex items-center gap-2"><input type="checkbox" id="inp-shuffle" ${d.shuffle?'checked':''}><label for="inp-shuffle" class="text-sm">${window.UI_STRINGS[window.app.lang].lbl_shuffle}</label></div></div>`,
+            parseData: () => ({ title: document.getElementById('inp-title').value, items: document.getElementById('inp-content').value.split('\n').filter(l=>l.includes('|')).map(l=>{const p=l.split('|');return{cat:p[0]?.trim() || '', item:p[1]?.trim() || ''}}), shuffle: document.getElementById('inp-shuffle').checked })
+        },
+        memory: {
+            id: 'memory', name: { ms: 'Padanan Memori', en: 'Memory Match' }, icon: '🧠', color: 'bg-pink-50 text-pink-600',
+            desc: { ms: 'Cari pasangan.', en: 'Find pairs.' },
+            defaultData: { title: "Nombor", pairs: ["Satu|1", "Dua|2", "Tiga|3", "Empat|4", "Lima|5", "Enam|6"] },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_pairs}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded text-sm">${d.pairs?d.pairs.join('\n'):''}</textarea></div></div>`,
+            parseData: () => ({ title: document.getElementById('inp-title').value, pairs: document.getElementById('inp-content').value.split('\n').filter(l=>l.trim()) })
+        },
+        puzzle: {
+            id: 'puzzle', name: { ms: '<i>Puzzle</i>', en: 'Puzzle' }, icon: '🧩', color: 'bg-teal-50 text-teal-600',
+            desc: { ms: 'Susun gambar.', en: 'Arrange image.' },
+            defaultData: { title: "KLCC", imageUrl: "https://i.pinimg.com/1200x/df/68/fd/df68fdbe09e774ac719485164fb5e08f.jpg", gridSize: 3, hint: "Menara Berkembar Ikonik", answer: "KLCC" },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_img}</label><input type="text" id="inp-url" value="${d.imageUrl||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_grid}</label><input type="number" id="inp-size" value="${d.gridSize||3}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_hint}</label><input type="text" id="inp-hint" value="${d.hint||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_answer}</label><input type="text" id="inp-answer" value="${d.answer||''}" class="w-full border p-2 rounded"></div></div>`,
+            parseData: () => ({ title: document.getElementById('inp-title').value, imageUrl: document.getElementById('inp-url').value, gridSize: parseInt(document.getElementById('inp-size').value), hint: document.getElementById('inp-hint').value, answer: document.getElementById('inp-answer').value })
+        },
+        board: {
+            id: 'board', name: { ms: 'Permainan Papan', en: 'Board Game' }, icon: '🎲', color: 'bg-indigo-50 text-indigo-600',
+            desc: { ms: 'Ular & Tangga.', en: 'Snakes & Ladders.' },
+            defaultData: { 
+                title: "Kembara Ilmu", 
+                imageUrl: "https://img2link.kiemiftah.com/uploads/Gemini_Generated_Image_45eftr45eftr45ef.png",
+                size: 81, players: 1, 
+                snakes: "25->9\n49->32\n34->17\n73->57\n79->63",
+                ladders: "14->22\n36->55\n27->46\n51->68\n64->80",
+                tiles: "3: Teruskan usaha!\n5: Maju 1 langkah\n10: Soalan: 1+1? J: 2", 
+                showGrid: true 
+            },
+            renderBuilder: (c, d) => {
+                let sStr = ""; 
+                if(Array.isArray(d.snakes)) sStr = d.snakes.filter(s => s.to < s.from).map(s=>`${s.from}->${s.to}`).join('\n');
+                else sStr = d.snakes || "";
+                
+                // Handle split or combined storage
+                let lStr = "";
+                if(d.ladders) {
+                    lStr = d.ladders; // If stored separately
+                } else if(Array.isArray(d.snakes)) {
+                     // Extract ladders from snakes array if that's how it was stored
+                     lStr = d.snakes.filter(s => s.to > s.from).map(s=>`${s.from}->${s.to}`).join('\n');
+                }
+
+                let tStr = "";
+                if(typeof d.tiles === 'object' && !Array.isArray(d.tiles)) {
+                    tStr = Object.keys(d.tiles).map(k => {
+                        let t = d.tiles[k];
+                        return `${k}: ${t.content || t}`;
+                    }).join('\n');
+                } else {
+                    tStr = d.tiles || "";
+                }
+
+                c.innerHTML = `<div class="space-y-4">
+                    <div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div>
+                    <div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_img || "URL Imej"}</label><input type="text" id="inp-img" value="${d.imageUrl||''}" class="w-full border p-2 rounded" placeholder="https://..."></div>
+                    <div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_board_size}</label><input type="number" id="inp-size" value="${d.size||81}" class="w-full border p-2 rounded" placeholder="Contoh: 81 (untuk 9x9)"></div>
+                    <div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_players}</label><select id="inp-players" class="w-full border p-2 rounded">
+                        <option value="1" ${d.players==1?'selected':''}>1</option>
+                        <option value="2" ${d.players==2?'selected':''}>2</option>
+                        <option value="3" ${d.players==3?'selected':''}>3</option>
+                        <option value="4" ${d.players==4?'selected':''}>4</option>
+                    </select></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-sm font-bold mb-1 text-red-600">${window.UI_STRINGS[window.app.lang].lbl_snakes}</label><textarea id="inp-snakes" rows="4" class="w-full border p-2 rounded text-sm bg-red-50">${sStr}</textarea></div>
+                        <div><label class="block text-sm font-bold mb-1 text-green-600">${window.UI_STRINGS[window.app.lang].lbl_ladders}</label><textarea id="inp-ladders" rows="4" class="w-full border p-2 rounded text-sm bg-green-50">${lStr}</textarea></div>
+                    </div>
+                    <div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_board_tiles}</label><textarea id="inp-tiles" rows="6" class="w-full border p-2 rounded text-sm">${tStr}</textarea></div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="inp-grid" ${d.showGrid?'checked':''}><label for="inp-grid" class="text-sm">${window.UI_STRINGS[window.app.lang].lbl_show_grid || 'Tunjuk Grid'}</label></div>
+                </div>`;
+            },
+            parseData: () => {
+                const sRaw = document.getElementById('inp-snakes').value;
+                const lRaw = document.getElementById('inp-ladders').value;
+                
+                const snakes = sRaw.split('\n').filter(l=>l.includes('->')).map(l=>{
+                    const p = l.split('->');
+                    return { from: parseInt(p[0]), to: parseInt(p[1]) };
+                });
+                
+                const ladders = lRaw.split('\n').filter(l=>l.includes('->')).map(l=>{
+                    const p = l.split('->');
+                    return { from: parseInt(p[0]), to: parseInt(p[1]) };
+                });
+                
+                // Combine for logic
+                const allPaths = [...snakes, ...ladders];
+
+                const tRaw = document.getElementById('inp-tiles').value;
+                const tiles = {};
+                tRaw.split('\n').forEach(l => {
+                    const firstColon = l.indexOf(':');
+                    if(firstColon > -1) {
+                        const num = parseInt(l.substring(0, firstColon));
+                        const txt = l.substring(firstColon+1).trim();
+                        if(!isNaN(num)) {
+                            tiles[num] = { type: 'text', content: txt };
+                            if(txt.toLowerCase().includes('soalan') || txt.toLowerCase().includes('question')) tiles[num].type = 'qa';
+                        }
+                    }
+                });
+                return { 
+                    title: document.getElementById('inp-title').value, 
+                    imageUrl: document.getElementById('inp-img').value,
+                    size: parseInt(document.getElementById('inp-size').value),
+                    players: parseInt(document.getElementById('inp-players').value),
+                    snakes: allPaths, // Logic uses single array, builder separates for UX
+                    ladders: lRaw, // Store raw text for reloading builder state correctly
+                    tiles: tiles,
+                    showGrid: document.getElementById('inp-grid').checked
+                };
+            }
+        },
+        spelling: {
+            id: 'spelling', name: { ms: '<i>Spelling Bee</i>', en: 'Spelling Bee' }, icon: '🗣️', color: 'bg-cyan-50 text-cyan-600',
+            desc: { ms: 'Dengar dan eja.', en: 'Listen and spell.' },
+            defaultData: { title: "Ejaan Bahasa", words: ["Sekolah", "Buku", "Komputer", "Meja", "Kerusi"], langMode: "auto" },
+            renderBuilder: (c, d) => c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_lang_mode}</label><select id="inp-lang" class="w-full border p-2 rounded"><option value="auto">Auto-Detect</option><option value="ms-MY">Bahasa Melayu</option><option value="en-US">English</option><option value="ar-SA">Arabic</option></select></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_words}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded text-sm">${d.words?d.words.map(w=>w.w || w).join('\n'):''}</textarea></div><div class="flex items-center gap-2"><input type="checkbox" id="inp-shuffle" ${d.shuffle?'checked':''}><label for="inp-shuffle" class="text-sm">${window.UI_STRINGS[window.app.lang].lbl_shuffle}</label></div></div>`,
+            parseData: () => {
+                const lMode = document.getElementById('inp-lang').value;
+                const rawWords = document.getElementById('inp-content').value.split('\n').filter(l=>l.trim());
+                const words = rawWords.map(w => {
+                    let detected = lMode;
+                    if(lMode === 'auto') detected = window.detectLang(w);
+                    return { w: w, l: detected };
+                });
+                return { 
+                    title: document.getElementById('inp-title').value, 
+                    words: words, 
+                    shuffle: document.getElementById('inp-shuffle').checked,
+                    langMode: lMode 
+                };
+            }
+        },
+        trivia: {
+            id: 'trivia', name: { ms: 'Trivia Pantas', en: 'Speed Trivia' }, icon: '⚡', color: 'bg-amber-50 text-amber-600',
+            desc: { ms: 'Jawab pantas.', en: 'Answer fast.' },
+            defaultData: { title: "Sains", questions: [{cat:"Bio",q:"Pengepam darah?",a:"Jantung"},{cat:"Kimia",q:"H2O?",a:"Air"},{cat:"Fizik",q:"Unit jisim?",a:"Kg"},{cat:"Bio",q:"Fotosintesis perlu?",a:"Cahaya"}] },
+            renderBuilder: (c, d) => { const t=window.UI_STRINGS[window.app.lang]; let txt=d.questions?d.questions.map(q=>`${q.cat}|${q.q}|${q.a}`).join('\n'):''; c.innerHTML=`<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${t.lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${t.lbl_data} (Cat|Q|A)</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded text-sm">${txt}</textarea></div><div class="flex items-center gap-2"><input type="checkbox" id="inp-shuffle" ${d.shuffle?'checked':''}><label for="inp-shuffle" class="text-sm">${t.lbl_shuffle}</label></div></div>`; },
+            parseData: () => ({ title: document.getElementById('inp-title').value, questions: document.getElementById('inp-content').value.split('\n').filter(l=>l.includes('|')).map(l=>{const p=l.split('|');return{cat:p[0].trim(),q:p[1].trim(),a:p[2].trim()}}), shuffle: document.getElementById('inp-shuffle').checked })
+        },
+        story: {
+            id: 'story', name: { ms: 'Permainan Senario', en: 'Scenario Game' }, icon: '📖', color: 'bg-rose-50 text-rose-600',
+            desc: { ms: 'Pilih laluan.', en: 'Choose path.' },
+            defaultData: { title: "Dilema Etika", rawText: "[SCENE 1]\nSituasi: Anda menjumpai dompet berisi wang di kantin sekolah.\nA: Ambil wang itu -> feedback: Itu perbuatan tidak jujur! -> next: end_neg\nB: Serahkan kepada guru -> feedback: Bagus! Anda seorang yang jujur. -> next: 2\n\n[SCENE 2]\nSituasi: Guru memuji kejujuran anda dan memberikan hadiah.\nA: Terima kasih cikgu -> feedback: Sama-sama. -> next: end_pos\nB: Tolak dengan sopan -> feedback: Anda sangat rendah diri. -> next: end_pos", scenes: [] },
+            renderBuilder: (c, d) => {
+                let txt = d.rawText || "";
+                if (!txt && d.scenes && d.scenes.length > 0) {
+                    txt = d.scenes.map(s => `[SCENE ${s.id}]\nSituasi: ${s.text}\n` + s.choices.map(ch => `${ch.label} -> feedback: ${ch.feedback} -> next: ${ch.next}`).join('\n')).join('\n\n');
+                }
+                if(!txt && d.rawText) txt = d.rawText;
+
+                c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||'Scenario'}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_content}</label><div class="bg-gray-100 p-2 text-xs text-gray-600 mb-2">Format:<br>[SCENE 1]<br>Situasi: ...<br>A: Pilihan -> feedback: ... -> next: 2<br>(Gunakan 'next: end_pos', 'end_neg', 'end_neu' untuk tamat)</div><textarea id="inp-content" rows="15" class="w-full border p-2 rounded font-mono text-sm">${txt}</textarea></div></div>`;
+            },
+            parseData: () => ({ title: document.getElementById('inp-title').value, scenes: window.parseScenarioText(document.getElementById('inp-content').value), rawText: document.getElementById('inp-content').value })
+        },
+        ordering: {
+            id: 'ordering', name: { ms: 'Susun Turutan', en: 'Ordering Game' }, icon: '🔢', color: 'bg-teal-50 text-teal-600',
+            desc: { ms: 'Susun item mengikut urutan.', en: 'Arrange items in order.' },
+            defaultData: { title: "Kitar Hidup Rama-Rama", items: ["Telur", "Beluncas", "Kepompong", "Rama-rama Dewasa"] },
+            renderBuilder: (c, d) => {
+                c.innerHTML = `<div class="space-y-4"><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_title}</label><input type="text" id="inp-title" value="${d.title||''}" class="w-full border p-2 rounded"></div><div><label class="block text-sm font-bold mb-1">${window.UI_STRINGS[window.app.lang].lbl_items_order}</label><textarea id="inp-content" rows="10" class="w-full border p-2 rounded text-sm">${d.items?d.items.join('\n'):''}</textarea></div></div>`;
+            },
+            parseData: () => ({ title: document.getElementById('inp-title').value, items: document.getElementById('inp-content').value.split('\n').filter(l=>l.trim()) })
+        }
+    };
+
+    // --- 3. APP ENGINE ---
+    const app = {
+        currentGame: null,
+        lang: 'ms',
+        init: () => { 
+            window.app = app;
+            app.renderLanding();
+            app.populateThemes();
+            app.updateUI();
+            // initHitStat removed, logic moved to updateFooter
+        },
+        
+        setText: (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        },
+
+        setLang: (l) => {
+            app.lang = l;
+            app.updateUI();
+            if(!app.currentGame) app.renderLanding();
+            else {
+                const currentData = app.currentGame.parseData();
+                app.currentGame.renderBuilder(document.getElementById('builder-container'), currentData);
+                app.updatePreview(); 
+            }
+        },
+        updateFooter: () => {
+            const now = new Date();
+            app.setText('footer-year', now.getFullYear());
+            app.setText('footer-date', now.toLocaleDateString(app.lang === 'ms' ? 'ms-MY' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }));
+            
+            // Panggil API Hitstat
+            (async () => {
+                try {
+                    const res = await fetch("./api/hit.php", { cache: "no-store" });
+                    if (!res.ok) throw new Error("API fail");
+                    const data = await res.json();
+                    const el = document.getElementById("hitstatTotal");
+                    if (el) el.innerText = data.total || "0";
+                } catch (e) {
+                    // Fail silently for offline/local
+                    console.log("Hitstat: Offline/Local mode");
+                }
+            })();
+        },
+        updateUI: () => {
+            const t = window.UI_STRINGS[app.lang];
+            app.setText('landing-title', t.landing_title);
+            app.setText('landing-desc', t.landing_desc);
+            app.setText('editor-title', t.editor_title);
+            // Updated IDs for moved buttons
+            if(document.getElementById('btn-import')) document.getElementById('btn-import').innerHTML = `<i class="fas fa-folder-open"></i> <span class="hidden sm:inline">${t.btn_import}</span>`;
+            if(document.getElementById('btn-sample')) document.getElementById('btn-sample').innerHTML = `<i class="fas fa-magic mr-1"></i> <span class="hidden sm:inline">${t.btn_sample}</span>`;
+            app.setText('btn-preview', t.btn_preview);
+            app.setText('btn-export-text', t.btn_export);
+            app.setText('preview-label', t.preview_label);
+            app.setText('app-subtitle', t.subtitle);
+            app.setText('lbl-tab-preview', t.tab_preview);
+            app.setText('lbl-tab-code', t.tab_code);
+            app.updateFooter();
+            ['ms', 'en'].forEach(l => {
+                const active = l === app.lang;
+                const el = document.getElementById(`btn-lang-${l}`);
+                if(el) {
+                    el.classList.toggle('active', active);
+                    el.classList.toggle('inactive', !active);
+                }
+            });
+        },
+        populateThemes: () => {
+            const selector = document.getElementById('theme-selector');
+            selector.innerHTML = '';
+            Object.keys(window.THEMES).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = window.THEMES[key].name;
+                selector.appendChild(opt);
+            });
+        },
+        renderLanding: () => {
+            app.currentGame = null;
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = Object.values(window.GAMES).map(game => `
+                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col items-center text-center group h-full" onclick="window.app.selectGame('${game.id}')">
+                    <div class="w-10 h-10 sm:w-14 sm:h-14 ${game.color} rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                        <span class="text-xl sm:text-2xl">${game.icon}</span>
+                    </div>
+                    <h3 class="font-bold text-sm sm:text-base mb-1 leading-tight">${game.name[app.lang]}</h3>
+                    <p class="text-[10px] sm:text-xs text-gray-500 line-clamp-2 hidden sm:block">${game.desc[app.lang]}</p>
+                </div>
+            `).join('');
+            document.getElementById('landing-page').classList.remove('hidden');
+            document.getElementById('workspace').classList.add('hidden');
+        },
+        selectGame: (gameId) => {
+            app.currentGame = window.GAMES[gameId];
+            document.getElementById('landing-page').classList.add('hidden');
+            document.getElementById('workspace').classList.remove('hidden');
+            app.currentGame.renderBuilder(document.getElementById('builder-container'), { title: '', items: [], questions: [], words: [] });
+            app.loadSampleData();
+        },
+        showLanding: () => { app.renderLanding(); },
+        loadSampleData: () => {
+            if(!app.currentGame) return;
+            app.currentGame.renderBuilder(document.getElementById('builder-container'), app.currentGame.defaultData);
+            app.updatePreview();
+        },
+        switchTab: (tab) => {
+            const isPreview = tab === 'preview';
+            document.getElementById('panel-preview').style.display = isPreview ? 'flex' : 'none';
+            document.getElementById('panel-code').classList.toggle('hidden', isPreview);
+            
+            document.getElementById('tab-btn-preview').classList.toggle('bg-white', isPreview);
+            document.getElementById('tab-btn-preview').classList.toggle('text-gray-700', isPreview);
+            document.getElementById('tab-btn-preview').classList.toggle('text-gray-500', !isPreview);
+            
+            document.getElementById('tab-btn-code').classList.toggle('bg-white', !isPreview);
+            document.getElementById('tab-btn-code').classList.toggle('text-gray-700', !isPreview);
+            document.getElementById('tab-btn-code').classList.toggle('text-gray-500', isPreview);
+        },
+        updatePreview: () => {
+            if(!app.currentGame) return;
+            const data = app.currentGame.parseData();
+            const themeKey = document.getElementById('theme-selector').value;
+            const theme = window.THEMES[themeKey] || window.THEMES["github-light"]; 
+            const html = app.generateGameHTML(app.currentGame.id, data, theme);
+            document.getElementById('preview-frame').srcdoc = html;
+            document.getElementById('code-output').value = html;
+        },
+        downloadHTML: () => {
+            if(!app.currentGame) return;
+            const data = app.currentGame.parseData();
+            const themeKey = document.getElementById('theme-selector').value;
+            const theme = window.THEMES[themeKey] || window.THEMES["github-light"];
+            const blob = new Blob([app.generateGameHTML(app.currentGame.id, data, theme)], {type: 'text/html'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${app.currentGame.id}_game.html`;
+            a.click();
+        },
+        handleFileUpload: (input) => {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                const textarea = document.getElementById('inp-content');
+                if(textarea) {
+                    textarea.value = content;
+                    // Re-parse to populate specific fields (like image URL for hotspot) if format is detected
+                    app.updatePreview();
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        },
+        generateGameHTML: (gameId, data, theme) => {
+            let logic = '';
+            if(gameId === 'flashcard') logic = window.LOGIC.FLASHCARD;
+            else if(gameId === 'quiz') logic = window.LOGIC.QUIZ;
+            else if(gameId === 'fillblank') logic = window.LOGIC.FILLBLANK;
+            else if(gameId === 'wordsearch') logic = window.LOGIC.WORDSEARCH;
+            else if(gameId === 'dragdrop') logic = window.LOGIC.DRAGDROP;
+            else if(gameId === 'memory') logic = window.LOGIC.MEMORY;
+            else if(gameId === 'puzzle') logic = window.LOGIC.PUZZLE;
+            else if(gameId === 'board') logic = window.LOGIC.BOARD;
+            else if(gameId === 'spelling') logic = window.LOGIC.SPELLING;
+            else if(gameId === 'trivia') logic = window.LOGIC.TRIVIA;
+            else if(gameId === 'story') logic = window.LOGIC.SCENARIO; // Fix: Map 'story' ID to SCENARIO logic
+            else if(gameId === 'ordering') logic = window.LOGIC.ORDERING;
+
+            const gt = window.UI_STRINGS[app.lang]; 
+            const textsJson = JSON.stringify(gt);
+
+            return `<!DOCTYPE html>
+<html lang="${app.lang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${data.title || 'Edu Game'}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+:root { --primary: ${theme.primary}; --bg: ${theme.bg}; --card: ${theme.card}; --text: ${theme.text}; --accent: ${theme.accent}; --grad: ${theme.grad}; --font: 'Segoe UI', sans-serif; }
+* { box-sizing: border-box; }
+body { font-family: var(--font); background: var(--grad, var(--bg)); color: var(--text); margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; position: relative; }
+.container { width: 100%; max-width: 700px; text-align: center; margin-top: 20px; }
+h1 { color: var(--primary); text-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; font-weight: 800; }
+.btn { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #ffffff; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; margin: 5px; font-size:1rem; font-weight: 700; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s; }
+.btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.card { background: var(--card); color: var(--text); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+input, textarea { background: var(--card); color: var(--text); border: 2px solid var(--primary); border-radius: 8px; padding: 10px; }
+
+/* Game Specific CSS */
+${gameId === 'flashcard' ? `.scene { height: 260px; perspective: 1000px; cursor: pointer; } .flashcard { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; position: relative; } .flashcard.is-flipped { transform: rotateY(180deg); } .card__face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; background: var(--card); padding: 20px; border: 2px solid var(--primary); color: var(--text); } .card__face--back { background: var(--primary); color: #fff; transform: rotateY(180deg); border-color: var(--primary); }` : ''}
+${gameId === 'quiz' ? `.option { display: block; width: 100%; padding: 15px; margin: 8px 0; background: var(--card); color: var(--text); border: 2px solid var(--text); opacity: 0.7; border-radius: 12px; cursor: pointer; text-align: left; font-weight: 600; transition: 0.2s; } .option:hover { opacity: 1; border-color: var(--primary); transform: translateX(5px); } .option.selected { border-color: var(--primary); background: rgba(0,0,0,0.05); } .option.correct { background: #22c55e !important; border-color: #22c55e !important; color: white !important; opacity: 1; } .option.wrong { background: #ef4444 !important; border-color: #ef4444 !important; color: white !important; opacity: 1; }` : ''}
+${gameId === 'fillblank' ? `.blank-input { border:none; border-bottom: 2px solid var(--primary); background: transparent; color: var(--text); text-align: center; font-weight: bold; width: 120px; margin: 0 5px; font-size: 1.1rem; } .blank-input:focus { outline: none; border-color: var(--accent); } .blank-input.correct { color: #22c55e; border-color: #22c55e; } .blank-input.wrong { color: #ef4444; border-color: #ef4444; } .sentence-box { margin-bottom: 20px; font-size: 1.2rem; line-height: 2; }` : ''}
+${gameId === 'hotspot' ? `.hotspot-container { position: relative; display: inline-block; max-width: 100%; } .hotspot-img { max-width: 100%; display: block; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); } .marker { position: absolute; width: 20px; height: 20px; background: rgba(255,255,255,0.5); border: 2px solid var(--primary); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; animation: ping 1s infinite; } @keyframes ping { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }` : ''}
+${gameId === 'wordsearch' ? `#grid { display: grid; gap: 4px; margin: 0 auto; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 12px; width: fit-content; } .cell { background: var(--card); color: var(--text); width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; user-select: none; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); } .cell.selected { background: var(--accent); color: white; transform: scale(1.1); } .cell.found { background: var(--primary); color: white; animation: pop 0.3s; } .word-item { display: inline-block; padding: 4px 10px; margin: 4px; background: var(--card); border-radius: 20px; border: 1px solid var(--text); opacity: 0.7; font-size: 0.9rem; } .word-item.done { text-decoration: line-through; opacity: 0.4; background: var(--primary); color: white; border-color: transparent; } @keyframes pop { 50% { transform: scale(1.2); } }` : ''}
+${gameId === 'dragdrop' ? `.drop-zone { border: 2px dashed var(--primary); padding: 15px; margin: 10px; border-radius: 12px; min-height: 100px; background: rgba(255,255,255,0.05); } .draggable { background: var(--accent); color: white; padding: 10px 20px; margin: 5px; border-radius: 25px; display: inline-block; cursor: grab; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); } .draggable:active { cursor: grabbing; transform: scale(0.95); }` : ''}
+${gameId === 'memory' ? `.mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; } .mem-card { aspect-ratio: 1; background: var(--primary); border-radius: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 0; transition: transform 0.4s; box-shadow: 0 4px 8px rgba(0,0,0,0.1); } .mem-card:hover { transform: translateY(-2px); } .mem-card.flipped { background: var(--card); border: 3px solid var(--primary); color: var(--text); font-size: 1.5rem; transform: rotateY(180deg); } .mem-card.matched { visibility: hidden; opacity: 0; transition: opacity 0.5s; }` : ''}
+${gameId === 'puzzle' ? `#puz-board { position: relative; margin: 0 auto; border: 4px solid var(--text); border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); } .tile { position: absolute; cursor: pointer; transition: all 0.2s ease-in-out; border: 1px solid rgba(255,255,255,0.8); box-sizing: border-box; display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.9); text-shadow: 1px 1px 2px black; font-size: 2rem; font-weight: bold; } .tile:hover { z-index: 10; transform: scale(1.02); box-shadow: 0 0 10px rgba(0,0,0,0.3); } .tile.empty { opacity: 0; cursor: default; }` : ''}
+${gameId === 'board' ? `.track { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; } .tile-box { width: 85px; height: 85px; border: 2px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; text-align: center; font-size: 0.85rem; background: var(--card); color: var(--text); position: relative; border-radius: 12px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); transition: transform 0.1s; } .tile-box:active { transform: translateY(4px); box-shadow: none; } .tile-box.active { border: 3px solid var(--accent); transform: scale(1.05); z-index: 2; } .player { width: 24px; height: 24px; background: var(--primary); border: 2px solid #fff; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }` : ''}
+${gameId === 'spelling' ? `.big-inp { font-size: 2.5rem; text-align: center; width: 100%; border: none; border-bottom: 3px solid var(--primary); outline: none; background: transparent; margin: 30px 0; color: var(--text); font-weight: bold; letter-spacing: 2px; } .big-inp:focus { border-color: var(--accent); }` : ''}
+${gameId === 'trivia' ? `.timer-bar { height: 12px; background: rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; margin-bottom: 25px; } .fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 100%; transition: width 1s linear; }` : ''}
+${gameId === 'story' ? `.story-btn { display: block; width: 100%; padding: 18px; margin: 12px 0; background: var(--card); border: 2px solid var(--primary); color: var(--primary); text-align: left; border-radius: 12px; cursor: pointer; font-size: 1.05rem; transition: 0.2s; font-weight: 600; } .story-btn:hover { background: var(--primary); color: white; transform: translateX(5px); }` : ''}
+${gameId === 'ordering' ? `.order-list{list-style:none;padding:0;max-width:400px;margin:0 auto}.order-item{background:var(--card);padding:15px;margin-bottom:10px;border:1px solid #ccc;border-radius:8px;cursor:grab;display:flex;justify-content:space-between;align-items:center}.order-item.dragging{opacity:0.5;border:2px dashed var(--primary)}.order-item:hover{background:rgba(255,255,255,0.1)}.btn-move{background:none;border:none;cursor:pointer;color:var(--text);font-size:1.2rem;padding:5px}` : ''}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>${data.title}</h1>
+<div id="game-area"></div>
+</div>
+<script>const gameData = ${JSON.stringify(data)}; const T = ${textsJson};${logic}<\/script>
+</body>
+</html>`;
+    }
+};
+
+// Initialize App
+document.addEventListener('DOMContentLoaded', () => {
+    window.app = app;
+    window.app.init();
+    document.getElementById('theme-selector').addEventListener('change', () => window.app.updatePreview());
+});
+    </script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered!', reg))
+                    .catch(err => console.log('SW registration failed', err));
+            });
+        }
+    </script>
+</body>
+</html>

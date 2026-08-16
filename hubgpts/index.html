@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- TUKAR: Nama App Penuh -->
+    <title>AI.GPTs Hub | Academic GPTs Launchpad</title>
+    
+    <!-- PWA SETTINGS -->
+    <!-- 1. Favicon -->
+    <link rel="icon" type="image/png" href="https://www.dropbox.com/scl/fi/n8ech5gw3jj0c8tji7cvh/icongptacad.png?rlkey=q8zsbyegx2y6h8rcxkruhrscy&st=xxcda8mw&raw=1">
+    
+    <!-- 2. Apple Touch Icon (iOS Home Screen) -->
+    <link rel="apple-touch-icon" href="https://www.dropbox.com/scl/fi/n8ech5gw3jj0c8tji7cvh/icongptacad.png?rlkey=q8zsbyegx2y6h8rcxkruhrscy&st=xxcda8mw&raw=1">
+    
+    <!-- 3. Meta Tags for PWA -->
+    <meta name="theme-color" content="#04182B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- TUKAR: Short Name untuk iOS -->
+    <meta name="apple-mobile-web-app-title" content="AI.GPTs Hub">
+    
+    <!-- 4. Link to Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Fonts: Poppins for that modern, geometric look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- CORE VISUALS --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(145deg, #04182B, #071F36, #020c16);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            /* Prevent pull-to-refresh on mobile PWA to feel like an app */
+            overscroll-behavior-y: none;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- PARTICLES ANIMATION --- */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(116, 240, 200, 0.1);
+            animation: floatUp linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* --- UI ELEMENTS --- */
+        .header-section {
+            text-align: center;
+            padding: 3rem 1.5rem 2rem 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .app-card {
+            background: #ffffff;
+            border-radius: 20px; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            color: #071F36;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25), 0 5px 10px rgba(0,0,0,0.1);
+            border: 0;
+            padding: 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            aspect-ratio: 1 / 1; 
+        }
+
+        /* Hover Effects */
+        .app-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            /* TUKAR: Buang perubahan shadow pada hover supaya tiada animasi shadow */
+            z-index: 20;
+        }
+        
+        /* Highlight border on hover */
+        .app-card:hover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            border: 2px solid #74F0C8;
+            pointer-events: none;
+        }
+
+        /* --- TOGGLE SWITCH STYLE --- */
+        .lang-switch-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .lang-btn {
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.05em;
+        }
+
+        .lang-btn:hover {
+            color: white;
+        }
+
+        /* Active State Style */
+        .lang-btn.active {
+            background-color: #74F0C8;
+            color: #04182B; /* Dark text on bright background */
+            box-shadow: 0 0 15px rgba(116, 240, 200, 0.4);
+        }
+
+        /* --- MODAL STYLES --- */
+        #auth-modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #auth-modal.hidden-modal {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #auth-modal.visible-modal {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #auth-modal.visible-modal .modal-content {
+            transform: scale(1);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 25px rgba(255,255,255,0.3);
+        }
+
+        .app-logo {
+            filter: none;
+            transition: transform 0.5s ease;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            display: block;
+        }
+
+        .app-card:hover .app-logo {
+            transform: scale(1.05); 
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #04182B; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="items-center">
+
+    <!-- Background Particles -->
+    <div id="particles" class="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"></div>
+
+    <!-- LANGUAGE TOGGLE (Floating Top Right) -->
+    <div class="absolute top-6 right-6 z-30">
+        <!-- New Toggle UI Structure -->
+        <div class="lang-switch-container shadow-lg">
+            <button onclick="setLanguage('bm')" id="btn-bm" class="lang-btn active">BM</button>
+            <button onclick="setLanguage('en')" id="btn-en" class="lang-btn">EN</button>
+        </div>
+    </div>
+
+    <!-- HEADER SECTION -->
+    <header class="header-section w-full max-w-4xl mx-auto flex flex-col items-center justify-center animate-fade-in-down">
+        <!-- TUKAR: Buang class animasi (hover:scale-105 transition-transform duration-500) -->
+        <img src="https://www.dropbox.com/scl/fi/ztya4666q80sokecy59r3/logogptacad.png?rlkey=0ff2jlojx63a7ljferyjxg8cg&raw=1" 
+             alt="Logo Akademik" 
+             class="w-56 h-56 mb-6 object-contain drop-shadow-2xl filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.3)]">
+        
+        <h1 id="header-title" class="text-3xl md:text-4xl font-bold tracking-wide text-glow mb-2 text-white">
+            Pelantar GPTs Akademik
+        </h1>
+        <p id="header-subtitle" class="text-blue-100/70 text-sm md:text-base max-w-lg mx-auto font-light">
+            Akses pantas kepada alat bantuan akademik AI anda
+        </p>
+    </header>
+
+    <!-- MAIN GRID CONTAINER -->
+    <!-- TUKAR: max-w-3xl kekal untuk mobile/tablet, tambah lg:max-w-7xl untuk desktop supaya grid besar -->
+    <main class="w-full max-w-3xl lg:max-w-7xl px-6 md:px-8 pb-20 z-10 flex-grow flex flex-col items-center justify-center">
+        
+        <!-- APP GRID -->
+        <!-- Kekalkan gap rapat (gap-3, md:gap-4) -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-5 justify-items-center items-center w-full">
+            
+            <!-- App 1: ChatGPT (MODIFIED TO OPEN MODAL) -->
+            <!-- Changed from <a> to <div> with onclick event -->
+            <div onclick="openAuthModal()" class="app-card cursor-pointer group no-underline relative">
+                <img src="https://www.dropbox.com/scl/fi/wttwpxggmk39yj0x3zxzq/chatgtlogohub.png?rlkey=78xn81we0e2tst2pe4fpg5j4b&raw=1" alt="ChatGPT" class="app-logo">
+                <!-- Visual cue for interaction -->
+                <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-[20px]"></div>
+            </div>
+
+            <!-- App 2: The Supervisor -->
+            <a href="https://chatgpt.com/g/g-6767d62cd3648191bdb23b8766bbfbcf-the-supervisor" target="_blank" class="app-card cursor-pointer group no-underline">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/qyi005y23e3ph1z1man00/gptsv.png?rlkey=gs71drayhufseg7k4gwsbh09u&raw=1" alt="The Supervisor" class="app-logo">
+            </a>
+
+            <!-- App 3: Academic Writing Tutor -->
+            <a href="https://chatgpt.com/g/g-6921e536b6348191aa27b17b1c3a1126-academic-writing-tutor" target="_blank" class="app-card cursor-pointer group no-underline">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/dia3izm03y5a3tp6cm10k/gptacad.png?rlkey=h8omznwcr5949osv0uu3t7kui&raw=1" alt="Academic Writing Tutor" class="app-logo">
+            </a>
+
+            <!-- App 4: GAP Finder -->
+            <a href="https://chatgpt.com/g/g-CyKVDwdq6-gap-finder" target="_blank" class="app-card cursor-pointer group no-underline">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/m5ne33x3ni6ns3kg9a8jp/gptgap.png?rlkey=ve6a1ua9ozu0x0grg5k6z728y&raw=1" alt="GAP Finder" class="app-logo">
+            </a>
+
+            <!-- App 5: Literature Matrix Developer -->
+            <a href="https://chatgpt.com/g/g-692347d03c888191af57ba5200bde6d1-literature-matrix-developer" target="_blank" class="app-card cursor-pointer group no-underline">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/piwoxbjsh56oalwglufl2/gptlit.png?rlkey=ineyncg7zgupnpg7mo386vg5k&raw=1" alt="Literature Matrix Developer" class="app-logo">
+            </a>
+
+            <!-- App 6: Thematic Analysis Assistant -->
+            <a href="https://chatgpt.com/g/g-68b6311523a481918a670cd5b054dd50-thematic-analysis-assistant" target="_blank" class="app-card cursor-pointer group no-underline">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/yq9vlgf8ucfrtt85m935j/gpttheme.png?rlkey=c2j9378s3e8fh0t1nbwfjp0yh&raw=1" alt="Thematic Analysis Assistant" class="app-logo">
+            </a>
+
+        </div>
+
+        <!-- DISCLAIMER AREA -->
+        <div class="mt-12 text-center w-full">
+            <p id="disclaimer-text" class="text-gray-400/80 text-sm md:text-base leading-relaxed mx-auto">
+                <!-- Text populated by JS -->
+            </p>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-6 mt-auto z-20 border-t border-white/5" style="background-color: #01060b;">
+        <p id="footer-text" class="text-xs text-gray-500 px-4">
+            <!-- Text populated by JS -->
+        </p>
+    </footer>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden-modal">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeAuthModal()"></div>
+        
+        <!-- Modal Card -->
+        <div class="modal-content relative bg-[#0b1d36] border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl flex flex-col items-center text-center">
+            
+            <!-- Close Button -->
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Logo (Same as Card) -->
+            <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-5 shadow-lg p-2">
+                <img src="https://www.dropbox.com/scl/fi/wttwpxggmk39yj0x3zxzq/chatgtlogohub.png?rlkey=78xn81we0e2tst2pe4fpg5j4b&raw=1" class="w-full h-full object-contain">
+            </div>
+
+            <!-- Intro Text -->
+            <p id="modal-intro" class="text-yellow-200/90 text-sm font-medium mb-2 leading-relaxed">
+                <!-- Populated by JS -->
+            </p>
+
+            <!-- Tutorial Text -->
+            <p id="modal-tutorial" class="text-gray-400 text-xs mb-5 font-light">
+                <!-- Populated by JS -->
+            </p>
+
+            <!-- Credentials Box -->
+            <div class="w-full space-y-3 mb-6">
+                <!-- Username -->
+                <div class="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 hover:border-[#74F0C8]/50 transition-colors group">
+                    <span class="text-gray-300 font-mono text-sm tracking-wide">belalfgsyl@end.tw</span>
+                    <button onclick="copyToClipboard('belalfgsyl@end.tw', this)" class="text-gray-500 group-hover:text-[#74F0C8] transition-colors p-1" title="Copy">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <!-- Password -->
+                <div class="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 hover:border-[#74F0C8]/50 transition-colors group">
+                    <span class="text-gray-300 font-mono text-sm tracking-wide">AIHuBGPTs@2025</span>
+                    <button onclick="copyToClipboard('AIHuBGPTs@2025', this)" class="text-gray-500 group-hover:text-[#74F0C8] transition-colors p-1" title="Copy">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 w-full">
+                <!-- Open Tool -->
+                <a href="https://chatgpt.com/" target="_blank" id="btn-open-tool" class="flex-1 bg-[#74F0C8] hover:bg-[#5ce0b5] text-[#04182B] text-sm font-bold py-3 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <!-- Text by JS -->
+                </a>
+                
+                <!-- Get Code (Updated URL) -->
+                <a href="https://mail.td/en/mail/belalfgsyl@end.tw" target="_blank" id="btn-get-code" class="flex-1 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-3 rounded-xl transition-all active:scale-95 border border-white/5 flex items-center justify-center no-underline">
+                    <!-- Text by JS -->
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. ICONS INITIALIZATION ---
+        lucide.createIcons();
+
+        // --- 2. PARTICLE ANIMATION GENERATOR ---
+        const particleContainer = document.getElementById('particles');
+        const particleCount = 25;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random sizes
+            const size = Math.random() * 20 + 5; 
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // Random positions
+            particle.style.left = `${Math.random() * 100}vw`;
+            
+            // Random animation duration and delay
+            particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+            particle.style.animationDelay = `${Math.random() * 5}s`;
+            
+            particleContainer.appendChild(particle);
+        }
+
+        // --- 3. DUAL LANGUAGE LOGIC ---
+        const translations = {
+            bm: {
+                // TUKAR: "Pelancar" -> "Pelantar"
+                title: "Pelantar GPTs Akademik",
+                subtitle: "Akses pantas kepada alat bantuan akademik AI anda",
+                disclaimer: `Semua GPT dibangunkan oleh <a href="https://www.facebook.com/faharol.zubir" target="_blank" class="text-[#74F0C8] font-bold hover:text-white hover:underline">Faharol Zubir</a>. Ikuti beliau di <a href="https://www.facebook.com/faharol.zubir" target="_blank" class="text-[#74F0C8] font-bold hover:text-white hover:underline">Facebook</a>.`,
+                footer: `Aplikasi web ini dibangunkan oleh <a href="https://www.tiktok.com/@kiemiftah" target="_blank" class="text-gray-300 font-semibold hover:text-[#74F0C8] transition-colors">Kiemiftah.com</a> untuk membantu proses penyelidikan dan penulisan akademik &copy; 2025`,
+                
+                // Modal Translations (Updated)
+                modalIntro: "Akaun percuma ini dikhaskan untuk kegunaan GPTs Akademik sahaja. Sila jangan ubah sebarang tetapan. Mohon sentiasa logout apabila selesai guna.",
+                modalTutorial: "Log masuk guna emel & kata laluan di bawah. Tekan butang 'Dapatkan Kod' jika perlu pengesahan.",
+                btnOpen: "Buka Alat",
+                btnCode: "Dapatkan Kod"
+            },
+            en: {
+                // KEKAL: "Launchpad"
+                title: "Academic GPTs Launchpad",
+                subtitle: "Quick access to your academic AI assistance tools",
+                disclaimer: `All GPTs developed by <a href="https://www.facebook.com/faharol.zubir" target="_blank" class="text-[#74F0C8] font-bold hover:text-white hover:underline">Faharol Zubir</a>. Follow him on <a href="https://www.facebook.com/faharol.zubir" target="_blank" class="text-[#74F0C8] font-bold hover:text-white hover:underline">Facebook</a>.`,
+                footer: `This web application was developed by <a href="https://www.tiktok.com/@kiemiftah" target="_blank" class="text-gray-300 font-semibold hover:text-[#74F0C8] transition-colors">Kiemiftah.com</a> to assist in academic research and writing processes &copy; 2025`,
+
+                // Modal Translations (Updated for consistency)
+                modalIntro: "This free account is solely for Academic GPTs use. Please do not change any settings. Please always logout after use.",
+                modalTutorial: "Login with email & pass below. Click 'Get Code' if verification is needed.",
+                btnOpen: "Open Tool",
+                btnCode: "Get Code"
+            }
+        };
+
+        // Current Language State (Default BM)
+        let currentLang = 'bm';
+
+        // Elements to update
+        const headerTitle = document.getElementById('header-title');
+        const headerSubtitle = document.getElementById('header-subtitle');
+        const disclaimerText = document.getElementById('disclaimer-text');
+        const footerText = document.getElementById('footer-text');
+        
+        // Modal Elements
+        const modalIntro = document.getElementById('modal-intro');
+        const modalTutorial = document.getElementById('modal-tutorial');
+        const btnOpenTool = document.getElementById('btn-open-tool');
+        const btnGetCode = document.getElementById('btn-get-code');
+
+        // Toggle Buttons
+        const btnBm = document.getElementById('btn-bm');
+        const btnEn = document.getElementById('btn-en');
+
+        // Initial render
+        function updateContent() {
+            const t = translations[currentLang];
+            headerTitle.textContent = t.title;
+            headerSubtitle.textContent = t.subtitle;
+            disclaimerText.innerHTML = t.disclaimer;
+            footerText.innerHTML = t.footer;
+            
+            // Update Modal Text
+            modalIntro.textContent = t.modalIntro;
+            modalTutorial.textContent = t.modalTutorial;
+            btnOpenTool.textContent = t.btnOpen;
+            btnGetCode.textContent = t.btnCode;
+
+            document.documentElement.lang = currentLang === 'bm' ? 'ms' : 'en';
+
+            // Update Toggle Visuals
+            if (currentLang === 'bm') {
+                btnBm.classList.add('active');
+                btnEn.classList.remove('active');
+            } else {
+                btnEn.classList.add('active');
+                btnBm.classList.remove('active');
+            }
+        }
+
+        // Language Toggle Function
+        function setLanguage(lang) {
+            if (currentLang === lang) return; 
+
+            currentLang = lang;
+            
+            // Fade out effect
+            const elements = [headerTitle, headerSubtitle, disclaimerText, footerText, modalIntro, modalTutorial];
+            elements.forEach(el => el.style.opacity = '0');
+
+            setTimeout(() => {
+                updateContent();
+                // Fade back in
+                elements.forEach(el => {
+                    el.style.transition = 'opacity 0.3s ease';
+                    el.style.opacity = '1';
+                });
+            }, 300);
+        }
+
+        // --- MODAL FUNCTIONS ---
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('hidden-modal');
+            modal.classList.add('visible-modal');
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('visible-modal');
+            modal.classList.add('hidden-modal');
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAuthModal();
+            }
+        });
+
+        // Copy Functionality
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = btnElement.innerHTML;
+                
+                // Show check icon
+                btnElement.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-400"></i>';
+                lucide.createIcons();
+
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    btnElement.innerHTML = originalIcon;
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        // --- SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed:', err);
+                    });
+            });
+        }
+
+        // Run on load
+        updateContent();
+    </script>
+</body>
+</html>

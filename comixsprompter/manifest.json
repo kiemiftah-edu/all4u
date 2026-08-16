@@ -1,0 +1,22 @@
+{
+  "name": "Comixs Prompter",
+  "short_name": "ComixsPrompter",
+  "description": "Penjana Prompt Buku Cerita Komik 3D",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1e1b4b",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "img/comixsprompter.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/comixsprompter.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
