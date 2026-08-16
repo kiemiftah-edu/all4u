@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjana Prompt 'Wow' Produk</title>
+    <!-- PWA & Metadata -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <link rel="icon" type="image/png" href="img/wow!gen.png">
+    <!-- Sumber Luaran -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-secondary: #F9E076;
+            --obsidian: #050505;
+            --bg-color: #050505;
+            --card-bg: rgba(18, 18, 18, 0.95);
+            --input-bg: rgba(35, 35, 35, 0.9);
+            --text-main: #ffffff; 
+            --text-sub: #94a3b8;  
+            --border-alpha: rgba(255, 255, 255, 0.1);
+            --preview-bg: #000000;
+            --reset-bg: rgba(255, 255, 255, 0.08);
+            --btn-text: #ffffff;
+            --footer-color: rgba(255, 255, 255, 0.7);
+        }
+
+        body.light-theme {
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 1);
+            --input-bg: rgba(248, 250, 252, 1);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --border-alpha: rgba(15, 23, 42, 0.1);
+            --preview-bg: #fdfdfd;
+            --reset-bg: rgba(15, 23, 42, 0.05);
+            --btn-text: #1e293b;
+            --footer-color: #1e293b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Container tetap 1024px pada desktop untuk kestabilan BM/EN */
+        .app-container {
+            width: 100%;
+            max-width: 1024px;
+            margin: 0 auto;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border-alpha);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8);
+            transition: all 0.4s ease;
+        }
+
+        .premium-title {
+            white-space: nowrap;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            font-size: clamp(1.2rem, 3.8vw, 2.5rem);
+            line-height: 1.1;
+        }
+
+        .platinum-text {
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        body.light-theme .platinum-text {
+            background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-wow {
+            background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        /* Saiz Toggle Tetap supaya tidak mengembang */
+        .fixed-toggle-btn {
+            width: 3.5rem !important;
+            height: 2.25rem !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid var(--border-alpha);
+        }
+
+        .lang-toggle-btn.active {
+            background: var(--gold-primary) !important;
+            color: #000000 !important;
+            border-color: var(--gold-primary) !important;
+        }
+
+        .input-premium {
+            background: var(--input-bg);
+            border: 1px solid var(--border-alpha);
+            color: var(--text-main) !important;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D4AF37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1.2rem center;
+            background-size: 1.1rem;
+            user-select: text;
+        }
+
+        .slogan-input {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-alpha);
+            color: var(--text-main) !important;
+            user-select: text;
+        }
+        body.light-theme .slogan-input {
+            background-color: rgba(15, 23, 42, 0.05);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #FFD700 100%);
+            color: #000000;
+            box-shadow: 0 12px 24px -6px rgba(212, 175, 55, 0.5);
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .prompt-preview {
+            background: var(--preview-bg);
+            border: 1px solid var(--border-alpha);
+            word-break: break-word;
+            position: relative;
+            min-height: 200px; 
+            transition: all 0.4s ease;
+            color: var(--text-main);
+            user-select: text; 
+            -webkit-user-select: text;
+        }
+
+        .prompt-preview::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 6px; height: 100%;
+            background: var(--gold-primary);
+        }
+
+        .app-logo {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.02);
+            padding: 4px;
+        }
+
+        @media (min-width: 768px) {
+            .app-logo { width: 90px; height: 90px; }
+        }
+
+        .footer-premium {
+            color: var(--footer-color);
+            opacity: 0.9;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+            font-weight: 500;
+        }
+
+        .footer-premium a {
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .copy-notification {
+            transform: translateY(40px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .copy-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #shield-overlay {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: #D4AF37;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 15px;
+            z-index: 10000;
+            font-weight: 900;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.4);
+            text-transform: uppercase;
+        }
+
+        select option {
+            background-color: white;
+            color: black;
+        }
+        body:not(.light-theme) select option {
+            background-color: #111;
+            color: white;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="shield-overlay">Source Protected</div>
+
+    <main class="app-container px-4 md:px-6 pt-8 md:pt-16 flex-grow">
+        <!-- Bahagian Toggles -->
+        <div class="flex justify-end mb-6 gap-3">
+            <div class="inline-flex p-1 rounded-2xl border border-white/10 glass-card">
+                <button onclick="toggleTheme()" class="fixed-toggle-btn rounded-xl transition-all hover:bg-white/5" id="theme-btn" aria-label="Tukar Tema">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-500 hidden" id="sun-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-500" id="moon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+            <div class="inline-flex p-1 rounded-2xl border border-white/10 glass-card">
+                <button onclick="setLanguage('BM')" id="btn-bm" class="lang-toggle-btn active fixed-toggle-btn rounded-xl text-xs font-bold uppercase">BM</button>
+                <button onclick="setLanguage('EN')" id="btn-en" class="lang-toggle-btn fixed-toggle-btn rounded-xl text-xs font-bold uppercase">EN</button>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-[3rem] p-6 md:p-16 relative overflow-hidden">
+            <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/5 blur-[120px] rounded-full"></div>
+            
+            <!-- Header Utama -->
+            <header class="relative z-10 flex flex-col md:flex-row items-center justify-center md:justify-start mb-14 gap-6 md:gap-10">
+                <div class="flex-shrink-0">
+                    <img src="img/wow!gen.png" alt="Wow!Gen Logo" class="app-logo" onerror="this.src='https://ui-avatars.com/api/?name=WOW!GEN&background=000&color=D4AF37&size=200&bold=true'">
+                </div>
+                <div class="text-center md:text-left flex-grow overflow-hidden">
+                    <h1 id="ui-title" class="premium-title tracking-tight w-full"></h1>
+                </div>
+            </header>
+
+            <!-- Grid Input -->
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-x-14 gap-y-8 md:gap-y-12">
+                <div class="space-y-3">
+                    <label id="label-hidangan" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Hidangan Utama</label>
+                    <select id="hidangan" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-permukaan" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Permukaan Paparan</label>
+                    <select id="permukaan" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-gaya" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Gaya Visual</label>
+                    <select id="gaya" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-suasana" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Suasana (Mood)</label>
+                    <select id="suasana" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-cahaya" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Konsep Pencahayaan</label>
+                    <select id="cahaya" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-kamera" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Sudut Kamera</label>
+                    <select id="kamera" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-latar" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Latar Belakang</label>
+                    <select id="latar" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="space-y-3">
+                    <label id="label-saiz" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Dimensi Output</label>
+                    <select id="saiz" class="w-full input-premium rounded-2xl px-6 py-5 text-sm"></select>
+                </div>
+                <div class="md:col-span-2 space-y-3 mt-4">
+                    <label id="label-slogan" class="block text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Slogan Pemasaran</label>
+                    <input type="text" id="slogan" placeholder="Cth: PREMIUM QUALITY" class="w-full slogan-input border-0 rounded-2xl px-8 py-6 focus:ring-1 focus:ring-amber-500/50 outline-none uppercase font-bold tracking-[0.2em] placeholder:text-slate-500 transition-all text-sm">
+                </div>
+            </div>
+
+            <!-- Bahagian Hasil -->
+            <div class="relative z-10 mt-16 space-y-6">
+                <div class="flex items-center justify-between px-4">
+                    <h2 id="ui-preview-title" class="text-[11px] font-black text-amber-500 uppercase tracking-[0.5em]">Generated Marketing Prompt</h2>
+                    <button type="button" id="copy-btn" class="text-[11px] font-bold text-slate-400 hover:text-amber-500 transition-all flex items-center gap-3 uppercase">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <span id="ui-copy-btn">COPY PROMPT</span>
+                    </button>
+                </div>
+                <div id="prompt-output" class="prompt-preview rounded-[2.5rem] p-10 md:p-12 leading-relaxed text-base md:text-2xl font-light italic custom-scrollbar overflow-y-auto max-h-80 shadow-inner">
+                    Sila konfigurasi tetapan di atas untuk menjana prompt...
+                </div>
+            </div>
+
+            <!-- Butang Tindakan (70:30) -->
+            <div class="relative z-10 flex flex-row gap-5 mt-14">
+                <button id="jana-btn" class="flex-[7] py-7 btn-gold rounded-3xl md:rounded-[2.2rem] active:scale-[0.98] transition-all uppercase tracking-[0.4em] text-sm md:text-base shadow-2xl">
+                    <span id="ui-jana-btn">Jana Prompt Strategik</span>
+                </button>
+                <button type="button" id="reset-btn" style="color: var(--btn-text); background-color: var(--reset-bg);" class="flex-[3] py-7 border border-slate-300 rounded-3xl md:rounded-[2.2rem] text-[11px] md:text-xs font-extrabold transition-all flex items-center justify-center gap-3 tracking-[0.2em] uppercase hover:brightness-125 active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    <span>Reset</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Selaras -->
+    <footer class="relative z-10 py-12 text-center px-4 mt-auto">
+        <p class="footer-premium">
+            Wow!Gen 2026© was Creatively Built and Designed Using Gemini Canvas by 
+            <a href="https://www.tiktok.com/@kiemiftah" target="_blank" class="hover:text-amber-500 transition-colors underline decoration-amber-500/30 underline-offset-4">Kiemiftah.Com</a>.
+        </p>
+    </footer>
+
+    <div id="toast" class="copy-notification fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-[90%] md:w-auto">
+        <div class="bg-amber-500 text-black px-10 py-5 rounded-3xl shadow-2xl flex items-center justify-center gap-5 border border-amber-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <span id="ui-toast-msg" class="text-sm font-black uppercase tracking-widest">Prompt Disalin ke Clipboard</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            /**
+             * SISTEM KESELAMATAN (ANTI-CURI KOD)
+             */
+            const security = {
+                init() {
+                    const block = (e) => {
+                        // KECUALIKAN INPUT & TEXTAREA supaya fungsi Paste manual masih boleh guna
+                        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                        const s = document.getElementById('shield-overlay');
+                        s.style.display = 'block';
+                        setTimeout(() => s.style.display = 'none', 1500);
+                        e.preventDefault();
+                        return false;
+                    };
+                    document.addEventListener('contextmenu', block);
+                    document.addEventListener('keydown', (e) => {
+                        // Hanya sekat shortcut devtools, Ctrl+C/V biasa masih dibenarkan
+                        if (e.keyCode == 123 || 
+                            (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || 
+                            (e.ctrlKey && (e.keyCode == 85 || e.keyCode == 83))) {
+                            return block(e);
+                        }
+                    });
+                    // Anti-DevTools
+                    setInterval(() => {
+                        const start = performance.now();
+                        debugger;
+                        if (performance.now() - start > 100) {
+                            document.body.innerHTML = "<div style='color:#D4AF37;text-align:center;padding:100px;font-weight:900;'>PROTECTED ENVIRONMENT</div>";
+                        }
+                    }, 1000);
+                }
+            };
+
+            // DATA I18N
+            const i18n = {
+                BM: {
+                    title: "<span class='platinum-text'>Penjana Prompt </span><span class='gold-wow'>'Wow'</span><span class='platinum-text'> Produk</span>",
+                    waiting: "Sila konfigurasi tetapan di atas untuk menjana prompt...",
+                    generating: "Menjana strategi visual...",
+                    p_final: "Hasil visual mestilah bertaraf profesional, tajam, dan sesuai untuk tujuan pemasaran premium.",
+                    p_aspect: "Nisbah Visual:",
+                    ref_lampiran: "produk mengikut rujukan gambar yang dilampirkan",
+                    ref_note: " (AI model perlu menentukan perincian produk berdasarkan lampiran visual secara bijak)",
+                    btn_copy: "COPY PROMPT",
+                    btn_jana: "Jana Prompt Strategik",
+                    toast_msg: "Prompt Disalin ke Clipboard",
+                    reset_conf: "Tetapkan semula semua konfigurasi pemasaran?"
+                },
+                EN: {
+                    title: "<span class='platinum-text'>Product Prompt </span><span class='gold-wow'>'Wow'</span><span class='platinum-text'> Generator</span>",
+                    waiting: "Please configure the settings above to generate a prompt...",
+                    generating: "Generating visual strategy...",
+                    p_final: "The visual result must be professional-grade, sharp, and suitable for premium marketing purposes.",
+                    p_aspect: "Visual Ratio:",
+                    ref_lampiran: "the product based on the attached visual reference",
+                    ref_note: " (AI model must intelligently determine product details based on the attached visual reference)",
+                    btn_copy: "COPY PROMPT",
+                    btn_jana: "Generate Strategic Prompt",
+                    toast_msg: "Prompt Copied to Clipboard",
+                    reset_conf: "Reset all marketing configurations?"
+                }
+            };
+
+            const optionsBM = {
+                hidangan: ["Madu kelulut", "Sambal botol", "Serunding", "Dodol", "Kuih raya dalam balang", "Kopi kampung", "Teh herba", "Sos homemade", "Kerepek", "Keropok lekor sejuk beku", "Biskut premium", "Kek slice", "Coklat handmade", "Lilin aromaterapi", "Sabun handmade", "Minyak wangi", "Spray bilik", "Tote bag", "T-shirt printing", "Tudung", "Beg tangan", "Produk skincare", "Serum", "Lip balm", "Losyen", "Minuman botol", "Jus sejuk", "Air kopi ais", "Produk kraftangan", "Hamper hadiah", "Aksesoris telefon", "Power bank", "Botol minuman", "Bekas makanan", "Alat tulis premium", "Rujuk Lampiran"],
+                permukaan: ["Meja kayu rustic", "Permukaan marmar", "Rak eksklusif", "Studio putih", "Studio gelap", "Meja kafe moden", "Kaunter dapur", "Paparan butik", "Permukaan kaca", "Meja kerja", "Paparan lifestyle", "Paparan mewah"],
+                gaya: ["Photorealistic 8K", "Commercial Product Photography", "Premium Luxury Style", "Clean Minimalist Look", "Modern Lifestyle Aesthetic", "Rustic Natural Style", "Elegant Studio Lighting", "Futuristic Tech Display"],
+                suasana: ["Premium & Eksklusif", "Bersih & Minimalis", "Segar & Alami", "Mewah (Luxury)", "Moden & Kontemporari", "Hangat (Warm Ambient)", "Profesional & Komersial"],
+                cahaya: ["Soft Studio Lighting", "Bright Commercial Light", "Natural Sunlight", "Warm Cinematic Glow", "Luxury Spotlight", "Clean Editorial Light", "Moody Shadow Play", "Dramatic Rim Light"],
+                kamera: ["Front View", "Top-down (Flatlay)", "45-degree Angle", "Eye-level Macro", "Close-up Detail Shot", "Extreme Macro Shot", "Wide Angle Shot"],
+                latar: ["Studio moden", "Minimalist backdrop", "Rak premium", "Dapur moden", "Kafe mewah", "Meja kayu rustic", "Ruang gaya hidup", "Latar alam semula jadi", "Display butik mewah", "Latar futuristik abstrak"],
+                saiz: ["1:1 (1080x1080)", "4:5 (1080x1350)", "9:16 (1080x1920)", "16:9 (1920x1080)", "3:4", "2:3", "Feed square", "Feed portrait", "Story / Reel portrait", "Thumbnail wide", "Poster portrait", "Banner landscape"]
+            };
+
+            const optionsEN = {
+                hidangan: ["Kelulut honey", "Bottled sambal", "Meat floss", "Dodol", "Festive cookies", "Traditional coffee", "Herbal tea", "Homemade sauce", "Chips", "Frozen lekor", "Premium biscuits", "Cake slice", "Handmade chocolate", "Aromatherapy candle", "Handmade soap", "Perfume", "Room spray", "Tote bag", "T-shirt printing", "Headscarf", "Handbag", "Skincare product", "Serum", "Lip balm", "Lotion", "Bottled drink", "Cold juice", "Iced coffee", "Handicraft product", "Gift hamper", "Phone accessories", "Power bank", "Drink bottle", "Food container", "Premium stationery", "Refer Attachment"],
+                permukaan: ["Rustic wooden table", "Premium marble surface", "Exclusive display shelf", "Clean white studio", "Dark studio", "Modern cafe table", "Minimalist kitchen counter", "Luxury boutique display", "Reflective glass surface", "Corporate work desk", "Lifestyle display", "Ultra-Luxury display"],
+                gaya: ["Photorealistic 8K", "Commercial Product Photography", "Premium Luxury Style", "Clean Minimalist Look", "Modern Lifestyle Aesthetic", "Rustic Natural Style", "Elegant Studio Lighting", "Futuristic Tech Display"],
+                suasana: ["Premium & Exclusive", "Clean & Minimalist", "Fresh & Natural", "Mewah (Luxury)", "Modern & Contemporary", "Warm Ambient", "Professional & Commercial"],
+                cahaya: ["Soft Studio Lighting", "Bright Commercial Light", "Natural Sunlight", "Warm Cinematic Glow", "Luxury Spotlight", "Clean Editorial Light", "Moody Shadow Play", "Dramatic Rim Light"],
+                kamera: ["Front View", "Top-down (Flatlay)", "45-degree Angle", "Eye-level Macro", "Close-up Detail Shot", "Extreme Macro Shot", "Wide Angle Shot"],
+                latar: ["Modern studio", "Minimalist backdrop", "Premium shelf", "Modern kitchen", "Luxury cafe", "Rustic wood table", "Lifestyle space", "Natural background", "Luxury boutique display", "Abstract futuristic background"],
+                saiz: ["1:1 (1080x1080)", "4:5 (1080x1350)", "9:16 (1080x1920)", "16:9 (1920x1080)", "3:4", "2:3", "Feed square", "Feed portrait", "Story / Reel portrait", "Thumbnail wide", "Poster portrait", "Banner landscape"]
+            };
+
+            let currentLang = 'BM';
+            let isLightMode = false;
+
+            const els = {
+                hidangan: document.getElementById('hidangan'),
+                permukaan: document.getElementById('permukaan'),
+                gaya: document.getElementById('gaya'),
+                suasana: document.getElementById('suasana'),
+                cahaya: document.getElementById('cahaya'),
+                kamera: document.getElementById('kamera'),
+                latar: document.getElementById('latar'),
+                saiz: document.getElementById('saiz'),
+                slogan: document.getElementById('slogan'),
+                output: document.getElementById('prompt-output'),
+                janaBtn: document.getElementById('jana-btn'),
+                copyBtn: document.getElementById('copy-btn'),
+                resetBtn: document.getElementById('reset-btn'),
+                toast: document.getElementById('toast'),
+                uiTitle: document.getElementById('ui-title'),
+                uiCopyBtn: document.getElementById('ui-copy-btn'),
+                uiJanaBtn: document.getElementById('ui-jana-btn'),
+                uiToastMsg: document.getElementById('ui-toast-msg'),
+                sunSvg: document.getElementById('sun-svg'),
+                moonSvg: document.getElementById('moon-svg')
+            };
+
+            window.toggleTheme = function() {
+                isLightMode = !isLightMode;
+                document.body.classList.toggle('light-theme', isLightMode);
+                els.sunSvg.classList.toggle('hidden', !isLightMode);
+                els.moonSvg.classList.toggle('hidden', isLightMode);
+                if (!els.output.textContent.includes("Sila") && !els.output.textContent.includes("Please")) {
+                    generate();
+                }
+            };
+
+            window.setLanguage = function(lang) {
+                currentLang = lang;
+                document.getElementById('btn-bm').classList.toggle('active', lang === 'BM');
+                document.getElementById('btn-en').classList.toggle('active', lang === 'EN');
+                updateUI();
+                const opts = lang === 'BM' ? optionsBM : optionsEN;
+                populate(els.hidangan, opts.hidangan);
+                populate(els.permukaan, opts.permukaan);
+                populate(els.gaya, opts.gaya);
+                populate(els.suasana, opts.suasana);
+                populate(els.cahaya, opts.cahaya);
+                populate(els.kamera, opts.kamera);
+                populate(els.latar, opts.latar);
+                populate(els.saiz, opts.saiz);
+                if (els.output.textContent.includes("Sila") || els.output.textContent.includes("Please")) {
+                    els.output.textContent = i18n[lang].waiting;
+                    els.output.style.color = "var(--text-sub)";
+                } else { generate(); }
+            };
+
+            function updateUI() {
+                const t = i18n[currentLang];
+                els.uiTitle.innerHTML = t.title;
+                els.uiCopyBtn.textContent = t.btn_copy;
+                els.uiJanaBtn.textContent = t.btn_jana;
+                els.uiToastMsg.textContent = t.toast_msg;
+            }
+
+            function populate(el, data) {
+                if (!el) return;
+                el.innerHTML = data.map(item => `<option value="${item}">${item}</option>`).join('');
+            }
+
+            function generate() {
+                const h = els.hidangan.value;
+                const p = els.permukaan.value;
+                const g = els.gaya.value;
+                const s = els.suasana.value;
+                const c = els.cahaya.value;
+                const k = els.kamera.value;
+                const l = els.latar.value;
+                const sz = els.saiz.value;
+                const txt = els.slogan.value;
+                const t = i18n[currentLang];
+                let subjekText = h;
+                let noteText = "";
+                if (h === "Rujuk Lampiran" || h === "Refer Attachment") {
+                    subjekText = t.ref_lampiran;
+                    noteText = t.ref_note;
+                }
+                let prompt = "";
+                if (currentLang === 'BM') {
+                    prompt = `${k} bagi ${subjekText}${noteText} yang diletakkan secara elegan di atas ${p}. Menggunakan konsep pencahayaan ${c} untuk menghasilkan suasana ${s}. Gaya visual keseluruhan adalah ${g} dengan latar belakang ${l}. Tambahkan elemen teks terapung dalam tipografi moden dan tebal yang berbunyi: '${txt.toUpperCase()}'. ${t.p_final} [${t.p_aspect} ${sz}]`;
+                } else {
+                    prompt = `${k} of ${subjekText}${noteText} elegantly placed on ${p}. Utilizing a ${c} lighting concept to create a ${s} mood. The overall visual style is ${g} complemented by a ${l} background. Add floating text elements in a modern, bold typography that reads: '${txt.toUpperCase()}'. ${t.p_final} [${t.p_aspect} ${sz}]`;
+                }
+                els.output.textContent = prompt;
+                els.output.style.color = isLightMode ? "#0f172a" : "#ffffff";
+            }
+
+            els.janaBtn.addEventListener('click', () => {
+                els.output.textContent = i18n[currentLang].generating;
+                setTimeout(generate, 400);
+            });
+
+            els.copyBtn.addEventListener('click', () => {
+                const text = els.output.textContent;
+                if (text.includes("Sila") || text.includes("Please")) return;
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                els.toast.classList.add('show');
+                setTimeout(() => els.toast.classList.remove('show'), 3000);
+            });
+
+            els.resetBtn.addEventListener('click', () => {
+                if(confirm(i18n[currentLang].reset_conf)) { init(); }
+            });
+
+            function init() {
+                security.init();
+                setLanguage('BM');
+                els.slogan.value = "KUALITI PREMIUM TERJAMIN";
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('sw.js').catch(()=>{});
+                }
+            }
+            window.onload = init;
+        })();
+    </script>
+</body>
+</html>

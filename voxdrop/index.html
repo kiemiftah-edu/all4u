@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VoxDrop Pro | Generate Clone, Voice TTS & Save Audio</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-91L759M3GH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-91L759M3GH');
+    </script>
+
+    <!-- PWA & Favicon Setup -->
+    <link rel="icon" type="image/png" href="img/voxdroplogo.png">
+    <link rel="apple-touch-icon" href="img/voxdroplogo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@700;900&display=swap');
+        
+        :root {
+            --bg-main: linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%);
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --card-border: rgba(99, 102, 241, 0.2);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --input-bg: rgba(30, 41, 59, 0.7);
+            --sidebar-bg: rgba(2, 6, 23, 0.4);
+            --accent: #6366f1;
+            --title-gradient: linear-gradient(to bottom, #ffffff 20%, #818cf8 60%, #4f46e5 100%);
+            --sub-color: #818cf8;
+            --footer-bg: rgba(2, 6, 23, 0.5);
+            --footer-text: #cbd5e1;
+            --footer-border: rgba(99, 102, 241, 0.1);
+            --ctrl-height: 36px;
+        }
+
+        .light-mode {
+            --bg-main: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(79, 70, 229, 0.3);
+            --text-primary: #0f172a; 
+            --text-secondary: #334155;
+            --input-bg: #ffffff;
+            --sidebar-bg: rgba(241, 245, 249, 0.8);
+            --accent: #4f46e5;
+            --title-gradient: linear-gradient(to bottom, #1e293b 20%, #334155 60%, #0f172a 100%);
+            --sub-color: #475569;
+            --footer-bg: rgba(255, 255, 255, 0.8);
+            --footer-text: #1e293b; 
+            --footer-border: rgba(79, 70, 229, 0.1);
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-main);
+            color: var(--text-primary);
+            transition: background 0.5s ease, color 0.5s ease;
+            height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+        }
+
+        .app-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            background: var(--title-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.2));
+            text-transform: uppercase;
+        }
+
+        input, select, textarea {
+            background-color: var(--input-bg) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--card-border) !important;
+            transition: all 0.3s ease;
+        }
+
+        .header-ctrl-box {
+            height: var(--ctrl-height);
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(8px);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: var(--accent);
+            overflow: hidden;
+        }
+
+        .header-btn {
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .header-btn:hover { transform: translateY(-2px); background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* THEME TOGGLE SWITCH */
+        .theme-switch { width: 60px; position: relative; cursor: pointer; padding: 0 6px; justify-content: space-between; }
+        .theme-switch .icon-bg { font-size: 10px; color: #64748b; z-index: 1; }
+        .theme-switch .switch-handle {
+            width: 28px; height: 28px; background-color: #ffffff; border-radius: 14px; position: absolute;
+            top: 3px; left: 4px; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2;
+        }
+        .switch-handle i { font-size: 11px; color: #0f172a; }
+        .theme-switch .switch-handle { transform: translateX(24px); }
+        .theme-switch .switch-handle .fa-sun { display: none; }
+        .theme-switch .switch-handle .fa-moon { display: block; }
+        .light-mode .theme-switch .switch-handle { transform: translateX(0); }
+        .light-mode .theme-switch .switch-handle .fa-sun { display: block; }
+        .light-mode .theme-switch .switch-handle .fa-moon { display: none; }
+        .light-mode .theme-switch { background-color: #cbd5e1; }
+
+        .lang-container { padding: 2px; gap: 2px; }
+        .lang-container button { height: 100%; padding: 0 8px; border-radius: 14px; font-size: 8px; font-weight: 900; transition: all 0.2s; }
+        .lang-active { background: var(--accent); color: white !important; }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .app-footer {
+            font-size: 9px; padding: 12px 24px; background: var(--footer-bg); color: var(--footer-text);
+            border-top: 1px solid var(--footer-border); text-align: center; line-height: 1.6; font-weight: 500;
+        }
+
+        /* MOBILE OPTIMIZATION: REMOVE LOCK SCROLL & GRID STACK */
+        @media (max-width: 768px) {
+            .main-content-wrapper {
+                overflow-y: auto !important; /* Allow internal scrolling */
+                display: block !important; /* Stack vertically instead of flex side-by-side */
+            }
+            aside.sidebar {
+                width: 100% !important;
+                height: auto !important;
+                overflow-y: visible !important; /* No lock scroll */
+                border-right: none !important;
+                border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            }
+            main.content-area {
+                width: 100% !important;
+                height: auto !important;
+                overflow-y: visible !important; /* No lock scroll */
+            }
+            .app-container {
+                overflow-y: auto !important; /* Main app container scrolls */
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-0 md:p-4">
+
+    <!-- Kontainer Utama -->
+    <div class="app-container w-full h-full lg:h-[94vh] max-w-6xl glass-card lg:rounded-2xl shadow-2xl flex flex-col overflow-hidden mx-auto">
+        
+        <!-- Header -->
+        <header class="px-4 py-3 md:px-8 md:py-4 border-b border-indigo-500/10 flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-2 md:gap-5">
+                <div class="relative shrink-0">
+                    <img src="img/voxdroplogo.png" alt="VoxDrop Logo" class="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-indigo-600 object-cover shadow-xl aspect-square" onerror="this.src='https://via.placeholder.com/64/4f46e5/ffffff?text=VD'">
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="app-title text-lg md:text-3xl tracking-tight leading-none">VOXDROP</h1>
+                    <p id="subTitle" class="font-bold text-[7px] md:text-[8px] tracking-[0.1em] md:tracking-[0.15em] mt-0.5 md:mt-1.5 opacity-90 uppercase leading-tight" style="color: var(--sub-color);">Jana TTS Suara Klon & Simpan Audio</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 md:gap-3">
+                <!-- How To: "?" Icon on mobile, "HOW TO" text on desktop -->
+                <button id="btnHowTo" class="header-ctrl-box header-btn w-9 md:w-auto md:px-4" title="Panduan">
+                    <span class="md:hidden text-xs font-black">?</span>
+                    <span class="hidden md:inline">HOW TO</span>
+                </button>
+                
+                <div id="themeToggle" class="header-ctrl-box theme-switch" title="Tukar Tema">
+                    <i class="fas fa-sun icon-bg"></i>
+                    <i class="fas fa-moon icon-bg"></i>
+                    <div class="switch-handle">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </div>
+
+                <div class="header-ctrl-box lang-container min-w-[60px] md:min-w-[64px]">
+                    <button id="btnBM" onclick="setLanguage('bm')" class="lang-active">BM</button>
+                    <button id="btnEN" onclick="setLanguage('en')" class="opacity-40 hover:opacity-100">EN</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area: Updated with classes for mobile stacking -->
+        <div class="main-content-wrapper flex flex-1 overflow-hidden flex-col md:flex-row custom-scroll">
+            
+            <!-- Sidebar: Tetapan -->
+            <aside class="sidebar w-full md:w-72 bg-black/5 p-5 border-b md:border-b-0 md:border-r border-indigo-500/5 flex flex-col shrink-0 custom-scroll overflow-y-auto">
+                <h2 id="lblConfig" class="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-4">Tetapan Suara</h2>
+                
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label id="lblModel" class="text-[8px] font-black opacity-50 uppercase tracking-widest ml-1">Model AI</label>
+                        <select id="modelId" class="w-full px-3 py-2 rounded-lg text-[10px] outline-none cursor-pointer shadow-sm">
+                            <option value="sonic-3" selected>Sonic 3 (Stabil)</option>
+                            <option value="sonic">Sonic (Legacy)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label id="lblLang" class="text-[8px] font-black opacity-50 uppercase tracking-widest ml-1">Bahasa Sasaran</label>
+                        <select id="language" class="w-full px-3 py-2 rounded-lg text-[10px] outline-none cursor-pointer shadow-sm">
+                            <option id="optAuto" value="auto" selected>Kesan Automatik ✨</option>
+                            <option value="ms">Bahasa Melayu (ms)</option>
+                            <option value="en">English (en)</option>
+                            <option value="id">Bahasa Indonesia (id)</option>
+                            <option value="ar">Arabic (ar)</option>
+                            <option value="es">Spanish (es)</option>
+                            <option value="fr">French (fr)</option>
+                            <option value="de">German (de)</option>
+                            <option value="it">Italian (it)</option>
+                            <option value="pt">Portuguese (pt)</option>
+                            <option value="zh">Chinese (zh)</option>
+                            <option value="ja">Japanese (ja)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label id="lblEmotion" class="text-[8px] font-black opacity-50 uppercase tracking-widest ml-1">Emosi Suara</label>
+                        <select id="emotion" class="w-full px-3 py-2 rounded-lg text-[10px] outline-none cursor-pointer shadow-sm">
+                            <option value="neutral" data-bm="Neutral" data-en="Neutral">Neutral</option>
+                            <option value="happy" data-bm="Gembira" data-en="Happy">Gembira</option>
+                            <option value="sad" data-bm="Sedih" data-en="Sad">Sedih</option>
+                            <option value="angry" data-bm="Marah" data-en="Angry">Marah</option>
+                            <option value="surprised" data-bm="Terkejut" data-en="Surprised">Terkejut</option>
+                            <option value="curious" data-bm="Ingin Tahu" data-en="Curious">Ingin Tahu</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2 space-y-4 border-t border-indigo-500/5">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label id="lblSpeed" class="text-[8px] font-black opacity-50 uppercase tracking-widest">Kelajuan</label>
+                                <span id="speedVal" class="text-[9px] font-black text-indigo-500">1.0x</span>
+                            </div>
+                            <input type="range" id="speed" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full h-1 rounded-lg appearance-none cursor-pointer accent-indigo-500 bg-slate-700/20">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label id="lblVol" class="text-[8px] font-black opacity-50 uppercase tracking-widest">Kelantangan</label>
+                                <span id="volVal" class="text-[9px] font-black text-indigo-500">1.0x</span>
+                            </div>
+                            <input type="range" id="volume" min="0.1" max="1.5" step="0.1" value="1.0" class="w-full h-1 rounded-lg appearance-none cursor-pointer accent-indigo-500 bg-slate-700/20">
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Panel Utama: Output -->
+            <main class="content-area flex-1 p-5 md:p-6 flex flex-col overflow-y-auto custom-scroll relative">
+                <div class="max-w-4xl w-full mx-auto space-y-4">
+                    <div class="space-y-1">
+                        <label id="lblApiKey" class="text-[8px] font-black opacity-50 uppercase tracking-widest px-1">X-API-Key</label>
+                        <div class="relative">
+                            <input type="password" id="apiKey" class="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-xs shadow-inner" placeholder="Tampal X-API-Key anda di sini...">
+                            <div id="keyLoader" class="absolute right-4 top-1/2 -translate-y-1/2 hidden text-indigo-500">
+                                <i class="fas fa-circle-notch fa-spin text-[12px]"></i>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center px-1">
+                            <label id="lblVoice" class="text-[8px] font-black opacity-50 uppercase tracking-widest">Pilih Suara</label>
+                            <button id="toggleManualMode" class="text-[8px] text-indigo-500 font-black uppercase tracking-wider hover:underline">
+                                <i class="fas fa-edit mr-1"></i> <span id="lblManual">Isi Manual</span>
+                            </button>
+                        </div>
+                        <div id="voiceDropdownContainer" class="relative">
+                            <select id="voiceSelector" class="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-xs appearance-none cursor-pointer shadow-inner">
+                                <option id="optInitial" value="">Sila masukkan Key di atas...</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 opacity-30 text-[10px] pointer-events-none"></i>
+                        </div>
+                        <div id="voiceManualContainer" class="hidden">
+                            <input type="text" id="manualVoiceId" class="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-xs shadow-inner" placeholder="Masukkan ID Suara (cth: 7fd44d92...)">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-end px-1">
+                            <label id="lblTranscript" class="text-[8px] font-black opacity-50 uppercase tracking-widest">Skrip Teks</label>
+                            <div class="text-[8px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex gap-3">
+                                <span><span id="wordCount">0</span> Words</span>
+                                <span><span id="charCount">0</span> Chars</span>
+                                <span><span id="creditCount">0</span> Credits</span>
+                            </div>
+                        </div>
+                        <textarea id="transcript" rows="4" class="w-full px-5 py-3 rounded-xl outline-none transition-all resize-y text-xs leading-relaxed shadow-inner min-h-[100px]" placeholder="Masukkan skrip anda di sini..."></textarea>
+                    </div>
+
+                    <button id="autoBtn" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm rounded-xl glow-button transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em]">
+                        <i class="fas fa-bolt"></i>
+                        <span id="lblGenerate">Jana & Pradengar</span>
+                    </button>
+
+                    <div id="previewArea" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500 mt-2">
+                        <div class="bg-indigo-500/5 p-3 rounded-2xl border border-indigo-500/10 flex flex-col md:flex-row items-center gap-3 shadow-inner">
+                            <audio id="audioPlayer" controls class="flex-1 h-9 w-full"></audio>
+                            <a id="downloadBtn" href="#" download class="w-full md:w-auto px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-lg shadow-lg transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-[9px]">
+                                <i class="fas fa-cloud-download-alt text-xs"></i>
+                                <span id="lblDownload">Muat Turun</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div id="statusArea" class="hidden mt-2">
+                        <div id="loading" class="flex items-center gap-3 bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/10">
+                            <div class="w-4 h-4 border-2 border-indigo-400 border-t-white rounded-full animate-spin"></div>
+                            <p id="lblProcessing" class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Sila tunggu, VoxDrop sedang bekerja...</p>
+                        </div>
+                        <div id="errorMessage" class="hidden mt-2 p-3 bg-red-500/10 text-red-500 text-[9px] font-bold rounded-xl border border-red-500/20"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer class="app-footer shrink-0">
+            <div id="footerText">
+                VoxDrop <span id="currentYear"></span>© was creatively built and designed using Gemini Canvas by 
+                <a href="https://www.tiktok.com/@kiemiftah" target="_blank" class="footer-link">Kiemiftah.Com</a>.
+            </div>
+            <div class="mt-0.5 opacity-80">
+                <span id="lblLastUpdated">Last Updated on</span> <span id="lastUpdatedDate">February 14, 2026</span> 
+                | Hits: <span id="hitCount" class="font-bold text-indigo-500">...</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Panduan -->
+    <div id="howToModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-4">
+        <div class="glass-card max-w-lg w-full p-8 rounded-[2.5rem] shadow-2xl relative border-indigo-500/30 max-h-[90vh] overflow-y-auto custom-scroll">
+            <button id="closeHowTo" class="absolute top-6 right-6 text-indigo-500 hover:scale-110">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 id="modalTitle" class="text-xl font-black text-indigo-500 uppercase tracking-widest mb-6 text-center">Cara Guna VoxDrop</h3>
+            <div id="modalSteps" class="space-y-6 text-[11px]"></div>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+
+        const translations = {
+            bm: {
+                subTitle: "Jana TTS Suara Klon & Simpan Audio",
+                lblConfig: "Tetapan Suara",
+                lblModel: "Model AI",
+                lblLang: "Bahasa Sasaran",
+                lblEmotion: "Emosi Suara",
+                lblSpeed: "Kelajuan",
+                lblVol: "Kelantangan",
+                lblVoice: "Pilih Suara",
+                lblManual: "Isi Manual",
+                lblManualAlt: "Pilih Senarai",
+                lblTranscript: "Skrip Teks",
+                lblGenerate: "Jana & Pradengar",
+                lblDownload: "Muat Turun",
+                lblProcessing: "Sila tunggu, VoxDrop sedang bekerja...",
+                lblApiKey: "X-API-Key",
+                lblLastUpdated: "Last Updated on",
+                placeholder: "Masukkan skrip anda di sini...",
+                apiKeyPlaceholder: "Tampal X-API-Key anda di sini...",
+                voiceLoading: "-- Memuatkan suara, sila tunggu... --",
+                optInitial: "Sila masukkan Key di atas...",
+                optAuto: "Kesan Automatik ✨",
+                apiKeyReq: "Sila masukkan X-API-Key terlebih dahulu.",
+                completeReq: "Sila lengkapkan maklumat sebelum menjana.",
+                modalTitle: "Cara Guna VoxDrop",
+                steps: [
+                    { t: "Daftar Akaun Cartesia", d: "Layari <a href='https://play.cartesia.ai/' target='_blank' class='step-link'>Cartesia Playground</a>. Daftar akaun percuma dan log masuk ke papan pemuka utama." },
+                    { t: "Cara Klon Suara", d: "Buka menu <strong>Voices</strong> di kiri. Klik <strong>+ New Voice</strong>, pilih <strong>Clone</strong>. Muat naik fail audio pendek (10s+) suara anda. Beri nama dan simpan." },
+                    { t: "Cipta X-API-Key", d: "Klik ikon profil (bucu kanan) > <strong>API Keys</strong>. Tekan butang <strong>Create Key</strong>. Salin kod rahsia bermula dengan <code>sk_car_...</code>. Jangan kongsi!" },
+                    { t: "Guna Dalam VoxDrop", d: "Tampal Key tersebut di ruang <strong>X-API-Key</strong> di atas. Senarai suara anda akan dimuatkan secara automatik. Pilih suara dan mula menjana." }
+                ]
+            },
+            en: {
+                subTitle: "Generate Clone-Voice TTS & Save Audio",
+                lblConfig: "Voice Settings",
+                lblModel: "AI Model",
+                lblLang: "Target Language",
+                lblEmotion: "Voice Emotion",
+                lblSpeed: "Speed",
+                lblVol: "Volume",
+                lblVoice: "Select Voice",
+                lblManual: "Manual Fill",
+                lblManualAlt: "Select List",
+                lblTranscript: "Script Text",
+                lblGenerate: "Generate & Preview",
+                lblDownload: "Download",
+                lblProcessing: "Please wait, VoxDrop is working...",
+                lblApiKey: "X-API-Key",
+                lblLastUpdated: "Last Updated on",
+                placeholder: "Enter your script here...",
+                apiKeyPlaceholder: "Paste your X-API-Key here...",
+                voiceLoading: "-- Loading voices, please wait... --",
+                optInitial: "Please enter Key above...",
+                optAuto: "Auto Detect ✨",
+                apiKeyReq: "Please enter your X-API-Key first.",
+                completeReq: "Complete all fields before generating.",
+                modalTitle: "How to use VoxDrop",
+                steps: [
+                    { t: "Register Cartesia", d: "Visit <a href='https://play.cartesia.ai/' target='_blank' class='step-link'>Cartesia Playground</a>. Sign up for a free account and log in to the dashboard." },
+                    { t: "How to Clone Voice", d: "Open <strong>Voices</strong> menu. Click <strong>+ New Voice</strong>, select <strong>Clone</strong>. Upload a short audio file (10s+) of your voice. Name it and save." },
+                    { t: "Create X-API-Key", d: "Click profile icon (bottom right) > <strong>API Keys</strong>. Click <strong>Create Key</strong>. Copy the secret code starting with <code>sk_car_...</code>. Keep it safe!" },
+                    { t: "Use in VoxDrop", d: "Paste the Key in the <strong>X-API-Key</strong> field above. Your voice list will load automatically. Select your voice and start generating." }
+                ]
+            }
+        };
+
+        let currentLang = 'bm';
+        let isDarkMode = true;
+        let debounceTimer;
+        let generatedAudioUrl = null;
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('btnBM').classList.toggle('lang-active', lang === 'bm');
+            document.getElementById('btnEN').classList.toggle('lang-active', lang === 'en');
+            document.getElementById('btnBM').classList.toggle('opacity-40', lang !== 'bm');
+            document.getElementById('btnEN').classList.toggle('opacity-40', lang !== 'en');
+            
+            const t = translations[lang];
+            const ids = ['subTitle', 'lblConfig', 'lblModel', 'lblLang', 'lblEmotion', 'lblSpeed', 'lblVol', 'lblVoice', 'lblTranscript', 'lblGenerate', 'lblDownload', 'lblProcessing', 'lblApiKey', 'modalTitle', 'optAuto', 'lblLastUpdated'];
+            
+            ids.forEach(id => { 
+                const el = document.getElementById(id);
+                if(el) el.innerText = t[id] || el.innerText; 
+            });
+            
+            document.getElementById('transcript').placeholder = t.placeholder;
+            document.getElementById('apiKey').placeholder = t.apiKeyPlaceholder;
+            if (document.getElementById('optInitial')) document.getElementById('optInitial').innerText = t.optInitial;
+            const isManual = !document.getElementById('voiceManualContainer').classList.contains('hidden');
+            document.getElementById('lblManual').innerText = isManual ? t.lblManualAlt : t.lblManual;
+
+            const stepContainer = document.getElementById('modalSteps');
+            stepContainer.innerHTML = t.steps.map((s, i) => `
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">${i+1}</span>
+                        <h4 class="font-bold text-xs uppercase tracking-wider">${s.t}</h4>
+                    </div>
+                    <p class="opacity-80 pl-9 leading-relaxed">${s.d}</p>
+                </div>
+            `).join('');
+        }
+
+        function detectLanguage(text) {
+            if (!text || text.length < 5) return 'ms';
+            const msK = ['saya', 'yang', 'dengan', 'ada', 'untuk', 'ini', 'boleh', 'tidak', 'adalah', 'kita', 'anda'];
+            const enK = ['the', 'and', 'with', 'have', 'for', 'this', 'is', 'can', 'not', 'you', 'are'];
+            const words = text.toLowerCase().split(/\s+/);
+            let ms = 0, en = 0;
+            words.forEach(w => { if(msK.includes(w)) ms++; if(enK.includes(w)) en++; });
+            return ms >= en ? 'ms' : 'en';
+        }
+
+        async function recordHit() {
+            try {
+                const response = await fetch('api/hits.php', { method: 'POST' });
+                const data = await response.json();
+                if (data && data.count) document.getElementById('hitCount').innerText = data.count.toLocaleString();
+            } catch (e) { document.getElementById('hitCount').innerText = "..."; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = {
+                apiKey: document.getElementById('apiKey'),
+                keyLoader: document.getElementById('keyLoader'),
+                voiceSelector: document.getElementById('voiceSelector'),
+                manualVoiceId: document.getElementById('manualVoiceId'),
+                voiceDropdownContainer: document.getElementById('voiceDropdownContainer'),
+                voiceManualContainer: document.getElementById('voiceManualContainer'),
+                toggleManualMode: document.getElementById('toggleManualMode'),
+                transcript: document.getElementById('transcript'),
+                autoBtn: document.getElementById('autoBtn'),
+                statusArea: document.getElementById('statusArea'),
+                loading: document.getElementById('loading'),
+                errorMessage: document.getElementById('errorMessage'),
+                language: document.getElementById('language'),
+                emotion: document.getElementById('emotion'),
+                modelId: document.getElementById('modelId'),
+                speed: document.getElementById('speed'),
+                volume: document.getElementById('volume'),
+                speedVal: document.getElementById('speedVal'),
+                volVal: document.getElementById('volVal'),
+                previewArea: document.getElementById('previewArea'),
+                audioPlayer: document.getElementById('audioPlayer'),
+                downloadBtn: document.getElementById('downloadBtn'),
+                themeToggle: document.getElementById('themeToggle'),
+                btnHowTo: document.getElementById('btnHowTo'),
+                howToModal: document.getElementById('howToModal'),
+                closeHowTo: document.getElementById('closeHowTo'),
+                lblManual: document.getElementById('lblManual'),
+                currentYear: document.getElementById('currentYear'),
+                wordCount: document.getElementById('wordCount'),
+                charCount: document.getElementById('charCount'),
+                creditCount: document.getElementById('creditCount')
+            };
+
+            el.currentYear.innerText = new Date().getFullYear();
+            recordHit();
+            setLanguage('bm');
+
+            el.themeToggle.addEventListener('click', () => {
+                isDarkMode = !isDarkMode;
+                document.body.classList.toggle('light-mode', !isDarkMode);
+            });
+
+            el.btnHowTo.addEventListener('click', () => el.howToModal.classList.remove('hidden'));
+            el.closeHowTo.addEventListener('click', () => el.howToModal.classList.add('hidden'));
+
+            el.speed.addEventListener('input', (e) => el.speedVal.innerText = e.target.value + 'x');
+            el.volume.addEventListener('input', (e) => el.volVal.innerText = e.target.value + 'x');
+
+            el.transcript.addEventListener('input', () => {
+                const val = el.transcript.value;
+                const wCount = val.trim() === '' ? 0 : val.trim().split(/\s+/).length;
+                const cCount = val.length;
+                el.wordCount.innerText = wCount;
+                el.charCount.innerText = cCount;
+                el.creditCount.innerText = cCount; 
+            });
+
+            el.toggleManualMode.addEventListener('click', () => {
+                const isManual = el.voiceManualContainer.classList.toggle('hidden');
+                el.voiceDropdownContainer.classList.toggle('hidden', !isManual);
+                el.lblManual.innerText = !isManual ? translations[currentLang].lblManualAlt : translations[currentLang].lblManual;
+            });
+
+            el.apiKey.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const key = el.apiKey.value.trim();
+                    if (key.length > 20) fetchVoices(key);
+                }, 800);
+            });
+
+            async function fetchVoices(key) {
+                el.keyLoader.classList.remove('hidden');
+                el.voiceSelector.innerHTML = `<option value="">${translations[currentLang].voiceLoading}</option>`;
+                try {
+                    const response = await fetch('https://api.cartesia.ai/voices', {
+                        headers: { 'X-API-Key': key, 'Cartesia-Version': '2024-06-10' }
+                    });
+                    if (!response.ok) throw new Error();
+                    const voices = await response.json();
+                    el.voiceSelector.innerHTML = '<option value="">-- Pilih Suara --</option>';
+                    const mine = voices.filter(v => !v.is_public);
+                    const pub = voices.filter(v => v.is_public);
+                    if (mine.length > 0) {
+                        const g = document.createElement('optgroup'); g.label = currentLang === 'bm' ? "⭐ SUARA SAYA" : "⭐ MY VOICES";
+                        mine.forEach(v => g.appendChild(new Option(v.name, v.id)));
+                        el.voiceSelector.appendChild(g);
+                    }
+                    const gPub = document.createElement('optgroup'); gPub.label = currentLang === 'bm' ? "🌐 SUARA AWAM" : "🌐 PUBLIC VOICES";
+                    pub.forEach(v => gPub.appendChild(new Option(v.name, v.id)));
+                    el.voiceSelector.appendChild(gPub);
+                } catch (e) {
+                    el.voiceSelector.innerHTML = '<option value="">Gagal muat suara.</option>';
+                } finally { el.keyLoader.classList.add('hidden'); }
+            }
+
+            el.autoBtn.addEventListener('click', async () => {
+                const key = el.apiKey.value.trim();
+                const text = el.transcript.value.trim();
+                const voiceId = !el.voiceManualContainer.classList.contains('hidden') ? el.manualVoiceId.value.trim() : el.voiceSelector.value;
+                if (!key || !voiceId || !text) return;
+
+                let targetLang = el.language.value === 'auto' ? detectLanguage(text) : el.language.value;
+                el.previewArea.classList.add('hidden');
+                el.statusArea.classList.remove('hidden');
+                el.loading.classList.remove('hidden');
+                el.errorMessage.classList.add('hidden');
+                el.autoBtn.disabled = true;
+
+                try {
+                    const response = await fetch('https://api.cartesia.ai/tts/bytes', {
+                        method: 'POST',
+                        headers: { 'Cartesia-Version': '2024-06-10', 'X-API-Key': key, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            "model_id": el.modelId.value, "transcript": text,
+                            "voice": { "mode": "id", "id": voiceId },
+                            "output_format": { "container": "wav", "encoding": "pcm_f32le", "sample_rate": 44100 },
+                            "language": targetLang,
+                            "generation_config": { "speed": parseFloat(el.speed.value), "volume": parseFloat(el.volume.value), "emotion": el.emotion.value }
+                        })
+                    });
+                    if (!response.ok) throw new Error('API Error: Semak baki atau Key.');
+                    const blob = await response.blob();
+                    if (generatedAudioUrl) URL.revokeObjectURL(generatedAudioUrl);
+                    generatedAudioUrl = URL.createObjectURL(blob);
+                    el.audioPlayer.src = generatedAudioUrl;
+                    el.downloadBtn.href = generatedAudioUrl;
+                    el.downloadBtn.download = `voxdrop_${Date.now()}.wav`;
+                    el.previewArea.classList.remove('hidden');
+                    el.audioPlayer.play();
+                } catch (err) {
+                    el.errorMessage.classList.remove('hidden');
+                    el.errorMessage.innerText = "RALAT: " + err.message;
+                } finally {
+                    el.loading.classList.add('hidden');
+                    el.autoBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

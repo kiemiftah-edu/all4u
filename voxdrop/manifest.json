@@ -1,0 +1,21 @@
+{
+  "name": "VoxDrop - Pro TTS Downloader",
+  "short_name": "VoxDrop",
+  "description": "Generate Clone-Voice TTS & Save Audio with Cartesia API",
+  "start_url": "./cartesia_single_file.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "img/voxdroplogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/voxdroplogo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

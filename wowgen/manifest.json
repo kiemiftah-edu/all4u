@@ -1,0 +1,21 @@
+{
+  "name": "Wow!Gen Product Prompt",
+  "short_name": "Wow!Gen",
+  "description": "Premium AI Product Image Prompt Generator by Kiemiftah",
+  "start_url": "penjana_prompt.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "img/wow!gen.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/wow!gen.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
