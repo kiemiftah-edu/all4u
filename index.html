@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Direktori aplikasi All4U oleh Kiemiftah Edu.">
+  <meta name="theme-color" content="#07111f">
+  <title>All4U Apps</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #07111f;
+      --surface: rgba(15,31,51,.82);
+      --line: rgba(148,163,184,.18);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--background); }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: radial-gradient(circle at 50% 0%,rgba(14,165,233,.18),transparent 34rem),linear-gradient(180deg,#07111f 0%,#050b14 100%);
+      font-family: Arial,Helvetica,sans-serif;
+    }
+    main { min-height: 100vh; padding: 56px 20px; }
+    .directory { width: min(100%,720px); margin: 0 auto; }
+    header { margin-bottom: 32px; }
+    .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: .75rem; font-weight: 700; letter-spacing: .18em; }
+    h1 { margin: 0; font-size: clamp(2.25rem,8vw,4.5rem); line-height: .96; letter-spacing: -.055em; }
+    .description { margin: 16px 0 0; color: var(--muted); }
+    ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    a {
+      display: grid;
+      grid-template-columns: 44px 1fr 28px;
+      align-items: center;
+      min-height: 58px;
+      padding: 8px 16px;
+      overflow: hidden;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      backdrop-filter: blur(12px);
+      transition: transform 160ms ease,border-color 160ms ease,background 160ms ease;
+    }
+    a:hover,a:focus-visible { background: rgba(18,43,68,.96); border-color: rgba(56,189,248,.55); outline: none; transform: translateY(-2px); }
+    .number { color: #64748b; font: 600 .75rem/1 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+    .folder-name { overflow: hidden; font: 600 1rem/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; text-overflow: ellipsis; white-space: nowrap; }
+    .arrow { color: var(--accent); font-size: 1.1rem; text-align: right; }
+    footer { padding: 24px 0 0; color: #64748b; font-size: .78rem; text-align: center; }
+    @media (max-width: 480px) {
+      main { padding: 36px 14px; }
+      a { grid-template-columns: 38px 1fr 24px; min-height: 54px; padding-inline: 13px; border-radius: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { a { transition: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="directory" aria-labelledby="page-title">
+      <header>
+        <p class="eyebrow">KIEMIFTAH EDU</p>
+        <h1 id="page-title">All4U Apps</h1>
+        <p class="description">Pilih aplikasi untuk dibuka.</p>
+      </header>
+      <nav aria-label="Senarai aplikasi All4U">
+        <ul>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/comixsprompter"><span class="number">01</span><span class="folder-name">comixsprompter</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/edugen"><span class="number">02</span><span class="folder-name">edugen</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/eflip2html"><span class="number">03</span><span class="folder-name">eflip2html</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/h5pconverter"><span class="number">04</span><span class="folder-name">h5pconverter</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/hubgpts"><span class="number">05</span><span class="folder-name">hubgpts</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/linkgenpro"><span class="number">06</span><span class="folder-name">linkgenpro</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/media2split"><span class="number">07</span><span class="folder-name">media2split</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/nlm2comixs"><span class="number">08</span><span class="folder-name">nlm2comixs</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/prompter2info"><span class="number">09</span><span class="folder-name">prompter2info</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/quiz2html"><span class="number">10</span><span class="folder-name">quiz2html</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/quiz2xml"><span class="number">11</span><span class="folder-name">quiz2xml</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/voxdrop"><span class="number">12</span><span class="folder-name">voxdrop</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+          <li><a href="https://kiemiftah-edu.github.io/all4u/wowgen"><span class="number">13</span><span class="folder-name">wowgen</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+        </ul>
+      </nav>
+      <footer>13 aplikasi tersedia</footer>
+    </section>
+  </main>
+</body>
+</html>
