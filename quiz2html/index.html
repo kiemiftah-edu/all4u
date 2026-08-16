@@ -1,0 +1,1358 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>QuizCanvas Builder</title>
+  
+  <!-- PWA -->
+  <link rel="icon" type="image/png" href="img/logoquiz2html.png" />
+  <link rel="apple-touch-icon" href="img/logoquiz2html.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0b1220" />
+  
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#111a2e; --text:#e5e7eb; --muted:#aab3c5;
+      --border: rgba(255,255,255,.10);
+      --primary:#6366f1; --primary2:#22c55e; --danger:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    
+    html, body {
+      margin:0; padding:0; height:100%; overflow:hidden;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 15% 10%, rgba(99,102,241,.20), transparent 55%),
+                  radial-gradient(900px 600px at 85% 20%, rgba(34,197,94,.14), transparent 50%),
+                  linear-gradient(180deg, var(--bg), #050815 70%);
+      color:var(--text);
+    }
+
+    .wrap {
+      max-width:1600px; margin:0 auto; padding:20px;
+      height: 100%; display: flex; flex-direction: column;
+    }
+
+    .topbar {
+      flex-shrink: 0;
+      display:flex; align-items:center; justify-content:space-between; gap:20px;
+      margin-bottom:16px;
+    }
+    
+    .brand { display:flex; gap:16px; align-items:center; min-width: 0; }
+    
+    .logo {
+      width:64px; height:64px; 
+      flex-shrink: 0; border-radius:16px;
+      background-color: var(--panel);
+      background-image: url('img/logoquiz2html.png');
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+    }
+
+    .title { display:flex; flex-direction:column; justify-content: center; min-width:0; }
+
+    .appTitle {
+      margin:0; display:block;
+      font-size:26px; font-weight:900; letter-spacing: 0.5px; line-height:1.1;
+      color: #ffffff;
+      text-shadow: 0 1px 0 #9ca3af, 0 2px 0 #4b5563, 0 3px 0 #1f2937, 0 4px 8px rgba(0,0,0,0.6);
+    }
+    
+    .subTitle {
+      margin:0; color:var(--muted); font-size:13px; line-height:1.2;
+      font-weight: 500; opacity: 0.8;
+    }
+
+    .row {
+      display: grid; 
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .card-h {
+      padding:12px 16px; flex-shrink: 0;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: rgba(15,23,42,.45);
+    }
+    .card-h b { font-size:13px; letter-spacing:.2px; color: #fff; }
+
+    .card-b {
+      padding:16px;
+      flex: 1; 
+      overflow-y: auto; 
+    }
+    
+    .tabs {
+      display:flex; gap:4px; padding:8px 12px;
+      border-bottom:1px solid var(--border);
+      background: rgba(15,23,42,.35);
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .tab {
+      padding:6px 10px; border-radius:8px; border:1px solid transparent;
+      background: transparent; cursor:pointer; color:var(--muted);
+      font-weight:700; font-size:11px; white-space: nowrap;
+    }
+    .tab.active {
+      color:var(--text); border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+
+    #codePanel, #previewPanel, #scriptPanel {
+      flex: 1; 
+      overflow: hidden; 
+      position: relative; 
+      display: flex; 
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+    
+    #codeOut, #scriptOut {
+      margin:0; padding:16px;
+      flex: 1; 
+      overflow: auto; 
+      background: rgba(2,6,23,.55);
+      font-family:var(--mono); font-size:11px; line-height:1.4; color:#a5b3ce;
+      border: 0;
+      white-space: pre; 
+      min-height: 0;
+    }
+    
+    .iframeWrap {
+      flex: 1; background:#fff; display: flex; flex-direction: column; height: 100%;
+    }
+    iframe { width:100%; height:100%; border:0; display:block; background:#fff; }
+
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; align-items:end; }
+    .grid3 .switch { min-height:34px; align-self:end; }
+    label { display:block; font-size:10px; color:var(--muted); margin-bottom:4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    select, input[type="text"], input[type="url"], input[type="number"] {
+      width:100%; background: rgba(2,6,23,.45); border:1px solid var(--border);
+      color:var(--text); border-radius:10px; padding:8px 10px; outline:none; font-size: 12px;
+    }
+    textarea {
+      width:100%; height:140px; resize:none; line-height:1.4;
+      background: rgba(2,6,23,.45); border:1px solid var(--border);
+      color:var(--text); border-radius:10px; padding:10px; outline:none; font-size: 12px;
+      font-family: var(--mono);
+    }
+    
+    .switch {
+      display:flex; align-items:center; gap:10px; padding:6px 10px;
+      border:1px solid var(--border); border-radius:10px;
+      background: rgba(2,6,23,.35); user-select:none;
+    }
+    .switch input { width:16px; height:16px; cursor: pointer; }
+    
+    .pillbar { display:flex; gap:10px; align-items:center; }
+    .btn {
+      appearance:none; border:1px solid var(--border);
+      background: rgba(255,255,255,.06); color:var(--text);
+      padding:8px 14px; border-radius:10px; cursor:pointer;
+      font-weight:600; font-size:12px; transition: 0.2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:hover { background: rgba(255,255,255,.12); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .btn-primary {
+      border-color: rgba(99,102,241,.6);
+      background: linear-gradient(135deg, rgba(99,102,241,.9), rgba(34,197,94,.7));
+      color: white;
+    }
+    .btn-danger { border-color: rgba(239,68,68,.5); background: rgba(239,68,68,.15); color: #fca5a5; }
+
+    #btnCopyOverlay, #btnCopyScript {
+      position: absolute; top: 12px; right: 24px; z-index: 10;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(4px);
+      border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+    }
+
+    .lang-toggle {
+      display: flex; align-items: center;
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 2px; cursor: pointer;
+    }
+    .lang-opt { padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; color: var(--muted); }
+    .lang-opt.active { background: var(--text); color: var(--bg); }
+
+    .drop { border:1px dashed rgba(255,255,255,.20); background: rgba(2,6,23,.28); border-radius:12px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center; }
+    .drop.drag { border-color: var(--primary); background: rgba(99,102,241,.1); }
+
+    .footer {
+      flex-shrink: 0;
+      padding: 16px;
+      text-align: center;
+      margin-top: auto;
+      border-top: 1px solid rgba(79, 70, 229, 0.1);
+    }
+    .footer-main {
+      font-size: 12px;
+      color: #a5b3ce; 
+      letter-spacing: 0.025em;
+    }
+    .footer-sub {
+      font-size: 10px;
+      color: #6366f1; 
+      margin-top: 4px;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+    .footer a {
+      color: #facc15; 
+      text-decoration: underline;
+      font-weight: 700;
+      transition: color 0.2s;
+    }
+    .footer a:hover {
+      color: #fde047; 
+    }
+    .footer p { margin: 0; }
+
+    .toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background: #1e293b; border:1px solid #475569; color:#fff; padding:8px 16px; border-radius:20px; font-size:12px; z-index: 100; display: none; }
+
+    @media (min-width: 901px) {
+      html, body { height: 100%; overflow: hidden; }
+      .wrap { height: 100vh; overflow: hidden; }
+      .row { grid-template-columns: 1fr 1fr; overflow: hidden; min-height: 0; }
+      .card { min-height: 0; }
+      .card-b { overflow-y: auto; }
+    }
+
+    @media (max-width: 900px) {
+      html, body { overflow: auto; height: auto; } 
+      .wrap { height: auto; display: block; }
+      .row { display: flex; flex-direction: column; height: auto; overflow: visible; }
+      #codePanel, #previewPanel, #scriptPanel { height: 500px; }
+      .topbar { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="title">
+          <h1 class="appTitle">QuizCanvas Builder</h1>
+          <p class="subTitle">One-Page Interactive Quiz Generator</p>
+        </div>
+      </div>
+      <div class="pillbar">
+        <div class="lang-toggle" id="langSwitch">
+          <div class="lang-opt active" data-lang="en">EN</div>
+          <div class="lang-opt" data-lang="ms">BM</div>
+        </div>
+        <a href="https://youtu.be/Wh6zILs0mgc" target="_blank" class="btn">How To</a>
+        <a href="https://chromewebstore.google.com/detail/notebooklm-to-pdf/micfpbhlllbdpgdkkgdimdpmpeefoamk" target="_blank" class="btn">NLM Exporter</a>
+        <button class="btn" id="btnFillDemo">Demo</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- KIRI: Builder -->
+      <div class="card">
+        <div class="card-h"><b id="lblBuilder">BUILDER</b></div>
+        <div class="card-b" style="padding: 12px 16px;">
+          <!-- Drop Zone - Compact -->
+          <div class="drop" id="dropzone" tabindex="0">
+            <div><strong id="lblUploadCaption" style="font-size:11px;">Upload JSON file only</strong><br/><span id="lblUploadSub" style="font-size:10px; opacity:0.7;">JSON can be exported from NotebookLM with rationale ready, or created by any JSON generator.</span></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label class="btn" id="lblFileBtn" for="fileInput" style="font-size:10px; padding:4px 10px;">File</label>
+              <input id="fileInput" type="file" accept=".json,application/json" style="display:none;" />
+              <span id="fileTag" style="font-size:10px; opacity:0.6;">...</span>
+            </div>
+          </div>
+
+          <div id="refSection" style="display:none;">
+            <div style="height:8px"></div>
+            <div class="drop" id="refDropzone" tabindex="0">
+              <div><strong id="lblRefCaption" style="font-size:11px;">References HTML/DOCX/TXT</strong><br/><span id="lblRefSub" style="font-size:10px; opacity:0.7;">required if JSON has no rationale</span></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label class="btn" id="lblRefBtn" for="refFileInput" style="font-size:10px; padding:4px 10px;">Ref</label>
+                <input id="refFileInput" type="file" accept=".html,.htm,.docx,.txt" style="display:none;" />
+                <span id="refFileTag" style="font-size:10px; opacity:0.6;">...</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+          
+          <!-- Row 1: Theme & Lang -->
+          <div class="grid2">
+            <div><label id="lblTheme">Theme</label><select id="themeSel"></select></div>
+            <div><label id="lblQuizLanguage">Quiz Language</label><select id="quizLang"><option value="en">ENGLISH</option><option value="ms">MALAY</option><option value="ar">ARABIC (RTL)</option></select></div>
+          </div>
+          
+          <div style="height:8px"></div>
+          
+          <!-- Row 2: Shuffles -->
+          <div class="grid2">
+            <div class="switch"><input type="checkbox" id="randQ" /><label id="lblShuffleQ" style="margin:0; font-size:10px;">Shuffle Questions</label></div>
+            <div class="switch"><input type="checkbox" id="randA" /><label id="lblShuffleA" style="margin:0; font-size:10px;">Shuffle Answers</label></div>
+          </div>
+          
+          <div style="height:8px"></div>
+
+          <!-- Row 3: Data, Class Label & Timer -->
+          <div class="grid3">
+             <div class="switch"><input type="checkbox" id="saveData" /><label id="lblSaveData" style="margin:0; font-weight:700; color:var(--primary2); font-size:10px;">Simpan Data (GSheet)</label></div>
+             <div><label id="lblClassLabel">Label Kelas</label><input type="text" id="classLbl" value="Kelas" /></div>
+             <div><label id="lblTimerMinutes">Timer (minutes)</label><input id="timerMinutes" type="number" min="1" step="1" inputmode="numeric" placeholder="Leave blank for no timer" /></div>
+          </div>
+          
+          <!-- GSheet URL - Hidden by default -->
+          <div id="gsheetBox" style="display:none; margin-top:8px;">
+             <label id="lblGSheetUrl">URL Web App GSheet</label>
+             <input type="url" id="sheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+          </div>
+
+          <div style="height:8px"></div>
+          
+          <!-- Row 4: Title & Desc -->
+          <div class="grid2">
+            <div><label id="lblTitle">Title</label><input id="quizTitle" type="text" value="Interactive Quiz" /></div>
+            <div><label id="lblDescription">Description</label><input id="quizDesc" type="text" placeholder="Short description..." /></div>
+          </div>
+
+          <div style="height:8px"></div>
+
+          <div>
+            <label id="lblLogoUrl">Logo URL (optional)</label>
+            <input id="logoUrl" type="url" placeholder="Direct image URL or Dropbox image URL" />
+          </div>
+          
+          <div style="height:8px"></div>
+          
+          <!-- Input Area -->
+          <label id="lblQuestionsInput">Questions Input</label>
+          <textarea id="inputArea" placeholder="Paste JSON or drop JSON file..."></textarea>
+          
+          <!-- Action Buttons - With Gap -->
+          <div style="height:16px"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+             <button class="btn btn-danger" id="btnClear">Clear</button>
+             <div id="ui_status" style="font-size:11px; font-weight:600; text-align:right;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANAN: Penonton -->
+      <div class="card viewer">
+        <div class="tabs">
+          <div style="display:flex; gap:4px; margin-right:auto;">
+            <button class="btn btn-primary" id="btnGenerate">⚡ Generate</button>
+            <button class="btn" id="btnDownload" disabled>Download</button>
+          </div>
+          <button class="tab active" id="tabCode">Code</button>
+          <button class="tab" id="tabPreview">Preview</button>
+          <button class="tab" id="tabScript" style="display:none;">Apps Script</button>
+        </div>
+        <div id="codePanel">
+          <button class="btn" id="btnCopyOverlay" style="display:none;">📋 Copy</button>
+          <pre id="codeOut">// Klik 'Generate' untuk melihat kod.</pre>
+        </div>
+        <div id="previewPanel" style="display:none;">
+          <div class="iframeWrap"><iframe id="previewFrame" title="Preview"></iframe></div>
+        </div>
+        <div id="scriptPanel" style="display:none;">
+          <button class="btn" id="btnCopyScript">📋 Copy</button>
+          <pre id="scriptOut">// Aktifkan 'Simpan Data' untuk melihat kod ini.</pre>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p class="footer-main">
+        QuizCanvas Builder <span id="year"></span>© creatively built using Gemini Canvas by 
+        <a href="https://www.tiktok.com/@kiemiftah" target="_blank">Kiemiftah.Com</a>
+      </p>
+      <p class="footer-sub">
+        Last Updated on <span id="lastUpdated"></span> <span id="hitDisplay"></span>
+      </p>
+    </footer>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  // Daftar tema lengkap disusun: Gelap dahulu kemudian Cerah
+  const THEMES = [
+    // DARK THEMES
+    { id:"tailwind-indigo", name:"Tailwind Indigo (Modern Dark)" },
+    { id:"dracula", name:"Dracula (Dark)" },
+    { id:"nord", name:"Nord (Cool Dark)" },
+    { id:"solarized-dark", name:"Solarized Dark" },
+    
+    // LIGHT THEMES
+    { id:"github-light", name:"GitHub Light (Classic)" },
+    { id:"material-light", name:"Material Light (Google-like)" },
+    { id:"tailwind-light", name:"Tailwind Light (Indigo)" },
+    { id:"bootstrap-light", name:"Bootstrap Light (Primary)" },
+    { id:"catppuccin-latte", name:"Catppuccin Latte (Pastel)" },
+    { id:"solarized-light", name:"Solarized Light" },
+    { id:"one-light", name:"One Light (Atom)" },
+    { id:"ayu-light", name:"Ayu Light" },
+    { id:"everforest-light", name:"Everforest Light (Warm)" },
+    { id:"gruvbox-light", name:"Gruvbox Light (Vintage)" },
+    { id:"paper-light", name:"Paper Light (Neutral)" },
+    { id:"sand-light", name:"Sand Light (Warm Paper)" },
+    { id:"sky-light", name:"Sky Light (Airy)" },
+    { id:"lavender-light", name:"Lavender Light (Soft)" },
+    { id:"rose-light", name:"Rose Light (Friendly)" },
+    { id:"mint-light", name:"Mint Light (Fresh)" },
+    { id:"tokyo-night-day", name:"Tokyo Night Day (Soft)" }
+  ];
+
+  // Data warna tema dengan kontras teks gelap untuk latar belakang cerah
+  const THEME_DATA = {
+    "github-light": { primary:"#0969da", primary2:"#1a7f37", bg:"#f6f8fa", panel:"#ffffff", text:"#24292f", muted:"#57606a" },
+    "material-light": { primary:"#1a73e8", primary2:"#34a853", bg:"#f8fafc", panel:"#ffffff", text:"#0f172a", muted:"#475569" },
+    "tailwind-light": { primary:"#4f46e5", primary2:"#16a34a", bg:"#f8fafc", panel:"#ffffff", text:"#0f172a", muted:"#475569" },
+    "bootstrap-light": { primary:"#0d6efd", primary2:"#198754", bg:"#f8f9fa", panel:"#ffffff", text:"#212529", muted:"#6c757d" },
+    "catppuccin-latte": { primary:"#1e66f5", primary2:"#40a02b", bg:"#eff1f5", panel:"#ffffff", text:"#4c4f69", muted:"#6c6f85" },
+    "solarized-light": { primary:"#268bd2", primary2:"#859900", bg:"#fdf6e3", panel:"#fffaf0", text:"#073642", muted:"#586e75" },
+    "one-light": { primary:"#4078f2", primary2:"#50a14f", bg:"#fafafa", panel:"#ffffff", text:"#383a42", muted:"#a0a1a7" },
+    "ayu-light": { primary:"#ff9940", primary2:"#aad94c", bg:"#fafafa", panel:"#ffffff", text:"#5c6166", muted:"#abb0b6" },
+    "everforest-light": { primary:"#8da101", primary2:"#3a94c5", bg:"#fdf6e3", panel:"#fffbef", text:"#5c6a72", muted:"#939f91" },
+    "gruvbox-light": { primary:"#b57614", primary2:"#79740e", bg:"#fbf1c7", panel:"#f9f5d7", text:"#3c3836", muted:"#928374" },
+    "paper-light": { primary:"#0366d6", primary2:"#22863a", bg:"#ffffff", panel:"#f6f8fa", text:"#24292e", muted:"#6a737d" },
+    "sand-light": { primary:"#b58900", primary2:"#859900", bg:"#fffbeb", panel:"#ffffff", text:"#5f5a4e", muted:"#9d9685" },
+    "sky-light": { primary:"#0ea5e9", primary2:"#38bdf8", bg:"#f0f9ff", panel:"#ffffff", text:"#0c4a6e", muted:"#7dd3fc" },
+    "lavender-light": { primary:"#7c3aed", primary2:"#a78bfa", bg:"#f5f3ff", panel:"#ffffff", text:"#4c1d95", muted:"#a78bfa" },
+    "rose-light": { primary:"#e11d48", primary2:"#fb7185", bg:"#fff1f2", panel:"#ffffff", text:"#881337", muted:"#fda4af" },
+    "mint-light": { primary:"#0d9488", primary2:"#2dd4bf", bg:"#f0fdfa", panel:"#ffffff", text:"#134e4a", muted:"#99f6e4" },
+    "tokyo-night-day": { primary:"#3760bf", primary2:"#1d8991", bg:"#e1e2e7", panel:"#ffffff", text:"#3760bf", muted:"#8990b3" },
+    "tailwind-indigo": { primary:"#6366f1", primary2:"#22c55e", bg:"#0b1220", panel:"#111a2e", text:"#e5e7eb", muted:"#aab3c5" },
+    "dracula": { primary:"#bd93f9", primary2:"#50fa7b", bg:"#282a36", panel:"#44475a", text:"#f8f8f2", muted:"#6272a4" },
+    "nord": { primary:"#88c0d0", primary2:"#a3be8c", bg:"#2e3440", panel:"#3b4252", text:"#eceff4", muted:"#d8dee9" },
+    "solarized-dark": { primary:"#268bd2", primary2:"#2aa198", bg:"#002b36", panel:"#073642", text:"#eee8d5", muted:"#93a1a1" }
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const els = {
+    themeSel: $("#themeSel"), input: $("#inputArea"), code: $("#codeOut"), script: $("#scriptOut"),
+    frame: $("#previewFrame"), status: $("#ui_status"), btnDL: $("#btnDownload"),
+    saveData: $("#saveData"), gsheetBox: $("#gsheetBox"), tabScript: $("#tabScript"),
+    btnCopyScript: $("#btnCopyScript"), btnCopyCode: $("#btnCopyOverlay")
+  };
+
+  let lastParsed = null; let lastHTML = ""; let userLangTouched = false;
+  let userTitleTouched = false; let userDescTouched = false;
+  let referenceText = ""; let referenceFileName = ""; let jsonNeedsReference = false;
+  const DEFAULT_TEXT = {
+    en: { title:"Interactive Quiz", desc:"Answer all questions and review your feedback at the end.", classLbl:"Class" },
+    ms: { title:"Kuiz Interaktif", desc:"Jawab semua soalan dan semak maklum balas di akhir kuiz.", classLbl:"Kelas" },
+    ar: { title:"اختبار تفاعلي", desc:"أجب عن جميع الأسئلة ثم راجع التغذية الراجعة في النهاية.", classLbl:"الفصل" }
+  };
+  const BUILDER_UI = {
+    en: {
+      builder:"BUILDER", uploadCaption:"Upload JSON file only", uploadSub:"JSON can be exported from NotebookLM with rationale ready, or created by any JSON generator.", file:"File",
+      refCaption:"References HTML/DOCX/TXT", refSub:"required if JSON has no rationale", ref:"Ref", theme:"Theme", quizLanguage:"Quiz Language",
+      shuffleQ:"Shuffle Questions", shuffleA:"Shuffle Answers", saveData:"Save Data (GSheet)", classLabel:"Class Label", gsheetUrl:"GSheet Web App URL",
+      title:"Title", description:"Description", logoUrl:"Logo URL (optional)", timerMinutes:"Timer (minutes)", questionsInput:"Questions Input", clear:"Clear", generate:"⚡ Generate", download:"Download", code:"Code", preview:"Preview", appsScript:"Apps Script",
+      titlePlaceholder:"Short description...", logoPlaceholder:"Direct image URL or Dropbox image URL", timerPlaceholder:"Leave blank for no timer", inputPlaceholder:"Paste JSON or drop JSON file...", scriptPlaceholder:"// Apps Script code will appear here when Save Data is enabled.", codePlaceholder:"// Click 'Generate' to see the code."
+    },
+    ms: {
+      builder:"PEMBINA", uploadCaption:"Muat naik fail JSON sahaja", uploadSub:"JSON boleh dieksport daripada NotebookLM dengan rationale siap, atau dijana melalui mana-mana penjana JSON.", file:"Fail",
+      refCaption:"Rujukan HTML/DOCX/TXT", refSub:"diperlukan jika JSON tiada rationale", ref:"Rujukan", theme:"Tema", quizLanguage:"Bahasa Kuiz",
+      shuffleQ:"Rawak Soalan", shuffleA:"Rawak Jawapan", saveData:"Simpan Data (GSheet)", classLabel:"Label Kelas", gsheetUrl:"URL Web App GSheet",
+      title:"Tajuk", description:"Penerangan", logoUrl:"URL Logo (pilihan)", timerMinutes:"Pemasa (minit)", questionsInput:"Input Soalan", clear:"Padam", generate:"⚡ Jana", download:"Muat Turun", code:"Kod", preview:"Pratonton", appsScript:"Apps Script",
+      titlePlaceholder:"Penerangan ringkas...", logoPlaceholder:"URL imej terus atau URL imej Dropbox", timerPlaceholder:"Biarkan kosong jika tiada pemasa", inputPlaceholder:"Tampal JSON atau seret fail JSON...", scriptPlaceholder:"// Kod Apps Script akan muncul di sini apabila Simpan Data diaktifkan.", codePlaceholder:"// Klik 'Jana' untuk melihat kod."
+    }
+  };
+  let builderLang = "en";
+  function setText(id, value){ const el = $("#" + id); if(el) el.textContent = value; }
+  function applyBuilderLang(lang){
+    builderLang = lang === "ms" ? "ms" : "en";
+    const t = BUILDER_UI[builderLang];
+    setText("lblBuilder", t.builder); setText("lblUploadCaption", t.uploadCaption); setText("lblUploadSub", t.uploadSub); setText("lblFileBtn", t.file);
+    setText("lblRefCaption", t.refCaption); setText("lblRefSub", t.refSub); setText("lblRefBtn", t.ref); setText("lblTheme", t.theme); setText("lblQuizLanguage", t.quizLanguage);
+    setText("lblShuffleQ", t.shuffleQ); setText("lblShuffleA", t.shuffleA); setText("lblSaveData", t.saveData); setText("lblClassLabel", t.classLabel); setText("lblGSheetUrl", t.gsheetUrl);
+    setText("lblTitle", t.title); setText("lblDescription", t.description); setText("lblLogoUrl", t.logoUrl); setText("lblTimerMinutes", t.timerMinutes); setText("lblQuestionsInput", t.questionsInput);
+    setText("btnClear", t.clear); setText("btnGenerate", t.generate); setText("btnDownload", t.download); setText("tabCode", t.code); setText("tabPreview", t.preview); setText("tabScript", t.appsScript);
+    const desc = $("#quizDesc"); if(desc) desc.placeholder = t.titlePlaceholder;
+    const logo = $("#logoUrl"); if(logo) logo.placeholder = t.logoPlaceholder;
+    const timer = $("#timerMinutes"); if(timer) timer.placeholder = t.timerPlaceholder;
+    if(els && els.input) els.input.placeholder = t.inputPlaceholder;
+    if(els && els.script && !els.script.textContent.trim()) els.script.textContent = t.scriptPlaceholder;
+    if(els && els.code && (els.code.textContent.includes("Klik 'Generate'") || els.code.textContent.includes("Click 'Generate'") || els.code.textContent.includes("Klik 'Jana'"))) els.code.textContent = t.codePlaceholder;
+    document.querySelectorAll(".lang-opt").forEach(el => el.classList.toggle("active", el.dataset.lang === builderLang));
+  }
+
+  function isDefaultValue(value, field){
+    return Object.values(DEFAULT_TEXT).some(v => String(v[field] || "") === String(value || ""));
+  }
+  function applyDefaultText(lang){
+    const d = DEFAULT_TEXT[lang] || DEFAULT_TEXT.en;
+    const titleEl = $("#quizTitle"), descEl = $("#quizDesc"), classEl = $("#classLbl");
+    if(titleEl && (!userTitleTouched || isDefaultValue(titleEl.value, "title"))) titleEl.value = d.title;
+    if(descEl && (!userDescTouched || isDefaultValue(descEl.value, "desc") || !descEl.value.trim())) descEl.value = d.desc;
+    if(classEl && (!classEl.value.trim() || isDefaultValue(classEl.value, "classLbl"))) classEl.value = d.classLbl;
+  }
+  $("#quizTitle").addEventListener("input", () => { userTitleTouched = true; });
+  $("#quizDesc").addEventListener("input", () => { userDescTouched = true; });
+  $("#quizLang").addEventListener("change", () => { userLangTouched = true; applyDefaultText($("#quizLang").value); });
+  document.querySelectorAll(".lang-opt").forEach(el => el.addEventListener("click", () => applyBuilderLang(el.dataset.lang)));
+
+  // Logika pembilang hit (Hit Counter)
+  async function trackHits() {
+    try {
+      const res = await fetch('api/hit.php');
+      const data = await res.json();
+      if(data.total) $("#hitDisplay").textContent = "| Hits: " + data.total;
+    } catch(e){}
+  }
+
+  // Isi dropdown dengan kategori
+  const darkIds = ["tailwind-indigo", "dracula", "nord", "solarized-dark"];
+  let themeHtml = '<optgroup label="--- DARK THEMES ---">';
+  THEMES.filter(t => darkIds.includes(t.id)).forEach(t => themeHtml += `<option value="${t.id}">${t.name}</option>`);
+  themeHtml += '</optgroup><optgroup label="--- LIGHT THEMES ---">';
+  THEMES.filter(t => !darkIds.includes(t.id)).forEach(t => themeHtml += `<option value="${t.id}">${t.name}</option>`);
+  themeHtml += '</optgroup>';
+  els.themeSel.innerHTML = themeHtml;
+
+  els.saveData.onchange = () => { 
+    const isChecked = els.saveData.checked;
+    els.gsheetBox.style.display = isChecked ? "block" : "none"; 
+    els.tabScript.style.display = isChecked ? "block" : "none";
+    if(isChecked) {
+        updateScriptCode();
+        els.btnCopyScript.style.display = "block";
+    }
+  };
+  
+  function clean(s){ return String(s||"").replace(/\u00A0/g," ").trim(); }
+
+  // Implementasi Salin Aman (Safe Copy)
+  function copyToClipboard(text) {
+    return new Promise((resolve, reject) => {
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (successful) resolve();
+            else reject(new Error('Copy failed'));
+        } catch (err) {
+            reject(err);
+        }
+    });
+  }
+
+  function getAnsIdx(val, choices){
+    if(typeof val === 'number') return val;
+    if(typeof val === 'string'){
+      if(val.match(/^[A-Z]$/i)) return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(val.toUpperCase());
+      const idx = choices.findIndex(c => clean(c).toLowerCase() === val.toLowerCase());
+      return idx >= 0 ? idx : 0;
+    }
+    return 0;
+  }
+
+  function detectLanguageFromText(text){
+    const sample = String(text || "").slice(0, 12000);
+    const arabicCount = (sample.match(/[\u0600-\u06FF]/g) || []).length;
+    const latinCount = (sample.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+    if(arabicCount >= 12 && arabicCount > latinCount * 0.25) return "ar";
+    const lower = sample.toLowerCase();
+    const msHits = (lower.match(/\b(dan|yang|untuk|dengan|ialah|adalah|kepada|daripada|sebagai|pelajar|jawapan|soalan|kuiz|pembelajaran|markah|kelas|apakah|maksud|pilih|betul|salah)\b/g) || []).length;
+    const enHits = (lower.match(/\b(the|and|for|with|from|this|that|question|answer|quiz|learning|student|class|score|correct|explanation)\b/g) || []).length;
+    if(msHits >= 2) return "ms";
+    return "en";
+  }
+
+  function applyDetectedLanguage(text, force=false){
+    if(userLangTouched && !force) return;
+    const detected = detectLanguageFromText(text);
+    if(detected) {
+      $("#quizLang").value = detected;
+      applyDefaultText(detected);
+    }
+  }
+
+  function extractPdfTextBasic(buffer){
+    try {
+      const raw = new TextDecoder("latin1").decode(buffer);
+      const chunks = [];
+      const re = /\(([^()]{8,800})\)\s*Tj|\(([^()]{8,800})\)/g;
+      let m;
+      while((m = re.exec(raw)) && chunks.length < 1200){
+        const value = (m[1] || m[2] || "")
+          .replace(/\\n/g, " ")
+          .replace(/\\r/g, " ")
+          .replace(/\\t/g, " ")
+          .replace(/\\\\/g, "\\")
+          .replace(/\\\)/g, ")")
+          .replace(/\\\(/g, "(");
+        if(/[A-Za-zÀ-ž؀-ۿ]{3,}/.test(value)) chunks.push(value);
+      }
+      return chunks.join(" ").replace(/\s+/g, " ").trim();
+    } catch(e){
+      return "";
+    }
+  }
+
+
+  function extractHtmlTextBasic(html){
+    try {
+      const doc = new DOMParser().parseFromString(String(html || ""), "text/html");
+      doc.querySelectorAll("script, style, noscript, svg").forEach(el => el.remove());
+      const main = doc.querySelector("#export-notes-content, #export-combined-notes-content, #chat-content, main, article, body") || doc.body;
+      if(main){
+        main.querySelectorAll("h1,h2,h3,h4,h5,h6,p,div,li,tr,br").forEach(el => el.appendChild(doc.createTextNode(" ")));
+      }
+      return (main ? main.textContent : "")
+        .replace(/\s+/g, " ")
+        .replace(/Exported on:\s*[^A-Za-zÀ-ž؀-ۿ]+/i, " ")
+        .trim();
+    } catch(e){
+      return String(html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    }
+  }
+
+  function readUInt16LE(bytes, offset){ return bytes[offset] | (bytes[offset+1] << 8); }
+  function readUInt32LE(bytes, offset){ return (bytes[offset] | (bytes[offset+1] << 8) | (bytes[offset+2] << 16) | (bytes[offset+3] << 24)) >>> 0; }
+
+  async function inflateRaw(bytes){
+    if(typeof DecompressionStream === "undefined") return null;
+    try {
+      const ds = new DecompressionStream("deflate-raw");
+      const stream = new Blob([bytes]).stream().pipeThrough(ds);
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    } catch(e){
+      return null;
+    }
+  }
+
+  async function extractDocxTextBasic(buffer){
+    try {
+      const bytes = new Uint8Array(buffer);
+      let eocd = -1;
+      for(let i = bytes.length - 22; i >= 0 && i > bytes.length - 66000; i--){
+        if(readUInt32LE(bytes, i) === 0x06054b50){ eocd = i; break; }
+      }
+      if(eocd < 0) return "";
+      const entries = readUInt16LE(bytes, eocd + 10);
+      let pos = readUInt32LE(bytes, eocd + 16);
+      const decoder = new TextDecoder("utf-8");
+      for(let n = 0; n < entries && pos < bytes.length; n++){
+        if(readUInt32LE(bytes, pos) !== 0x02014b50) break;
+        const method = readUInt16LE(bytes, pos + 10);
+        const compSize = readUInt32LE(bytes, pos + 20);
+        const nameLen = readUInt16LE(bytes, pos + 28);
+        const extraLen = readUInt16LE(bytes, pos + 30);
+        const commentLen = readUInt16LE(bytes, pos + 32);
+        const localOffset = readUInt32LE(bytes, pos + 42);
+        const name = decoder.decode(bytes.slice(pos + 46, pos + 46 + nameLen));
+        pos += 46 + nameLen + extraLen + commentLen;
+        if(name === "word/document.xml"){
+          if(readUInt32LE(bytes, localOffset) !== 0x04034b50) return "";
+          const localNameLen = readUInt16LE(bytes, localOffset + 26);
+          const localExtraLen = readUInt16LE(bytes, localOffset + 28);
+          const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+          const compressed = bytes.slice(dataStart, dataStart + compSize);
+          let xmlBytes = null;
+          if(method === 0) xmlBytes = compressed;
+          else if(method === 8) xmlBytes = await inflateRaw(compressed);
+          if(!xmlBytes) return "";
+          const xml = decoder.decode(xmlBytes);
+          return xml
+            .replace(/<w:tab\/>/g, " ")
+            .replace(/<w:br\/>/g, " ")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&apos;/g, "'")
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+      }
+      return "";
+    } catch(e){
+      return "";
+    }
+  }
+
+  function keywordsFromQuestion(q){
+    const stop = new Set("the a an and or for with from this that what which when where why how is are was were be been to of in on at by as dalam yang dan atau untuk ialah adalah dengan daripada ini itu apakah manakah siapa bila di ke من في على إلى عن ما ماذا لماذا كيف هل هو هي الذي التي".split(/\s+/));
+    return String(q || "").toLowerCase().replace(/[^a-z0-9À-ž؀-ۿ\s]/gi, " ").split(/\s+/).filter(w => w.length > 3 && !stop.has(w)).slice(0, 10);
+  }
+
+  function stripReferenceCitations(text){
+    let out = String(text || "");
+    out = out
+      .replace(/\[[^\]]{0,80}\]/g, "")
+      .replace(/\([^)]*(?:cite|citation|rujukan)[^)]*\)/gi, "")
+      .replace(/(?:cite_start|cite_end|cite|citation)[:_\w-]*/gi, " ")
+      .replace(/(?:hal\.?|hlm\.?|p\.?|pp\.?)\s*[0-9٠-٩۰-۹]+(?:\s*[-–]\s*[0-9٠-٩۰-۹]+)?/gi, "");
+
+    // Remove NotebookLM-style citation numbers without using risky dynamic Unicode regex.
+    // Examples removed: " 1, 2.", " 4-6.", " ١، ٢.", and no-space colon cases like "الترجمة:1."
+    out = out
+      .replace(/([:：])\s*[0-9٠-٩۰-۹]+(?:\s*[-–]\s*[0-9٠-٩۰-۹]+)?(?:\s*[,،]\s*[0-9٠-٩۰-۹]+(?:\s*[-–]\s*[0-9٠-٩۰-۹]+)?)*\s*([.!?。؟])?/g, "$1")
+      .replace(/\s+[0-9٠-٩۰-۹]+(?:\s*[-–]\s*[0-9٠-٩۰-۹]+)?(?:\s*[,،]\s*[0-9٠-٩۰-۹]+(?:\s*[-–]\s*[0-9٠-٩۰-۹]+)?)*\s*(?=[.!?。؟]|$)/g, "")
+      .replace(/\s+/g, " ")
+      .replace(/\s+([.!?。؟,;:،])/g, "$1")
+      .replace(/([:：])\s*[.!?。؟]/g, "$1")
+      .trim();
+
+    return out;
+  }
+
+  function shortReferenceJustification(text){
+    const cleaned = stripReferenceCitations(text);
+    if(!cleaned) return "";
+    const sentences = cleaned.match(/[^.!?。؟]+[.!?。؟]+|[^.!?。؟]+$/g) || [cleaned];
+    const filtered = sentences.map(s => stripReferenceCitations(s).trim()).filter(s => s.length > 20);
+    let picked = filtered.slice(0, 2).join(" ").trim();
+    if(!picked) picked = cleaned;
+    return picked.replace(/\s+/g, " ").trim();
+  }
+
+  function findReferenceExplanation(question, refText){
+    const text = String(refText || "").replace(/\s+/g, " ").trim();
+    if(!text) return "";
+    const keys = keywordsFromQuestion(question);
+    if(!keys.length) return shortReferenceJustification(text);
+    const sentences = text.match(/[^.!?。؟]+[.!?。؟]?/g) || [text];
+    let scored = sentences.map((sentence, idx) => {
+      const low = sentence.toLowerCase();
+      const score = keys.reduce((n,k) => n + (low.includes(k) ? 1 : 0), 0);
+      return { sentence: sentence.trim(), score, idx };
+    }).filter(x => x.score > 0 && x.sentence.length > 35);
+    scored.sort((a,b) => b.score - a.score || a.idx - b.idx);
+    const picked = scored.slice(0, 2).map(x => x.sentence).join(" ").trim();
+    return shortReferenceJustification(picked || text);
+  }
+
+  function applyQuestionExplanations(questions){
+    if(!questions || !questions.length) return questions;
+    return questions.map(q => {
+      const rationales = Array.isArray(q.rationales) ? q.rationales.map(clean) : [];
+      const answerRationale = clean(rationales[q.answerIndex]);
+      const fromQuestionFile = clean(q.explain) || answerRationale;
+      const fromReferenceFile = referenceText ? findReferenceExplanation(q.q, referenceText) : "";
+      const explanation = fromQuestionFile || fromReferenceFile || defaultExplanationForQuestion(q.q, q.choices, q.answerIndex);
+      return Object.assign({}, q, { explain: shortReferenceJustification(explanation), rationales });
+    });
+  }
+
+  function parseDelimitedLine(line, delimiter){
+    const out = []; let cur = ""; let quoted = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i]; const next = line[i+1];
+      if(ch === '"'){
+        if(quoted && next === '"'){ cur += '"'; i++; }
+        else quoted = !quoted;
+      } else if(ch === delimiter && !quoted){ out.push(cur.trim()); cur = ""; }
+      else cur += ch;
+    }
+    out.push(cur.trim());
+    return out.map(v => v.replace(/^"|"$/g, "").trim());
+  }
+
+  function detectDelimiter(line){
+    const candidates = [",", ";", "\t"];
+    let best = ",", bestCount = -1;
+    candidates.forEach(d => {
+      let count = 0, quoted = false;
+      for(let i=0;i<line.length;i++){
+        if(line[i] === '"') quoted = !quoted;
+        else if(line[i] === d && !quoted) count++;
+      }
+      if(count > bestCount){ best = d; bestCount = count; }
+    });
+    return best;
+  }
+
+  function defaultExplanationForQuestion(qText, choices, answerIndex){
+    const correct = clean(choices && choices[answerIndex]);
+    if(!correct) return "";
+    const lang = detectLang((qText || "") + " " + correct);
+    if(lang === "ar") return "الإجابة الصحيحة هي: " + correct;
+    if(lang === "ms") return "Jawapan betul ialah: " + correct;
+    return "The correct answer is: " + correct;
+  }
+
+  function normaliseQuestion(q){
+    if(!q) return null;
+    const rawChoices = (q.choices || []).map(clean);
+    const rawRationales = Array.isArray(q.rationales) ? q.rationales.map(clean) : [];
+    const pairs = rawChoices.map((choice, idx) => ({ choice, rationale: rawRationales[idx] || "" })).filter(x => Boolean(x.choice));
+    const choices = pairs.map(x => x.choice);
+    const ans = Math.max(0, Math.min(getAnsIdx(q.answerIndex, choices), choices.length - 1));
+    if(!clean(q.q) || choices.length < 2) return null;
+    const rationales = pairs.map(x => x.rationale);
+    const answerRationale = clean(rationales[ans]);
+    const explanation = clean(q.explain) || answerRationale || defaultExplanationForQuestion(q.q, choices, ans);
+    return { q: clean(q.q), choices, answerIndex: ans, explain: explanation, rationales };
+  }
+
+  function parseData(text){
+    text = String(text || "").trim();
+    if(!text) return null;
+    if(text.startsWith("{") || text.startsWith("[")){
+      try {
+        const d = JSON.parse(text);
+        let arr = Array.isArray(d) ? d : (d.questions || d.items || d.data || d.quiz);
+        if(arr && !Array.isArray(arr) && Array.isArray(arr.questions)) arr = arr.questions;
+        if(Array.isArray(arr)){
+          const parsed = arr.map(q => {
+            const choicesArr = q.choices || q.options || q.answers || q.answerOptions || [];
+            const choices = choicesArr.map(c => clean(c && typeof c === "object" ? (c.text ?? c.label ?? c.value ?? c.answer ?? c.option) : c));
+            const rationales = choicesArr.map(c => clean(c && typeof c === "object" ? (c.rationale ?? c.explain ?? c.explanation ?? c.feedback ?? c.hint) : ""));
+            let ansIdx = q.answerIndex ?? q.correctIndex ?? q.correct_answer ?? q.correctAnswer ?? q.answer ?? q.correct;
+            const objectCorrect = choicesArr.findIndex(c => c && typeof c === "object" && (c.isCorrect === true || c.correct === true));
+            if(ansIdx === undefined && objectCorrect >= 0) ansIdx = objectCorrect;
+            return normaliseQuestion({ q: q.q || q.question || q.title || q.prompt, choices, rationales, answerIndex: ansIdx, explain: q.explain || q.explanation || q.hint || q.rationale || q.feedback });
+          }).filter(Boolean);
+          return parsed.length ? parsed : null;
+        }
+      } catch(e){ return null; }
+    }
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if(lines.some(l => /(^|;)\s*iscorrect\s*:/i.test(l))){
+      const questionMap = new Map();
+      lines.forEach(line => {
+        const parts = parseDelimitedLine(line, line.includes(";") ? ";" : ",");
+        let qText = "", aText = "", isCorrect = false, explain = "";
+        parts.forEach(part => {
+          const idx = part.indexOf(":");
+          if(idx < 0) return;
+          const key = part.slice(0, idx).trim().toLowerCase();
+          const val = part.slice(idx + 1).trim();
+          if(["q", "question", "soalan"].includes(key)) qText = clean(val);
+          else if(["a", "answer", "option", "jawapan"].includes(key)) aText = clean(val);
+          else if(["iscorrect", "correct", "betul"].includes(key)) isCorrect = /^(true|1|yes|y|betul|benar)$/i.test(val);
+          else if(["explain", "explanation", "rationale", "hint", "feedback"].includes(key)) explain = clean(val);
+        });
+        if(qText && aText){
+          if(!questionMap.has(qText)) questionMap.set(qText, { q: qText, choices: [], rationales: [], answerIndex: 0, explain: "" });
+          const qObj = questionMap.get(qText);
+          qObj.choices.push(aText);
+          qObj.rationales.push(explain);
+          if(isCorrect){
+            qObj.answerIndex = qObj.choices.length - 1;
+            if(explain) qObj.explain = explain;
+          }
+        }
+      });
+      const result = Array.from(questionMap.values()).map(normaliseQuestion).filter(Boolean);
+      if(result.length) return result;
+    }
+    if(lines.length >= 2){
+      const delimiter = detectDelimiter(lines[0]);
+      const rows = lines.map(l => parseDelimitedLine(l, delimiter));
+      const head = rows[0].map(h => h.toLowerCase().replace(/[\s_-]+/g, "").trim());
+      const findIdx = (...names) => head.findIndex(h => names.includes(h));
+      const qIdx = findIdx("question", "q", "soalan", "prompt", "title");
+      const answerIdx = findIdx("correctanswer", "answer", "correct", "jawapan", "jawapanbetul", "answerindex", "correctindex");
+      const explainIdx = findIdx("rationale", "explanation", "explain", "hint", "feedback");
+      const optionIdxs = [];
+      ["a","b","c","d","e","f"].forEach(letter => {
+        const idx = findIdx("option" + letter, "choice" + letter, "answer" + letter, "jawapan" + letter, letter);
+        if(idx >= 0) optionIdxs.push(idx);
+      });
+      if(qIdx >= 0 && optionIdxs.length >= 2){
+        const parsed = rows.slice(1).map(r => {
+          const choices = optionIdxs.map(i => r[i]).filter(Boolean);
+          let rawAns = answerIdx >= 0 ? r[answerIdx] : "";
+          if(/^\d+$/.test(String(rawAns).trim())) rawAns = Number(rawAns) - 1;
+          return normaliseQuestion({ q: r[qIdx], choices, answerIndex: rawAns, explain: explainIdx >= 0 ? r[explainIdx] : "" });
+        }).filter(Boolean);
+        if(parsed.length) return parsed;
+      }
+    }
+    const qs = []; let cur = null;
+    lines.forEach(l => {
+      const line = l.trim();
+      if(line.match(/^Q[:\.]/i) || line.match(/^Soalan[:\.]/i)){
+        if(cur) { const n = normaliseQuestion(cur); if(n) qs.push(n); }
+        cur = { q: clean(line.replace(/^(Q|Soalan)[:\.]/i, "")), choices: [], answerIndex: 0, explain: "" };
+      }
+      else if(cur && line.match(/^[A-Z][\)\.]/i)){ cur.choices.push(clean(line.substring(2))); }
+      else if(cur && line.match(/^(Answer|Jawapan)[:\.]/i)){ cur.answerIndex = clean(line.replace(/^(Answer|Jawapan)[:\.]/i, "")).charAt(0).toUpperCase(); }
+      else if(cur && line.match(/^(Explanation|Rationale|Huraian)[:\.]/i)){ cur.explain = clean(line.replace(/^(Explanation|Rationale|Huraian)[:\.]/i, "")); }
+    });
+    if(cur) { const n = normaliseQuestion(cur); if(n) qs.push(n); }
+    return qs.length ? qs : null;
+  }
+
+
+  function updateScriptCode(){
+    const labelKelas = $("#classLbl").value || "Kelas";
+    els.script.textContent = `/* TUTORIAL GOOGLE SHEETS:
+1. Buka Google Sheets baru.
+2. Klik 'Extensions' > 'Apps Script'.
+3. Padam semua kod lama, tampal kod di bawah.
+4. Klik 'Save' (ikon disket).
+5. Klik butang 'Run' dan pilih fungsi 'setup' untuk buat tajuk kolum automatik.
+6. Klik 'Deploy' > 'New Deployment'.
+7. Pilih 'Web App', 'Execute as: Me', 'Who has access: Anyone'.
+8. Salin URL Web App dan masukkan ke QuizCanvas Builder.
+*/
+
+function setup() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  sheet.clear(); 
+  sheet.appendRow(["Timestamp", "Nama", "${labelKelas}", "Markah", "Peratus (%)"]);
+  sheet.getRange("1:1").setFontWeight("bold").setBackground("#eeeeee");
+  SpreadsheetApp.getUi().alert("Setup Selesai! Tajuk kolum telah dibina.");
+}
+
+function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([new Date(), data.name, data.class, data.score, data.percent + "%"]);
+  return ContentService.createTextOutput(JSON.stringify({"status":"success"})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  var rows = sheet.getDataRange().getValues();
+  var results = [];
+  for (var i = 1; i < rows.length; i++) {
+    results.push({name: rows[i][1], class: rows[i][2], score: rows[i][3], percent: rows[i][4]});
+  }
+  results.sort((a,b) => parseInt(b.percent) - parseInt(a.percent));
+  return ContentService.createTextOutput(JSON.stringify(results.slice(0, 10))).setMimeType(ContentService.MimeType.JSON);
+}`;
+  }
+
+  function normalizeLogoUrl(url){
+    let u = String(url || "").trim();
+    if(!u) return "";
+    try {
+      const parsed = new URL(u);
+      if(parsed.hostname === "www.dropbox.com" || parsed.hostname === "dropbox.com"){
+        parsed.hostname = "dl.dropboxusercontent.com";
+        parsed.searchParams.delete("dl");
+        parsed.searchParams.delete("raw");
+        return parsed.toString();
+      }
+    } catch(e){
+      return "";
+    }
+    return u;
+  }
+
+  function buildHTML(cfg, t){
+    const dir = cfg.lang === 'ar' ? 'rtl' : 'ltr';
+    const defaultText = DEFAULT_TEXT[cfg.lang] || DEFAULT_TEXT.en;
+    cfg.title = String(cfg.title || defaultText.title).trim() || defaultText.title;
+    cfg.desc = String(cfg.desc || defaultText.desc).trim() || defaultText.desc;
+    cfg.classLbl = String(cfg.classLbl || defaultText.classLbl).trim() || defaultText.classLbl;
+    const uiText = {
+      en: { name:"Full Name", class:cfg.classLbl || "Class", start:"Start Quiz", next:"Next", back:"Back", finish:"Finish", retake:"Retake", rank:"Top 10 Ranking", saving:"Saving data...", result:"Result", q:"Q", tableName:"Name", tableClass:cfg.classLbl || "Class", percent:"%", alertInfo:"Please fill in your details.", alertChoose:"Please choose an answer.", review:"Answer Review", questionLabel:"Question", answerLabel:"Answer", explanationLabel:"Explanation", correct:"Correct", incorrect:"Incorrect", feedbackCorrect:"Correct answer, no comment.", feedbackWrong:"Your answer does not match the key concept.", noRefNote:"No explanation was found in the uploaded question file.", timeEnd:"Time End" },
+      ms: { name:"Nama Penuh", class:cfg.classLbl || "Kelas", start:"Mula Kuiz", next:"Seterusnya", back:"Kembali", finish:"Tamat", retake:"Ulang Kuiz", rank:"Kedudukan 10 Teratas", saving:"Menyimpan data...", result:"Keputusan", q:"S", tableName:"Nama", tableClass:cfg.classLbl || "Kelas", percent:"%", alertInfo:"Sila isi maklumat.", alertChoose:"Sila pilih jawapan.", review:"Semakan Jawapan", questionLabel:"Soalan", answerLabel:"Jawapan", explanationLabel:"Penerangan", correct:"Betul", incorrect:"Tidak betul", feedbackCorrect:"Jawapan betul, tiada ulasan.", feedbackWrong:"Jawapan belum menepati konsep utama.", noRefNote:"Tiada penerangan ditemui dalam fail soalan yang dimuat naik.", timeEnd:"Masa Tamat" },
+      ar: { name:"الاسم الكامل", class:cfg.classLbl || "الفصل", start:"ابدأ الاختبار", next:"التالي", back:"رجوع", finish:"إنهاء", retake:"إعادة الاختبار", rank:"أفضل 10 نتائج", saving:"جارٍ حفظ البيانات...", result:"النتيجة", q:"س", tableName:"الاسم", tableClass:cfg.classLbl || "الفصل", percent:"%", alertInfo:"يرجى إدخال المعلومات.", alertChoose:"يرجى اختيار إجابة.", review:"مراجعة الإجابات", questionLabel:"السؤال", answerLabel:"الإجابة", explanationLabel:"الشرح", correct:"صحيح", incorrect:"غير صحيح", feedbackCorrect:"الإجابة صحيحة، لا توجد ملاحظات.", feedbackWrong:"الإجابة لا توافق الفكرة الأساسية.", noRefNote:"لم يتم العثور على شرح في ملف الأسئلة المرفوع.", timeEnd:"انتهى الوقت" }
+    }[cfg.lang] || {};
+
+    return `<!doctype html>
+<html lang="${cfg.lang}" dir="${dir}">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>${cfg.title}</title>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"><\/script>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\\\(', '\\\\)']], displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']] },
+    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+  };
+<\/script>
+<style>
+${dir==='rtl'?"@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400&display=swap');":""}
+:root{ --bg:${t.bg}; --panel:${t.panel}; --text:${t.text}; --muted:${t.muted}; --primary:${t.primary}; --primary2:${t.primary2}; --border:color-mix(in srgb, var(--text) 18%, transparent); --option-bg:color-mix(in srgb, var(--panel) 88%, var(--primary) 12%); --option-hover:color-mix(in srgb, var(--panel) 80%, var(--primary) 20%); --option-active:color-mix(in srgb, var(--panel) 72%, var(--primary) 28%); --radius:16px; --app-font:${dir==='rtl'?"'Scheherazade New', Scheherazade, serif":"'Noto Sans', 'Segoe UI', Tahoma, Arial, sans-serif"}; }
+body{ margin:0; font-family:var(--app-font); background:var(--bg); color:var(--text); min-height:100vh; display:flex; justify-content:center; padding:20px; box-sizing:border-box; }
+button,input,table,th,td,label,h1,h2,h3,p,div{ font-family:var(--app-font); }
+.card{ background:var(--panel); width:100%; max-width:600px; border-radius:var(--radius); padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.3); border:1px solid var(--border); }
+h1{ margin:0 0 10px; font-size:22px; text-align:center; } .desc{ color:var(--muted); font-size:13px; margin-bottom:20px; text-align:center; line-height:1.5; }
+.quizLogoWrap{ width:162px; height:162px; border-radius:50%; overflow:hidden; margin:4px auto 18px; border:1px solid var(--border); background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+.quizLogo{ width:100%; height:100%; object-fit:cover; display:block; }
+.loginIntro{ text-align:center; }
+.loginForm{ width:100%; max-width:420px; margin:0 auto; }
+.loginForm label{ text-align:left; }
+.loginForm input{ text-align:left; }
+.reviewBox{ margin-top:20px; border-top:1px solid var(--border); padding-top:18px; }
+.reviewItem{ border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:12px; background:color-mix(in srgb, var(--panel) 90%, var(--primary) 10%); }
+.badge{ display:inline-block; padding:4px 8px; border-radius:999px; font-size:11px; font-weight:800; margin-bottom:8px; }
+.badge.ok{ background:rgba(34,197,94,.16); color:var(--primary2); }
+.badge.no{ background:rgba(239,68,68,.16); color:#ef4444; }
+.reviewMeta{ font-size:13px; line-height:1.55; color:var(--text); }
+.reviewMeta b{ color:var(--muted); }
+label{ font-size:10px; text-transform:uppercase; font-weight:bold; color:var(--muted); margin-bottom:4px; display:block; }
+.loginForm label{ font-size:12px; }
+.loginForm input{ padding:10px 12px; }
+input{ width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:color-mix(in srgb, var(--panel) 92%, var(--text) 8%); color:var(--text); margin-bottom:15px; box-sizing:border-box; outline:none; }
+.loginForm input{ padding:10px 12px; }
+.timerBox{ width:max-content; min-width:118px; margin:0 auto 14px; padding:8px 16px; border-radius:999px; background:linear-gradient(135deg, color-mix(in srgb, var(--primary) 18%, var(--panel) 82%), color-mix(in srgb, var(--primary2) 16%, var(--panel) 84%)); border:1px solid color-mix(in srgb, var(--primary) 42%, var(--border)); color:var(--primary2); font-size:17px; font-weight:800; letter-spacing:.04em; text-align:center; box-shadow:0 8px 22px rgba(0,0,0,.16); }
+.timeEndNotice{ margin:0 0 16px; padding:12px 14px; border-radius:14px; background:color-mix(in srgb, #ef4444 12%, var(--panel) 88%); border:1px solid color-mix(in srgb, #ef4444 46%, var(--border)); color:var(--text); text-align:center; font-size:15px; font-weight:800; }
+.btn{ background:var(--primary); color:#fff; border:none; padding:12px 20px; border-radius:10px; cursor:pointer; font-weight:800; width:100%; transition:0.2s; box-shadow:0 8px 18px rgba(0,0,0,.22); }
+.btn:hover{ filter:brightness(1.1); }
+.btn-back{ background:linear-gradient(135deg, var(--primary), var(--primary2)); color:#fff; border:1px solid rgba(255,255,255,.35); box-shadow:0 0 0 3px rgba(255,255,255,.10), 0 8px 22px rgba(0,0,0,.25); }
+.btn-back:hover{ filter:brightness(1.18); box-shadow:0 0 0 4px rgba(255,255,255,.14), 0 10px 26px rgba(0,0,0,.30); }
+.opt{ display:block; padding:14px; border:1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); border-radius:10px; margin-bottom:10px; cursor:pointer; transition:0.2s; background:var(--option-bg); color:var(--text); font-weight:600; }
+.opt:hover{ background:var(--option-hover); border-color:color-mix(in srgb, var(--primary) 55%, var(--border)); } .opt.active{ border-color:var(--primary); background:var(--option-active); box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 24%, transparent); }
+.bar{ height:6px; background:rgba(255,255,255,0.05); border-radius:3px; margin-bottom:20px; overflow:hidden; }
+.fill{ height:100%; background:var(--primary); transition:width 0.3s; }
+table{ width:100%; border-collapse:collapse; margin-top:15px; font-size:12px; }
+th, td{ text-align:left; padding:8px; border-bottom:1px solid var(--border); }
+@media (min-width: 901px){ body{ overflow:hidden; } .card{ max-height:calc(100vh - 40px); overflow:auto; } }
+${dir==='rtl'?'.loginForm{direction:rtl;} .loginForm label,.loginForm input{text-align:right; direction:rtl;} .loginForm label{font-size:14px;} th, td{text-align:right;} b,strong,h1,h2,h3,label,.btn,.opt,.badge,.reviewMeta b{font-weight:400!important;} h2{color:var(--primary2);} .opt{color:var(--text);}':''}
+</style>
+</head>
+<body>
+<div class="card" id="app"></div>
+<script>
+const DATA = ${JSON.stringify(cfg)}; 
+const UI = ${JSON.stringify(uiText)};
+let state = { mode:'login', idx:0, ans:[], name:'', class:'', qs:[], loading:false, ranking:[], endTime:0, remaining:0, timeEnded:false };
+let timerInterval = null;
+function esc(v){ return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function formatTime(ms){ const total = Math.max(0, Math.ceil(ms/1000)); const m = Math.floor(total/60); const s = total % 60; return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'); }
+function startTimer(){ if(timerInterval) clearInterval(timerInterval); if(!DATA.timerMinutes) return; state.endTime = Date.now() + DATA.timerMinutes * 60000; timerInterval = setInterval(() => { state.remaining = state.endTime - Date.now(); if(state.remaining <= 0){ clearInterval(timerInterval); timerInterval = null; state.timeEnded = true; finish(); } else if(state.mode === 'quiz') { const el = document.getElementById('timerBox'); if(el) el.textContent = formatTime(state.remaining); } }, 1000); }
+function timerHtml(){ return DATA.timerMinutes && state.mode === 'quiz' ? '<div class="timerBox" id="timerBox">' + formatTime(state.endTime - Date.now()) + '</div>' : ''; }
+function buildReview(){
+  return '<div class="reviewBox"><h3 style="text-align:center; margin:0 0 12px;">' + UI.review + '</h3>' +
+    state.qs.map((q,i) => {
+      const picked = state.ans[i];
+      const ok = picked === q.answerIndex;
+      const userAns = picked === null || picked === undefined ? '-' : q.choices[picked];
+      const selectedRationale = q.rationales && picked !== null && picked !== undefined ? q.rationales[picked] : "";
+      const correctRationale = q.rationales ? q.rationales[q.answerIndex] : "";
+      const fb = selectedRationale || correctRationale || q.explain || (ok ? UI.feedbackCorrect : UI.feedbackWrong + " " + UI.noRefNote);
+      return '<div class="reviewItem">' +
+        '<span class="badge ' + (ok ? 'ok' : 'no') + '">' + (ok ? UI.correct : UI.incorrect) + '</span>' +
+        '<div class="reviewMeta"><b>' + UI.questionLabel + ':</b> ' + esc(q.q) + '</div>' +
+        '<div class="reviewMeta"><b>' + UI.answerLabel + ':</b> ' + esc(userAns) + '</div>' +
+        '<div class="reviewMeta"><b>' + UI.explanationLabel + ':</b> ' + esc(fb) + '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+}
+
+function render(){
+  const app = document.getElementById('app');
+  if(state.mode==='login'){
+    const logoHtml = DATA.logoUrl ? '<div class="quizLogoWrap"><img class="quizLogo" src="' + esc(DATA.logoUrl) + '" alt="Logo"></div>' : '';
+    app.innerHTML = '<div class="loginIntro">' + logoHtml + '<h1>' + DATA.title + '</h1><p class="desc">' + DATA.desc + '</p></div>' +
+      '<div class="loginForm"><label>' + UI.name + '</label><input type="text" id="u_name" value="' + esc(state.name) + '">' +
+      '<label>' + UI.class + '</label><input type="text" id="u_class" value="' + esc(state.class) + '">' +
+      '<button class="btn" onclick="start()">' + UI.start + '</button></div>';
+  } else if(state.mode==='quiz'){
+    const q = state.qs[state.idx];
+    const backBtn = state.idx > 0 ? '<button class="btn btn-back" style="margin-top:10px;" onclick="back()">' + UI.back + '</button>' : '';
+    const finishBtn = state.idx === state.qs.length - 1 ? '<button class="btn" style="margin-top:10px;" onclick="next()">' + UI.finish + '</button>' : '';
+    app.innerHTML = timerHtml() + '<div class="bar"><div class="fill" style="width:' + ((state.idx)/state.qs.length)*100 + '%"></div></div>' +
+      '<div style="font-size:11px; color:var(--muted); margin-bottom:10px;">' + UI.q + ' ' + (state.idx+1) + ' / ' + state.qs.length + '</div>' +
+      '<h2 style="font-size:17px; margin-bottom:20px;">' + q.q + '</h2>' +
+      q.choices.map((c,i) => '<div class="opt ' + (state.ans[state.idx]===i?'active':'') + '" onclick="setAns(' + i + ')">' + c + '</div>').join('') +
+      finishBtn + backBtn;
+  } else if(state.mode==='result'){
+    let score = state.ans.reduce((acc, a, i) => acc + (a === state.qs[i].answerIndex ? 1 : 0), 0);
+    let pct = Math.round((score/state.qs.length)*100);
+    let html = '<h1>' + UI.result + '</h1>' + (state.timeEnded ? '<div class="timeEndNotice">' + UI.timeEnd + '</div>' : '') + '<div style="font-size:48px; font-weight:900; color:var(--primary2);">' + pct + '% (' + score + '/' + state.qs.length + ')</div>';
+    html += buildReview();
+    if(DATA.saveData){
+      html += '<div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;"><h3 style="text-align:center;">' + UI.rank + '</h3>';
+      if(state.loading) html += '<p>' + UI.saving + '</p>';
+      else if(state.ranking.length > 0) {
+        html += '<table><tr><th>#</th><th>' + UI.tableName + '</th><th>' + UI.tableClass + '</th><th>' + UI.percent + '</th></tr>' + 
+          state.ranking.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.class) + '</td><td>' + esc(r.percent) + '</td></tr>').join('') + '</table>';
+      }
+      html += '</div>';
+    }
+    html += '<button class="btn" style="margin-top:20px;" onclick="location.reload()">' + UI.retake + '</button>';
+    app.innerHTML = html;
+  }
+  if (window.MathJax && window.MathJax.typeset) window.MathJax.typeset();
+}
+function start(){
+  state.name = document.getElementById('u_name').value.trim(); 
+  state.class = document.getElementById('u_class').value.trim();
+  if(!state.name || !state.class) return alert(UI.alertInfo);
+  state.qs = JSON.parse(JSON.stringify(DATA.questions));
+  if(DATA.randQ) state.qs.sort(() => Math.random()-0.5);
+  if(DATA.randA) state.qs.forEach(q => {
+    const originalCorrect = q.choices[q.answerIndex];
+    const rationales = Array.isArray(q.rationales) ? q.rationales : [];
+    const pairs = q.choices.map((choice, idx) => ({ choice, rationale: rationales[idx] || "" }));
+    pairs.sort(() => Math.random()-0.5);
+    q.choices = pairs.map(p => p.choice);
+    q.rationales = pairs.map(p => p.rationale);
+    q.answerIndex = q.choices.indexOf(originalCorrect);
+  });
+  state.ans = new Array(state.qs.length).fill(null);
+  state.timeEnded = false;
+  state.mode = 'quiz'; startTimer(); render();
+}
+function setAns(i){ state.ans[state.idx] = i; if(state.idx < state.qs.length - 1){ state.idx++; } render(); }
+function back(){ if(state.idx > 0){ state.idx--; render(); } }
+function next(){
+  if(state.ans[state.idx]===null) return alert(UI.alertChoose);
+  if(state.idx < state.qs.length - 1){ state.idx++; render(); }
+  else { finish(); }
+}
+async function finish(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+  state.mode = 'result'; render();
+  if(DATA.saveData && DATA.sheetUrl){
+    state.loading = true; render();
+    let score = state.ans.reduce((acc, a, i) => acc + (a === state.qs[i].answerIndex ? 1 : 0), 0);
+    let pct = Math.round((score/state.qs.length)*100);
+    try {
+      await fetch(DATA.sheetUrl, { method:'POST', body: JSON.stringify({name:state.name, class:state.class, score:score, percent:pct}), mode:'no-cors' });
+      setTimeout(async () => {
+        try { const res = await fetch(DATA.sheetUrl); state.ranking = await res.json(); render(); } catch(e){}
+        state.loading = false; render();
+      }, 1500);
+    } catch(e){ state.loading = false; render(); }
+  }
+}
+render();
+<\/script>
+</body></html>`;
+  }
+
+  function msg(m, isErr=false){ 
+    els.status.textContent = m; 
+    els.status.style.color = isErr ? "#ef4444" : "#22c55e"; 
+  }
+
+  function doParse(){ 
+    applyDetectedLanguage(els.input.value);
+    const res = parseData(els.input.value); 
+    if(res && res.length){ 
+      lastParsed = res; 
+      msg(res.length + " questions detected."); 
+      return true; 
+    } 
+    msg("Format error: please check JSON structure", true); 
+    return false; 
+  }
+
+  $("#btnGenerate").onclick = () => {
+    try {
+      if(!doParse()) return;
+      jsonNeedsReference = !jsonHasRationaleText(els.input.value);
+      setReferenceSectionVisible(jsonNeedsReference);
+      if(jsonNeedsReference && !referenceText){
+        msg("This JSON has no rationale. Please upload a reference file first.", true);
+        return;
+      }
+      applyDetectedLanguage(els.input.value);
+      const theme = THEME_DATA[els.themeSel.value] || THEME_DATA["tailwind-indigo"];
+      const cfg = { 
+        title: $("#quizTitle").value, desc: $("#quizDesc").value, lang: $("#quizLang").value, 
+        randQ: $("#randQ").checked, randA: $("#randA").checked, saveData: els.saveData.checked, 
+        classLbl: $("#classLbl").value, sheetUrl: $("#sheetUrl").value, logoUrl: normalizeLogoUrl($("#logoUrl").value), timerMinutes: parseInt($("#timerMinutes").value, 10) || 0, hasExplanation: true, questions: applyQuestionExplanations(lastParsed) 
+      };
+      lastHTML = buildHTML(cfg, theme);
+      els.code.textContent = lastHTML; els.frame.srcdoc = lastHTML; els.btnDL.disabled = false;
+      els.btnCopyCode.style.display = "block";
+      setTab('preview');
+      msg(lastParsed.length + " questions");
+      const t=$("#toast"); t.textContent="Kuiz dijana!"; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000);
+    } catch(err) {
+      console.error(err);
+      msg("Generate error: please check input/reference file.", true);
+    }
+  };
+
+  $("#btnFillDemo").onclick = () => { els.input.value = "Q: Berapakah punca kuasa bagi $x^2 = 16$?\nA) 2\nB) 4\nAnswer: B"; doParse(); };
+  $("#btnClear").onclick = () => { els.input.value = ""; els.code.textContent = ""; els.fileTag.textContent="..."; referenceText=""; referenceFileName=""; jsonNeedsReference=false; if($("#refFileTag")) $("#refFileTag").textContent="..."; setReferenceSectionVisible(false); msg(""); };
+  $("#tabCode").onclick = () => setTab('code');
+  $("#tabPreview").onclick = () => setTab('preview');
+  $("#tabScript").onclick = () => { setTab('script'); updateScriptCode(); };
+
+  function setTab(m){
+    ["code","preview","script"].forEach(t => { 
+        $(`#${t}Panel`).style.display = t===m?"block":"none"; 
+        $(`#tab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle("active", t===m); 
+    });
+  }
+
+  function toast(m){ const t=$("#toast"); t.textContent=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+  let parseTimer = null;
+  els.input.addEventListener("input", () => {
+    clearTimeout(parseTimer);
+    parseTimer = setTimeout(() => {
+      const value = els.input.value.trim();
+      if(!value){
+        lastParsed = [];
+        jsonNeedsReference = false;
+        setReferenceSectionVisible(false);
+        msg("");
+        return;
+      }
+      jsonNeedsReference = !jsonHasRationaleText(value);
+      setReferenceSectionVisible(jsonNeedsReference);
+      doParse();
+    }, 250);
+  });
+
+
+  $("#btnDownload").onclick = () => {
+    const lang = $("#quizLang").value || detectLanguageFromText(els.input.value) || "en";
+    const blob = new Blob([lastHTML], {type:"text/html;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "quiz-" + lang + ".html";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  $("#btnCopyOverlay").onclick = () => { copyToClipboard(els.code.textContent).then(() => toast("Kod disalin!")).catch(() => alert("Manual copy required.")); };
+  $("#btnCopyScript").onclick = () => { copyToClipboard(els.script.textContent).then(() => toast("Script disalin!")); };
+
+  const refDz = $("#refDropzone");
+  if(refDz){
+    refDz.ondragover = (e) => { e.preventDefault(); refDz.classList.add("drag"); };
+    refDz.ondragleave = () => refDz.classList.remove("drag");
+    refDz.ondrop = (e) => { e.preventDefault(); refDz.classList.remove("drag"); if(e.dataTransfer.files[0]) loadReferenceFile(e.dataTransfer.files[0]); };
+    const refInput = $("#refFileInput");
+    if(refInput) refInput.onchange = (e) => { if(e.target.files[0]) loadReferenceFile(e.target.files[0]); };
+  }
+
+  function loadReferenceFile(f){
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if(ext === "pdf"){
+      referenceText = "";
+      referenceFileName = "";
+      if($("#refFileTag")) $("#refFileTag").textContent = "...";
+      msg("PDF references are not supported. Please use HTML, DOCX or TXT.", true);
+      return;
+    }
+    if(!["html", "htm", "docx", "txt"].includes(ext)){
+      msg("References support HTML, DOCX or TXT only", true);
+      return;
+    }
+    referenceFileName = f.name;
+    if($("#refFileTag")) $("#refFileTag").textContent = f.name;
+    const r = new FileReader();
+    r.onload = async (e) => {
+      try {
+        if(ext === "txt"){
+          referenceText = String(e.target.result || "").trim();
+        } else if(ext === "html" || ext === "htm"){
+          referenceText = extractHtmlTextBasic(e.target.result);
+        } else if(ext === "docx"){
+          referenceText = await extractDocxTextBasic(e.target.result);
+        }
+        if(referenceText){
+          msg("References loaded for explanation");
+        } else {
+          msg("Reference loaded, but text could not be extracted. Use text-based HTML, DOCX or TXT.", true);
+        }
+      } catch(err){
+        referenceText = "";
+        msg("Reference text could not be extracted.", true);
+      }
+    };
+    if(ext === "docx") r.readAsArrayBuffer(f);
+    else r.readAsText(f, "UTF-8");
+  }
+
+  const dz = $("#dropzone");
+  dz.ondragover = (e) => { e.preventDefault(); dz.classList.add("drag"); };
+  dz.ondragleave = () => dz.classList.remove("drag");
+  dz.ondrop = (e) => { e.preventDefault(); dz.classList.remove("drag"); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); };
+  $("#fileInput").onchange = (e) => { if(e.target.files[0]) loadFile(e.target.files[0]); };
+
+  function jsonHasRationaleText(text){
+    try {
+      const d = JSON.parse(String(text || ""));
+      let arr = Array.isArray(d) ? d : (d.questions || d.items || d.data || d.quiz);
+      if(arr && !Array.isArray(arr) && Array.isArray(arr.questions)) arr = arr.questions;
+      if(!Array.isArray(arr) || !arr.length) return false;
+      return arr.every(q => {
+        const choicesArr = q.choices || q.options || q.answers || q.answerOptions || [];
+        if(!Array.isArray(choicesArr) || !choicesArr.length) return false;
+        return choicesArr.some(c => c && typeof c === "object" && clean(c.rationale ?? c.explain ?? c.explanation ?? c.feedback).length > 0);
+      });
+    } catch(e){
+      return false;
+    }
+  }
+
+  function setReferenceSectionVisible(show){
+    const box = $("#refSection");
+    if(box) box.style.display = show ? "block" : "none";
+  }
+
+  function loadFile(f){
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if(ext !== "json"){
+      msg("Only JSON files are supported", true);
+      return;
+    }
+    const r = new FileReader();
+    r.onload = (e) => { 
+      const content = e.target.result;
+      els.input.value = content;
+      $("#fileTag").textContent = f.name;
+      referenceText = "";
+      referenceFileName = "";
+      if($("#refFileTag")) $("#refFileTag").textContent = "...";
+      jsonNeedsReference = !jsonHasRationaleText(content);
+      setReferenceSectionVisible(jsonNeedsReference);
+      applyDetectedLanguage(content);
+      const ok = doParse();
+      if(ok && jsonNeedsReference){
+        msg("JSON loaded, but no rationale found. Please upload a reference file for explanation.", true);
+      }
+    };
+    r.readAsText(f, "UTF-8");
+  }
+
+
+  const now = new Date();
+  $("#year").textContent = now.getFullYear();
+  $("#lastUpdated").textContent = now.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  
+  applyBuilderLang("en");
+  applyDefaultText($("#quizLang").value || "en");
+  updateScriptCode();
+  trackHits();
+})();
+</script>
+</body>
+</html>

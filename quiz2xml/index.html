@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz2XML | Quiz to Moodle XML Converter</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="img/quiz2xml.png">
+    <link rel="apple-touch-icon" href="img/quiz2xml.png">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        neon: {
+                            blue: '#00f3ff',
+                            purple: '#bc13fe',
+                            bg: '#0f172a',
+                        }
+                    },
+                    boxShadow: {
+                        'neon-blue': '0 0 10px rgba(0, 243, 255, 0.5)',
+                        'neon-purple': '0 0 10px rgba(188, 19, 254, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- PERFORMANCE & SCROLLING OPTIMIZATION --- */
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #050b14;
+            color: #e2e8f0;
+            transition: background-color 0.5s ease, color 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- CUSTOM TEXT SELECTION HIGHLIGHT --- */
+        ::selection {
+            background-color: #bc13fe;
+            color: white;
+        }
+        body.light-mode ::selection {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        /* --- SEPARATE BACKGROUND LAYER (FIXES SCROLL LAG) --- */
+        #background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(188, 19, 254, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.15) 0%, transparent 25%);
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            opacity: 1;
+        }
+
+        /* --- GLASS PANEL STYLES --- */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .custom-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-input:focus {
+            border-color: #bc13fe;
+            outline: none; /* Remove default browser outline */
+            box-shadow: 0 0 0 2px rgba(188, 19, 254, 0.3); /* Custom soft glow */
+        }
+
+
+        /* --- DRAG & DROP UPLOAD AREA --- */
+        .drop-zone {
+            border: 1px dashed rgba(0, 243, 255, 0.35);
+            background: rgba(0, 243, 255, 0.04);
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #00f3ff;
+            background: rgba(0, 243, 255, 0.12);
+            transform: translateY(-1px);
+        }
+        body.light-mode .drop-zone {
+            border-color: rgba(37, 99, 235, 0.35);
+            background: rgba(37, 99, 235, 0.04);
+        }
+        body.light-mode .drop-zone.drag-over {
+            border-color: #2563eb;
+            background: rgba(37, 99, 235, 0.10);
+        }
+
+        /* --- LIGHT THEME OVERRIDES --- */
+        body.light-mode {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        body.light-mode #background-layer {
+            opacity: 0; 
+        }
+
+        body.light-mode .glass-panel {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode .text-white { color: #1e293b !important; } 
+        body.light-mode .text-slate-400 { color: #475569 !important; } 
+        body.light-mode .text-slate-300 { color: #334155 !important; } 
+        body.light-mode .text-slate-500 { color: #64748b !important; } 
+        
+        body.light-mode .text-neon-blue { color: #0284c7 !important; } 
+        body.light-mode .text-neon-purple { color: #7c3aed !important; } 
+        
+        body.light-mode .from-neon-blue { --tw-gradient-from: #2563eb !important; } 
+        body.light-mode .to-neon-purple { --tw-gradient-to: #9333ea !important; } 
+
+        body.light-mode .custom-input {
+            background: #f1f5f9; 
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+        }
+        body.light-mode .custom-input:focus {
+            background: #ffffff;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+        
+        body.light-mode textarea::placeholder,
+        body.light-mode input::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        body.light-mode .bg-slate-700 { background-color: #cbd5e1 !important; } 
+        body.light-mode .bg-slate-800 { background-color: #e2e8f0 !important; } 
+        body.light-mode .border-slate-700 { border-color: #cbd5e1 !important; }
+        
+        /* Light Mode Specific: Button Styles for How To & Sample */
+        body.light-mode #btnLoadSample,
+        body.light-mode #btnHowTo,
+        body.light-mode #btnNlmExporter {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #475569 !important; /* Slate-600 */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        body.light-mode #btnLoadSample:hover,
+        body.light-mode #btnHowTo:hover,
+        body.light-mode #btnNlmExporter:hover {
+            background-color: #f8fafc !important;
+            border-color: #94a3b8 !important;
+            color: #0f172a !important;
+        }
+
+        /* --- LIGHT MODE LANGUAGE TOGGLE FIX --- */
+        /* Forces Dark Background & Light Text for Active State in Light Mode */
+        body.light-mode #btnEn.bg-neon-blue,
+        body.light-mode #btnBm.bg-neon-blue {
+            background-color: #0f172a !important; /* Dark Slate */
+            color: #ffffff !important;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2) !important;
+        }
+
+        /* --- LIGHT MODE MODAL (HOW TO) FIX --- */
+        body.light-mode #helpContent {
+            background-color: #ffffff !important;
+        }
+        /* Inner boxes in Modal */
+        body.light-mode #helpContent .bg-slate-800\/80, 
+        body.light-mode #helpContent .bg-slate-800\/50 {
+            background-color: #f8fafc !important; /* Very Light Gray */
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+        }
+        /* Text inside Modal */
+        body.light-mode #helpContent .text-slate-300 {
+            color: #475569 !important;
+        }
+        body.light-mode #helpContent strong.text-white {
+            color: #1e293b !important;
+        }
+
+        /* --- XML OUTPUT BOX FIX (LIGHT MODE) --- */
+        pre {
+            background-color: #0d1117;
+            color: #4ade80;
+        }
+        body.light-mode pre {
+            background-color: #ffffff !important;
+            color: #334155 !important;
+            border: 1px solid #cbd5e1;
+        }
+        body.light-mode .text-green-400 {
+            color: #15803d !important;
+        }
+
+        /* Guide Code Tag Styling */
+        .guide-code {
+            background: rgba(0, 243, 255, 0.1);
+            color: #00f3ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+        }
+        body.light-mode .guide-code {
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+        
+        /* --- BUTTON STYLES --- */
+        .btn-convert-modern {
+            background: linear-gradient(135deg, #2563eb 0%, #9333ea 100%) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            color: white !important;
+            border: none;
+            will-change: transform;
+        }
+        .btn-convert-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(147, 51, 234, 0.4);
+        }
+
+        .btn-download-modern {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%) !important;
+            color: white !important;
+            border: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s;
+            opacity: 0.5;
+            cursor: not-allowed;
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+        }
+        .btn-download-modern:not(:disabled) {
+            opacity: 1;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        }
+        .btn-download-modern:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.5);
+        }
+        
+        .btn-convert-modern::after, .btn-download-modern::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-convert-modern:hover::after, .btn-download-modern:not(:disabled):hover::after {
+            left: 100%;
+        }
+
+        /* --- HEADER BUTTON UNIFICATION --- */
+        /* Removes weird default browser focus outlines */
+        .header-btn {
+            outline: none !important;
+        }
+        .header-btn:focus-visible {
+            box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.5);
+        }
+        body.light-mode .header-btn:focus-visible {
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6 lg:p-8">
+
+    <div id="background-layer"></div>
+
+    <div class="w-full flex flex-col items-center">
+        <!-- Header -->
+        <header class="w-full max-w-6xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <!-- Custom Logo -->
+                <img src="img/quiz2xml.png" 
+                    alt="Quiz2XML Logo" 
+                    class="w-14 h-14 md:w-16 md:h-16 object-contain filter drop-shadow-[0_0_10px_rgba(188,19,254,0.3)] hover:scale-105 transition-transform duration-300">
+                
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white transition-colors">Quiz to Moodle XML <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple pb-1">Converter</span></h1>
+                    <p id="txtSubtitle" class="text-xs text-slate-400 tracking-wider transition-colors mt-1">Easily Convert Question Text to Moodle XML in One Click</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 md:gap-3 items-center justify-center">
+                <!-- Theme Toggle -->
+                <button onclick="toggleTheme()" class="header-btn bg-slate-800 border border-slate-700 p-2 rounded-lg hover:scale-105 transition-transform shadow-sm" title="Switch Theme">
+                    <i id="themeIcon" data-lucide="sun" class="w-4 h-4 text-slate-300"></i>
+                </button>
+
+                <!-- Language Toggle -->
+                <div class="header-btn flex bg-slate-800 border border-slate-700 rounded-lg p-1 cursor-pointer shadow-sm" onclick="toggleLanguage()">
+                    <div id="btnEn" class="px-3 py-1 rounded-md text-xs font-bold transition-all duration-300 bg-neon-blue text-black shadow-[0_0_10px_rgba(0,243,255,0.3)]">EN</div>
+                    <div id="btnBm" class="px-3 py-1 rounded-md text-xs font-medium transition-all duration-300 text-slate-400 hover:text-white">BM</div>
+                </div>
+
+                <!-- How To Button (Unified Style) -->
+                <button onclick="toggleHelp()" id="btnHowTo" class="header-btn px-4 py-2 text-xs font-medium text-slate-400 hover:text-white border border-slate-700 rounded-lg hover:border-slate-400 transition-all flex items-center gap-2 bg-slate-800/50">
+                    How To <i data-lucide="help-circle" class="w-3 h-3"></i>
+                </button>
+
+                <!-- NLM Exporter Button -->
+                <a href="https://chromewebstore.google.com/detail/gemini-notebook-to-pdf-wo/micfpbhlllbdpgdkkgdimdpmpeefoamk" target="_blank" rel="noopener noreferrer" id="btnNlmExporter" class="header-btn px-4 py-2 text-xs font-medium text-slate-400 hover:text-white border border-slate-700 rounded-lg hover:border-slate-400 transition-all flex items-center gap-2 bg-slate-800/50">
+                    NLM Exporter <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+                
+                <!-- Load Sample Button (Unified Style) -->
+                <button onclick="loadSample()" id="btnLoadSample" class="header-btn px-4 py-2 text-xs font-medium text-neon-blue border border-neon-blue/30 rounded-lg hover:bg-neon-blue/10 transition-all bg-slate-800/50">
+                    Sample
+                </button>
+            </div>
+        </header>
+
+        <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- LEFT COLUMN: SETTINGS & INPUT (Span 7/12) -->
+            <section class="lg:col-span-7 flex flex-col gap-6">
+                
+                <!-- 🛠 SETTINGS PANEL -->
+                <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-neon-purple shadow-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="sliders" class="w-4 h-4 text-neon-purple"></i>
+                        <h3 id="txtGlobalSettings" class="text-sm font-bold text-white uppercase tracking-wider">Global Settings</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Kategori -->
+                        <div class="col-span-1 md:col-span-2">
+                            <label id="lblCategory" class="block text-xs text-slate-400 mb-1 font-medium">Category</label>
+                            <input type="text" id="optCategory" placeholder="e.g. History Quiz Chapter 1" class="custom-input w-full rounded-lg px-3 py-2 text-sm placeholder-slate-500">
+                        </div>
+
+                        <!-- Markah -->
+                        <div>
+                            <label id="lblMark" class="block text-xs text-slate-400 mb-1 font-medium">Default Mark</label>
+                            <input type="number" id="optMark" value="1" step="0.5" class="custom-input w-full rounded-lg px-3 py-2 text-sm">
+                        </div>
+
+                        <!-- Toggles Container -->
+                        <div class="flex flex-col gap-4 justify-center">
+                            <!-- Shuffle Answers -->
+                            <div>
+                                <div class="flex items-center justify-between">
+                                    <span id="lblShuffleAnswers" class="text-xs text-slate-300 font-bold">Shuffle Answers</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="optShuffleAnswers" class="sr-only peer" checked>
+                                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon-blue"></div>
+                                    </label>
+                                </div>
+                                <p id="txtTipShuffle" class="text-[10px] text-neon-blue mt-1 flex items-start gap-1 leading-tight opacity-90">
+                                    <i data-lucide="lightbulb" class="w-3 h-3 mt-0.5 text-yellow-400"></i>
+                                    Tip: If you set all correct answers to 'A', turn this ON to randomize choices.
+                                </p>
+                            </div>
+
+                            <!-- Shuffle Questions -->
+                            <div class="flex items-center justify-between">
+                                <span id="lblShuffleQuestions" class="text-xs text-slate-300 font-medium">Shuffle Questions</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="optShuffleQuestions" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon-purple"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INPUT AREA -->
+                <div class="glass-panel rounded-2xl p-1 flex-1 flex flex-col min-h-[300px] md:min-h-[400px] shadow-xl">
+                    <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-black/5 rounded-t-xl">
+                        <span id="txtInputTitle" class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> Input Text
+                        </span>
+                        <div class="flex gap-2">
+                            <label for="fileInput" id="lblUpload" class="cursor-pointer text-xs text-neon-blue hover:text-sky-600 transition-colors flex items-center gap-1 font-medium">
+                                <i data-lucide="upload" class="w-3 h-3"></i> Upload .txt/.json/.csv
+                            </label>
+                            <input type="file" id="fileInput" accept=".txt,.json,.csv,application/json,text/csv" class="hidden">
+                            <button onclick="clearInput()" id="btnClear" class="text-xs text-red-400 hover:text-red-500 transition-colors ml-2 font-medium">Clear</button>
+                        </div>
+                    </div>
+                    <!-- Drag & Drop Upload Area -->
+                    <div id="dropZone" class="drop-zone mx-4 mt-4 mb-0 rounded-xl p-4 text-center cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                        <div class="flex flex-col items-center justify-center gap-1 pointer-events-none">
+                            <i data-lucide="file-up" class="w-6 h-6 text-neon-blue"></i>
+                            <p id="dropZoneText" class="text-xs font-bold text-slate-300">Drag & drop your file here</p>
+                            <p id="dropZoneSubText" class="text-[10px] text-slate-500">Supports .txt, .json and .csv</p>
+                        </div>
+                    </div>
+                    <!-- Textarea -->
+                    <textarea id="inputText" class="w-full h-full flex-1 bg-transparent p-4 text-sm font-mono text-slate-300 focus:outline-none resize-none placeholder-slate-500 transition-colors" placeholder=""></textarea>
+                </div>
+
+                <!-- CONVERT BUTTON -->
+                <button onclick="processConversion()" id="btnConvert" class="btn-convert-modern w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="zap" class="w-5 h-5 fill-current text-white"></i> 
+                    <span class="tracking-wide text-white">CONVERT TO XML</span>
+                </button>
+            </section>
+
+            <!-- RIGHT COLUMN: OUTPUT (Span 5/12) -->
+            <section class="lg:col-span-5 flex flex-col gap-6">
+                
+                <!-- Statistics -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-panel p-4 rounded-xl text-center shadow-lg">
+                        <span id="lblTotalQuestions" class="block text-xs text-slate-400 uppercase font-bold">Total Questions</span>
+                        <span id="statQuestions" class="text-3xl font-bold text-white mt-1">0</span>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl text-center flex flex-col justify-center items-center shadow-lg">
+                        <span id="lblStatus" class="block text-xs text-slate-400 uppercase mb-1 font-bold">Status</span>
+                        <span id="statStatus" class="text-xs font-bold text-slate-500 py-1 px-3 rounded-full border border-slate-700 bg-black/10">IDLE</span>
+                    </div>
+                </div>
+
+                <!-- Output Code -->
+                <div class="glass-panel rounded-2xl p-1 flex-1 flex flex-col min-h-[300px] md:min-h-[400px] relative overflow-hidden shadow-xl">
+                    <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-black/5 rounded-t-xl">
+                        <span id="txtXmlOutput" class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="code" class="w-4 h-4"></i> XML Output
+                        </span>
+                        <button onclick="copyToClipboard()" id="btnCopy" class="text-xs text-neon-blue hover:text-sky-600 transition-colors flex items-center gap-1 font-medium">
+                            <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                        </button>
+                    </div>
+                    <div class="relative flex-1 bg-[#0d1117] overflow-hidden">
+                        <pre class="absolute inset-0 p-4 overflow-auto text-xs font-mono leading-relaxed text-green-400"><code id="xmlOutput"></code></pre>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <button id="downloadBtn" onclick="downloadXML()" disabled class="btn-download-modern w-full py-4 rounded-xl text-lg font-bold shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-5 h-5"></i> DOWNLOAD .XML
+                </button>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-6 mt-8 border-t border-slate-800/50">
+        <p class="text-slate-500 text-xs">
+            Quiz2XML <span id="yearDisplay"></span>&copy; was creatively built and designed using Gemini Canvas by <a href="https://www.tiktok.com/@kiemiftah" target="_blank" class="text-neon-blue hover:text-sky-600 hover:underline font-semibold transition-colors">Kiemiftah.Com</a>
+            <br>
+            <span class="text-[10px] text-slate-600 opacity-50">Last updated on <span id="lastUpdatedDisplay"></span></span>
+        </p>
+    </footer>
+
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-panel w-full max-w-2xl rounded-2xl p-6 md:p-8 transform scale-95 transition-all duration-300 overflow-y-auto max-h-[90vh]" id="helpContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="book-open" class="text-neon-purple"></i> Guide
+                </h2>
+                <button onclick="toggleHelp()" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- How to Use Section -->
+                <div class="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <strong id="modalHowToTitle" class="text-neon-blue">How to Use</strong><br>
+                    <ul class="list-none space-y-1 text-sm text-slate-300 leading-relaxed pl-1 mt-1">
+                        <li id="modalVideoTutorial" class="flex gap-2 items-start"><span class="text-neon-blue flex-shrink-0">•</span> <div>Video Tutorial Tukar Kuiz NotebookLM ke Moodle Quiz (.XML):<br><a href='https://youtu.be/BgDSLJUjmHg' target='_blank' class='text-neon-blue hover:text-white underline block mt-1'>https://youtu.be/BgDSLJUjmHg</a></div></li>
+                        <li id="modalStep1" class="flex gap-2 items-start"><span class="text-neon-blue flex-shrink-0">•</span> <div>Paste your quiz template or Upload a .txt, .json or .csv file.</div></li>
+                        <li id="modalStep2" class="flex gap-2 items-start"><span class="text-neon-blue flex-shrink-0">•</span> <div>Review the settings (extracted from metadata or set manually).</div></li>
+                        <li id="modalStep3" class="flex gap-2 items-start"><span class="text-neon-blue flex-shrink-0">•</span> <div>Click CONVERT TO XML, it will automatically convert.</div></li>
+                        <li id="modalStep4" class="flex gap-2 items-start"><span class="text-neon-blue flex-shrink-0">•</span> <div>The converted output will be shown in XML Output box. DOWNLOAD .XML</div></li>
+                        <li id="modalStep5" class="flex gap-2 items-start">
+                            <span class="text-neon-blue flex-shrink-0">•</span> 
+                            <div>Refer to this video tutorial to learn how to import in eCampus:<br>
+                            <a href='https://youtu.be/wm8V89slYoI' target='_blank' class='text-neon-blue hover:text-white underline block mt-1'>https://youtu.be/wm8V89slYoI</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <strong id="modalStrategyTitle" class="text-neon-blue">Time Saving Strategy:</strong><br>
+                    <span id="modalStrategyText" class="text-sm text-slate-300">
+                    No need to arrange answers manually. <br>• Write all correct answers at <strong>Option A</strong>.<br>• Ensure <strong>'Shuffle Answers'</strong> is ON in settings.<br>• Moodle will randomize the order automatically.
+                    </span>
+                </div>
+                <div class="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <strong id="modalFormatTitle" class="text-white">Flexible Format:</strong><br>
+                    <span id="modalFormatText" class="text-sm text-slate-300">
+                    Use English or Malay keywords:<br>
+                    - <code class="guide-code">QUESTION:</code> or <code class="guide-code">SOALAN:</code><br>
+                    - <code class="guide-code">CORRECT_ANSWER:</code> or <code class="guide-code">JAWAPAN:</code><br>
+                    - <code class="guide-code">MARK:</code> or <code class="guide-code">MARKAH:</code>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="toggleHelp()" id="btnUnderstand" class="px-6 py-2 bg-white text-black font-bold rounded-lg hover:bg-slate-200 transition-colors">
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // PWA Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker Error:', err));
+            });
+        }
+
+        lucide.createIcons();
+
+        // --- THEME LOGIC ---
+        let isDarkMode = true;
+        
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            const toggleContainers = document.querySelectorAll('.toggle-container');
+            
+            if (!isDarkMode) {
+                body.classList.add('light-mode');
+                icon.setAttribute('data-lucide', 'moon');
+                icon.classList.remove('text-slate-300');
+                icon.classList.add('text-slate-600');
+                
+                const logo = document.querySelector('img[alt="Quiz2XML Logo"]');
+                if(logo) logo.classList.remove('filter', 'drop-shadow-[0_0_10px_rgba(188,19,254,0.3)]');
+
+            } else {
+                body.classList.remove('light-mode');
+                icon.setAttribute('data-lucide', 'sun');
+                icon.classList.add('text-slate-300');
+                icon.classList.remove('text-slate-600');
+
+                const logo = document.querySelector('img[alt="Quiz2XML Logo"]');
+                if(logo) logo.classList.add('filter', 'drop-shadow-[0_0_10px_rgba(188,19,254,0.3)]');
+            }
+            lucide.createIcons();
+        }
+
+        // --- I18N CONFIGURATION ---
+        let currentLang = 'en'; // Default English
+
+        const translations = {
+            en: {
+                subtitle: "Easily Convert Question Text to Moodle XML in One Click",
+                btnHowTo: 'How To <i data-lucide="help-circle" class="w-3 h-3"></i>',
+                btnLoadSample: "Sample",
+                headerSettings: "Global Settings",
+                lblCategory: "Category",
+                phCategory: "e.g. History Quiz Chapter 1",
+                lblMark: "Default Mark",
+                lblShuffleAnswers: "Shuffle Answers",
+                tipShuffleAnswers: '<i data-lucide="lightbulb" class="w-3 h-3 mt-0.5 text-yellow-400"></i> Tip: If you set all correct answers to \'A\', turn this ON to randomize choices.',
+                lblShuffleQuestions: "Shuffle Questions",
+                headerInput: '<i data-lucide="file-text" class="w-4 h-4"></i> Input Text',
+                lblUpload: '<i data-lucide="upload" class="w-3 h-3"></i> Upload .txt/.json/.csv',
+                dropZoneText: "Drag & drop your file here",
+                dropZoneSubText: "Supports .txt, .json and .csv",
+                btnClear: "Clear",
+                // Note: Placeholder uses \n for newlines in textarea
+                placeholder: "💡 SMART TIP:\nTo save time, set all correct answers as Option A, then ensure 'Shuffle Answers' is ON.\n\nFlexible Format Example:\n\nQuestion: Who is the first Prime Minister?\nA. Tunku Abdul Rahman (Correct)\nB. Tun Hussein Onn\nC. Tun Razak\nAnswer: A\n\nQuestion: 2 + 2 = ?\nA. 4\nB. 3\nC. 5\nAnswer: A",
+                btnConvert: '<i data-lucide="zap" class="w-5 h-5 fill-current text-white"></i> <span class="tracking-wide text-white">CONVERT TO XML</span>',
+                lblTotalQuestions: "Total Questions",
+                lblStatus: "Status",
+                statusIdle: "IDLE",
+                statusProcessing: "Processing...",
+                statusReady: "READY",
+                statusError: "ERROR",
+                statusLoaded: "Loaded",
+                statusCopied: "Copied!",
+                headerXml: '<i data-lucide="code" class="w-4 h-4"></i> XML Output',
+                btnCopy: '<i data-lucide="copy" class="w-3 h-3"></i> Copy',
+                btnDownload: '<i data-lucide="download" class="w-5 h-5"></i> DOWNLOAD .XML',
+                // Modal
+                modalTitle: '<i data-lucide="book-open" class="text-neon-purple"></i> Guide',
+                modalHowToTitle: "How to Use",
+                modalVideoTutorial: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Video Tutorial Tukar Kuiz NotebookLM ke Moodle Quiz (.XML):<br><a href='https://youtu.be/BgDSLJUjmHg' target='_blank' class='text-neon-blue hover:text-white underline block mt-1'>https://youtu.be/BgDSLJUjmHg</a></div>",
+                modalStep1: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Paste your quiz template or Upload a .txt, .json or .csv file.</div>",
+                modalStep2: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Review the settings (extracted from metadata or set manually).</div>",
+                modalStep3: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Click CONVERT TO XML, it will automatically convert.</div>",
+                modalStep4: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>The converted output will be shown in XML Output box. DOWNLOAD .XML</div>",
+                // Changed: Added text wrapper div and <br> block link
+                modalStep5: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Refer to this video tutorial to learn how to import in eCampus:<br><a href='https://youtu.be/wm8V89slYoI' target='_blank' class='text-neon-blue hover:text-white underline block mt-1'>https://youtu.be/wm8V89slYoI</a></div>",
+                modalStrategyTitle: "Time Saving Strategy:",
+                modalStrategyText: "No need to arrange answers manually. <br>• Write all correct answers at <strong>Option A</strong>.<br>• Ensure <strong>'Shuffle Answers'</strong> is ON in settings.<br>• Moodle will randomize the order automatically.",
+                modalFormatTitle: "Flexible Format:",
+                modalFormatText: "Use English or Malay keywords:<br>- <code class=\"guide-code\">QUESTION:</code> or <code class=\"guide-code\">SOALAN:</code><br>- <code class=\"guide-code\">CORRECT_ANSWER:</code> or <code class=\"guide-code\">JAWAPAN:</code><br>- <code class=\"guide-code\">MARK:</code> or <code class=\"guide-code\">MARKAH:</code>",
+                btnUnderstand: "Got it"
+            },
+            bm: {
+                subtitle: "Tukar Soalan Format Teks ke Moodle XML dengan Mudah dalam Satu Klik",
+                btnHowTo: 'Panduan <i data-lucide="help-circle" class="w-3 h-3"></i>',
+                btnLoadSample: "Contoh",
+                headerSettings: "Tetapan Global",
+                lblCategory: "Kategori",
+                phCategory: "Contoh: Kuiz Sejarah Bab 1",
+                lblMark: "Markah Asal",
+                lblShuffleAnswers: "Rawakkan Jawapan",
+                tipShuffleAnswers: '<i data-lucide="lightbulb" class="w-3 h-3 mt-0.5 text-yellow-400"></i> Tip: Jika anda letak semua jawapan betul di \'A\', sila ON ini supaya rambang.',
+                lblShuffleQuestions: "Rawakkan Soalan",
+                headerInput: '<i data-lucide="file-text" class="w-4 h-4"></i> Input Teks',
+                lblUpload: '<i data-lucide="upload" class="w-3 h-3"></i> Muat Naik .txt/.json/.csv',
+                dropZoneText: "Seret & lepas fail anda di sini",
+                dropZoneSubText: "Sokong .txt, .json dan .csv",
+                btnClear: "Padam",
+                placeholder: "💡 TIP PINTAR:\nUntuk jimat masa, anda boleh letak semua jawapan betul sebagai pilihan A, kemudian pastikan 'Rawakkan Jawapan' dihidupkan (ON).\n\nContoh Format Flexible:\n\nSoalan: Siapakah Perdana Menteri Malaysia pertama?\nA. Tunku Abdul Rahman (Betul)\nB. Tun Hussein Onn\nC. Tun Razak\nJawapan: A\n\nQuestion: 2 + 2 = ?\nA. 4\nB. 3\nC. 5\nAnswer: A",
+                btnConvert: '<i data-lucide="zap" class="w-5 h-5 fill-current text-white"></i> <span class="tracking-wide text-white">TUKAR KE XML</span>',
+                lblTotalQuestions: "Jumlah Soalan",
+                lblStatus: "Status",
+                statusIdle: "SEDIA",
+                statusProcessing: "Memproses...",
+                statusReady: "BERJAYA",
+                statusError: "RALAT",
+                statusLoaded: "Fail Dimuat",
+                statusCopied: "Disalin!",
+                headerXml: '<i data-lucide="code" class="w-4 h-4"></i> Hasil XML',
+                btnCopy: '<i data-lucide="copy" class="w-3 h-3"></i> Salin',
+                btnDownload: '<i data-lucide="download" class="w-5 h-5"></i> MUAT TURUN .XML',
+                // Modal
+                modalTitle: '<i data-lucide="book-open" class="text-neon-purple"></i> Panduan',
+                modalHowToTitle: "Cara Guna",
+                modalVideoTutorial: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Video Tutorial Tukar Kuiz NotebookLM ke Moodle Quiz (.XML):<br><a href='https://youtu.be/BgDSLJUjmHg' target='_blank' class='text-neon-blue hover:text-white underline block mt-1'>https://youtu.be/BgDSLJUjmHg</a></div>",
+                modalStep1: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Tampal templat kuiz atau Muat Naik fail .txt, .json atau .csv.</div>",
+                modalStep2: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Semak tetapan (diekstrak dari metadata atau tetapkan manual).</div>",
+                modalStep3: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Klik TUKAR KE XML, ia akan menukar secara automatik.</div>",
+                modalStep4: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Output yang ditukar akan dipaparkan dalam kotak Hasil XML. MUAT TURUN .XML</div>",
+                modalStep5: "<span class=\"text-neon-blue flex-shrink-0\">•</span> <div>Rujuk tutorial video ini untuk belajar cara import ke eCampus:<br><a href='https://youtu.be/wm8V89slYoI' target='_blank' class='text-neon-blue hover:text-white underline block mt-1'>https://youtu.be/wm8V89slYoI</a></div>",
+                modalStrategyTitle: "Strategi Jimat Masa:",
+                modalStrategyText: "Tak perlu pening susun jawapan. <br>• Tulis semua jawapan betul di <strong>Pilihan A</strong>.<br>• Hidupkan <strong>'Rawakkan Jawapan'</strong>.<br>• Moodle akan menguruskan susunan.",
+                modalFormatTitle: "Format Fleksibel:",
+                modalFormatText: "Guna kata kunci BI atau BM:<br>- <code class=\"guide-code\">QUESTION:</code> atau <code class=\"guide-code\">SOALAN:</code><br>- <code class=\"guide-code\">CORRECT_ANSWER:</code> atau <code class=\"guide-code\">JAWAPAN:</code><br>- <code class=\"guide-code\">MARK:</code> atau <code class=\"guide-code\">MARKAH:</code>",
+                btnUnderstand: "Faham"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'bm' : 'en';
+            updateUI();
+            
+            // Update Toggle Visuals
+            const btnEn = document.getElementById('btnEn');
+            const btnBm = document.getElementById('btnBm');
+            
+            // Active Styles
+            const activeClasses = ['bg-neon-blue', 'text-black', 'shadow-[0_0_10px_rgba(0,243,255,0.3)]', 'font-bold'];
+            // Inactive Styles
+            const inactiveClasses = ['text-slate-400', 'hover:text-white', 'font-medium'];
+
+            // Clear previous states
+            btnEn.classList.remove(...activeClasses, ...inactiveClasses);
+            btnBm.classList.remove(...activeClasses, ...inactiveClasses);
+
+            if (currentLang === 'en') {
+                btnEn.classList.add(...activeClasses);
+                btnBm.classList.add(...inactiveClasses);
+            } else {
+                btnBm.classList.add(...activeClasses);
+                btnEn.classList.add(...inactiveClasses);
+            }
+        }
+
+        function updateUI() {
+            const t = translations[currentLang];
+            
+            // Text Elements
+            document.getElementById('txtSubtitle').textContent = t.subtitle;
+            document.getElementById('btnHowTo').innerHTML = t.btnHowTo;
+            document.getElementById('btnLoadSample').textContent = t.btnLoadSample;
+            document.getElementById('txtGlobalSettings').textContent = t.headerSettings;
+            document.getElementById('lblCategory').textContent = t.lblCategory;
+            document.getElementById('optCategory').placeholder = t.phCategory;
+            document.getElementById('lblMark').textContent = t.lblMark;
+            document.getElementById('lblShuffleAnswers').textContent = t.lblShuffleAnswers;
+            document.getElementById('txtTipShuffle').innerHTML = t.tipShuffleAnswers;
+            document.getElementById('lblShuffleQuestions').textContent = t.lblShuffleQuestions;
+            document.getElementById('txtInputTitle').innerHTML = t.headerInput;
+            document.getElementById('lblUpload').innerHTML = t.lblUpload;
+            document.getElementById('dropZoneText').textContent = t.dropZoneText;
+            document.getElementById('dropZoneSubText').textContent = t.dropZoneSubText;
+            document.getElementById('btnClear').textContent = t.btnClear;
+            document.getElementById('btnConvert').innerHTML = t.btnConvert;
+            document.getElementById('lblTotalQuestions').textContent = t.lblTotalQuestions;
+            document.getElementById('lblStatus').textContent = t.lblStatus;
+            document.getElementById('txtXmlOutput').innerHTML = t.headerXml;
+            document.getElementById('btnCopy').innerHTML = t.btnCopy;
+            document.getElementById('downloadBtn').innerHTML = t.btnDownload;
+
+            // Modal Elements
+            document.getElementById('modalTitle').innerHTML = t.modalTitle;
+            
+            document.getElementById('modalHowToTitle').textContent = t.modalHowToTitle;
+            document.getElementById('modalVideoTutorial').innerHTML = t.modalVideoTutorial;
+            document.getElementById('modalStep1').innerHTML = t.modalStep1; // Use innerHTML for bullets and link
+            document.getElementById('modalStep2').innerHTML = t.modalStep2;
+            document.getElementById('modalStep3').innerHTML = t.modalStep3;
+            document.getElementById('modalStep4').innerHTML = t.modalStep4;
+            document.getElementById('modalStep5').innerHTML = t.modalStep5;
+
+            document.getElementById('modalStrategyTitle').textContent = t.modalStrategyTitle;
+            document.getElementById('modalStrategyText').innerHTML = t.modalStrategyText;
+            document.getElementById('modalFormatTitle').textContent = t.modalFormatTitle;
+            document.getElementById('modalFormatText').innerHTML = t.modalFormatText;
+            document.getElementById('btnUnderstand').textContent = t.btnUnderstand;
+
+            // Handle Placeholder only if empty or matches previous lang placeholder
+            const inputEl = document.getElementById('inputText');
+            if (!inputEl.value || inputEl.value === translations['en'].placeholder || inputEl.value === translations['bm'].placeholder) {
+                inputEl.placeholder = t.placeholder;
+            }
+
+            // Update status text if currently displaying static status
+            const statusEl = document.getElementById('statStatus');
+            // If it's one of the known statuses, translate it
+            if(statusEl.dataset.key) {
+                // If we stored a key, reuse it
+                updateStatus(statusEl.dataset.key, statusEl.className.includes('text-green') ? 'success' : 'neutral');
+            } else {
+                // Default to Idle
+                updateStatus('statusIdle', 'neutral');
+            }
+
+            lucide.createIcons();
+        }
+
+
+        // --- GLOBAL STATE ---
+        let generatedXML = "";
+
+        // --- ELEMENTS ---
+        const fileInput = document.getElementById('fileInput');
+        const inputText = document.getElementById('inputText');
+        const optCategory = document.getElementById('optCategory');
+        const optMark = document.getElementById('optMark');
+        const optShuffleAnswers = document.getElementById('optShuffleAnswers');
+        const optShuffleQuestions = document.getElementById('optShuffleQuestions');
+
+        // Initialize UI
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI(); // Set initial English text
+            document.getElementById('inputText').placeholder = translations.en.placeholder; // Explicit set
+            
+            // Auto update year
+            document.getElementById('yearDisplay').textContent = new Date().getFullYear(); // Update Year
+
+            // Auto update footer date
+            const lastUpdatedDisplay = document.getElementById('lastUpdatedDisplay');
+            if (lastUpdatedDisplay) {
+                lastUpdatedDisplay.textContent = new Intl.DateTimeFormat('en-GB', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                }).format(new Date());
+            }
+        });
+
+        // --- HELP MODAL LOGIC ---
+        function toggleHelp() {
+            const modal = document.getElementById('helpModal');
+            const content = document.getElementById('helpContent');
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+        }
+
+        // --- FILE HANDLING ---
+        // Added support for .txt, .json and .csv without changing the original UI flow.
+        function handleSelectedFile(file) {
+            if (!file) return;
+
+            const allowedTypes = ['txt', 'json', 'csv'];
+            const fileExt = (file.name.split('.').pop() || '').toLowerCase();
+            if (!allowedTypes.includes(fileExt)) {
+                alert(currentLang === 'en' ? "Only .txt, .json and .csv files are supported." : "Hanya fail .txt, .json dan .csv disokong.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                inputText.value = event.target.result;
+                updateStatus('statusLoaded', 'success');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            handleSelectedFile(e.target.files[0]);
+        });
+
+        const dropZone = document.getElementById('dropZone');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('drag-over');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files[0];
+            handleSelectedFile(file);
+        });
+
+        function clearInput() {
+            inputText.value = '';
+            document.getElementById('xmlOutput').textContent = '';
+            document.getElementById('statQuestions').textContent = '0';
+            generatedXML = "";
+            updateStatus('statusIdle', 'neutral');
+        }
+
+        function loadSample() {
+            if (currentLang === 'en') {
+                inputText.value = `QUESTION: What is the capital of France?
+A. Paris
+B. London
+C. Berlin
+ANSWER: A
+
+QUESTION: 5 + 5 = ?
+MARK: 2
+A. 10
+B. 9
+C. 8
+ANS: A
+
+QUESTION: The sun rises in the East.
+A. True
+B. False
+ANSWER: A`;
+            } else {
+                 inputText.value = `SOALAN: Apakah ibu negara Malaysia?
+A. Kuala Lumpur
+B. Johor Bahru
+C. Putrajaya
+JAWAPAN: A
+
+SOALAN: 5 + 5 = ?
+MARKAH: 2
+A. 10
+B. 9
+C. 8
+ANS: A
+
+QUESTION: Matahari terbit di sebelah Timur.
+A. Betul
+B. Salah
+ANSWER: A`;
+            }
+           
+        }
+
+        function updateStatus(key, type) {
+            const el = document.getElementById('statStatus');
+            const t = translations[currentLang];
+            const msg = t[key] || key; // Fallback if key not found
+            
+            el.dataset.key = key; // Store key for translation switching
+            el.textContent = msg;
+
+            let colorClass = 'text-slate-500 border-slate-700';
+            if (type === 'success') colorClass = 'text-green-400 border-green-400';
+            if (type === 'process') colorClass = 'text-yellow-400 border-yellow-400';
+            if (type === 'error') colorClass = 'text-red-500 border-red-500';
+            if (type === 'ready') colorClass = 'text-neon-blue border-neon-blue';
+
+            el.className = `text-xs font-bold py-1 px-3 rounded-full border ${colorClass}`;
+        }
+
+        // --- CORE LOGIC ---
+
+        function processConversion() {
+            const text = inputText.value;
+            if (!text.trim()) {
+                alert(currentLang === 'en' ? "Please enter question text first." : "Sila masukkan teks soalan dahulu.");
+                return;
+            }
+
+            try {
+                updateStatus('statusProcessing', 'process');
+                
+                // 1. Get UI Defaults
+                const uiSettings = {
+                    category: optCategory.value.trim() || (currentLang === 'en' ? 'Default Category' : 'Kategori Lalai'),
+                    mark: optMark.value || '1',
+                    shuffleAnswers: optShuffleAnswers.checked ? 'true' : 'false',
+                    shuffleQuestions: optShuffleQuestions.checked ? 'true' : 'false'
+                };
+
+                // 2. Parse
+                const result = parseTemplate(text, uiSettings);
+                
+                // 3. Build XML
+                const xml = buildMoodleXML(result);
+                generatedXML = xml;
+
+                // 4. Render
+                document.getElementById('xmlOutput').innerText = xml;
+                document.getElementById('statQuestions').textContent = result.questions.length;
+                
+                // 5. Update UI Buttons
+                const dlBtn = document.getElementById('downloadBtn');
+                dlBtn.disabled = false;
+                
+                updateStatus('statusReady', 'ready');
+
+            } catch (e) {
+                console.error(e);
+                updateStatus('statusError', 'error');
+                alert((currentLang === 'en' ? "Error: " : "Ralat: ") + e.message);
+            }
+        }
+
+        function parseTemplate(txt, uiDefaults) {
+            const sourceText = removeUtf8Bom(txt || '').trim();
+
+            // Auto-detect JSON quiz format. This keeps paste/upload flow unchanged.
+            if (sourceText.startsWith('{') || sourceText.startsWith('[')) {
+                try {
+                    return parseJsonQuiz(sourceText, uiDefaults);
+                } catch (err) {
+                    throw new Error(currentLang === 'en'
+                        ? 'Invalid JSON quiz file. Please check the JSON structure.'
+                        : 'Fail JSON kuiz tidak sah. Sila semak struktur JSON.');
+                }
+            }
+
+            // Auto-detect supported CSV formats:
+            // 1) Q: question; A: answer; isCorrect: true
+            // 2) Headered table: Question, Hint, Option A... Correct Answer, Rationale
+            const firstUsefulLine = sourceText.split(/\r?\n/).find(line => line.trim()) || '';
+            const isInlineCsv = /\bQ\s*:/i.test(firstUsefulLine) && /\bA\s*:/i.test(firstUsefulLine) && /\bisCorrect\s*:/i.test(firstUsefulLine);
+            const isHeaderedCsv = /\bQuestion\b/i.test(firstUsefulLine) && /\bOption\s+A\b/i.test(firstUsefulLine) && /\bCorrect\s+Answer\b/i.test(firstUsefulLine);
+            if (isInlineCsv || isHeaderedCsv) {
+                return parseCsvQuiz(sourceText, uiDefaults);
+            }
+
+            // Fallback to original flexible text template parser.
+            return parsePlainTextTemplate(sourceText, uiDefaults);
+        }
+
+        function parsePlainTextTemplate(txt, uiDefaults) {
+            const lines = txt.split(/\r?\n/);
+            
+            // Start with UI defaults
+            const metadata = getDefaultMetadata(uiDefaults);
+
+            const questions = [];
+            let currentBlock = null;
+
+            // Updated Regex for Flexibility (Malay/English)
+            const questionStartRegex = /^(QUESTION|SOALAN):\s*(.*)/i;
+            const optionRegex = /^([A-Z0-9]+)[.)]\s+(.*)/; 
+            const correctAnswerRegex = /^(CORRECT_ANSWER|ANSWER|JAWAPAN|ANS):\s*(.*)/i;
+            const markRegex = /^(MARK|MARKAH):\s*(\d+(\.\d+)?)/i;
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                // Check Metadata in text (Optional Override)
+                if (line.match(/^CATEGORY:/i)) metadata.CATEGORY = line.split(':').slice(1).join(':').trim();
+                else if (line.match(/^SHUFFLE_ANSWERS:/i)) metadata.SHUFFLE_ANSWERS = line.split(':').slice(1).join(':').trim().toLowerCase();
+                else if (line.match(/^SHUFFLE_QUESTIONS:/i)) metadata.SHUFFLE_QUESTIONS = line.split(':').slice(1).join(':').trim().toLowerCase();
+                else if (line.match(/^DEFAULT_MARK:/i)) metadata.DEFAULT_MARK = line.split(':').slice(1).join(':').trim();
+
+                // Check Question Start
+                const qMatch = line.match(questionStartRegex);
+                if (qMatch) {
+                    if (currentBlock) questions.push(currentBlock);
+                    currentBlock = {
+                        text: qMatch[2], // Capture group 2 is the text
+                        options: [],
+                        correct: null,
+                        mark: null
+                    };
+                    continue;
+                }
+
+                if (currentBlock) {
+                    const optMatch = line.match(optionRegex);
+                    const ansMatch = line.match(correctAnswerRegex);
+                    const markMatch = line.match(markRegex);
+
+                    if (ansMatch) {
+                        let ans = ansMatch[2].trim().toUpperCase();
+                        currentBlock.correct = ans;
+                    } 
+                    else if (markMatch) {
+                        currentBlock.mark = markMatch[2];
+                    } 
+                    else if (optMatch) {
+                        currentBlock.options.push({
+                            id: optMatch[1].toUpperCase(),
+                            text: optMatch[2]
+                        });
+                    } else {
+                        // Append multiline question text
+                         if (!currentBlock.options.length && !currentBlock.correct) {
+                            currentBlock.text += " " + line;
+                         }
+                    }
+                }
+            }
+            if (currentBlock) questions.push(currentBlock);
+
+            applyQuestionShuffle(questions, metadata);
+            return { metadata, questions };
+        }
+
+        function parseJsonQuiz(txt, uiDefaults) {
+            const metadata = getDefaultMetadata(uiDefaults);
+            const raw = JSON.parse(txt);
+            const list = Array.isArray(raw) ? raw : (raw.quiz || raw.questions || raw.items || []);
+            if (!Array.isArray(list) || !list.length) {
+                throw new Error('No quiz array found.');
+            }
+
+            if (!optCategory.value.trim() && raw.topics && Array.isArray(raw.topics.covered) && raw.topics.covered.length) {
+                metadata.CATEGORY = raw.topics.covered[0];
+            }
+            if (raw.category && !optCategory.value.trim()) metadata.CATEGORY = String(raw.category);
+            if (raw.title && !optCategory.value.trim()) metadata.CATEGORY = String(raw.title);
+
+            const questions = list.map((item, index) => {
+                const qText = getFirstValue(item, ['question', 'soalan', 'text', 'questionText', 'title', 'stem']) || `Question ${index + 1}`;
+                const answerOptions = item.answerOptions || item.answers || item.options || item.choices || [];
+                const options = [];
+                let correct = null;
+
+                answerOptions.forEach((opt, optIndex) => {
+                    const id = optionId(optIndex);
+                    const optText = typeof opt === 'string'
+                        ? opt
+                        : (getFirstValue(opt, ['text', 'answer', 'option', 'choice', 'label']) || '');
+                    const isCorrect = typeof opt === 'object' && opt !== null && isTruthy(opt.isCorrect ?? opt.correct ?? opt.is_answer ?? opt.is_answer_correct);
+                    const feedback = typeof opt === 'object' && opt !== null
+                        ? (getFirstValue(opt, ['rationale', 'feedback', 'explanation', 'ulasan']) || '')
+                        : '';
+                    options.push({ id, text: String(optText), feedback: String(feedback || '') });
+                    if (isCorrect) correct = id;
+                });
+
+                const directAnswer = getFirstValue(item, ['correctAnswer', 'answer', 'jawapan', 'correct']);
+                if (!correct && directAnswer !== undefined && directAnswer !== null) {
+                    const direct = String(directAnswer).trim();
+                    const byId = direct.toUpperCase();
+                    const byText = options.find(o => normaliseText(o.text) === normaliseText(direct));
+                    correct = byText ? byText.id : byId;
+                }
+
+                return {
+                    text: String(qText),
+                    options,
+                    correct: correct || (options[0] ? options[0].id : 'A'),
+                    mark: getFirstValue(item, ['mark', 'marks', 'grade', 'defaultgrade']) || null,
+                    hint: getFirstValue(item, ['hint', 'clue', 'petunjuk']) || ''
+                };
+            });
+
+            applyQuestionShuffle(questions, metadata);
+            return { metadata, questions };
+        }
+
+        function parseCsvQuiz(txt, uiDefaults) {
+            const metadata = getDefaultMetadata(uiDefaults);
+            const rows = parseCsvRows(txt);
+
+            // Support headered CSV tables:
+            // #, Question, Hint, Option A, Option B, Option C, Option D, Correct Answer, Rationale
+            if (rows.length > 1) {
+                const headerMap = {};
+                rows[0].forEach((cell, index) => {
+                    const key = normaliseCsvHeader(cell);
+                    if (key) headerMap[key] = index;
+                });
+
+                const optionColumns = Object.entries(headerMap)
+                    .map(([key, index]) => {
+                        const match = key.match(/^option\s+([a-z0-9]+)$/i);
+                        return match ? { id: match[1].toUpperCase(), index } : null;
+                    })
+                    .filter(Boolean);
+
+                if (headerMap.question !== undefined && optionColumns.length && headerMap['correct answer'] !== undefined) {
+                    const questions = [];
+
+                    rows.slice(1).forEach((row) => {
+                        const qText = String(row[headerMap.question] || '').trim();
+                        if (!qText) return;
+
+                        const options = optionColumns
+                            .map(col => ({
+                                id: col.id,
+                                text: String(row[col.index] || '').trim(),
+                                feedback: ''
+                            }))
+                            .filter(opt => opt.text);
+
+                        if (!options.length) return;
+
+                        const correctRaw = String(row[headerMap['correct answer']] || '').trim();
+                        let correct = '';
+
+                        const labelMatch = correctRaw.match(/^\s*([A-Z0-9]+)\s*[.)\-:]?/i);
+                        if (labelMatch && options.some(opt => opt.id === labelMatch[1].toUpperCase())) {
+                            correct = labelMatch[1].toUpperCase();
+                        }
+
+                        if (!correct && correctRaw) {
+                            const cleanedAnswer = correctRaw.replace(/^\s*[A-Z0-9]+\s*[.)\-:]\s*/i, '').trim();
+                            const byText = options.find(opt => normaliseText(opt.text) === normaliseText(cleanedAnswer || correctRaw));
+                            if (byText) correct = byText.id;
+                        }
+
+                        if (!correct) correct = options[0].id;
+
+                        const rationale = headerMap.rationale !== undefined
+                            ? String(row[headerMap.rationale] || '').trim()
+                            : '';
+
+                        if (rationale) {
+                            const correctOption = options.find(opt => opt.id === correct);
+                            if (correctOption) correctOption.feedback = rationale;
+                        }
+
+                        questions.push({
+                            text: qText,
+                            options,
+                            correct,
+                            mark: headerMap.mark !== undefined ? (String(row[headerMap.mark] || '').trim() || null) : null,
+                            hint: headerMap.hint !== undefined ? String(row[headerMap.hint] || '').trim() : ''
+                        });
+                    });
+
+                    if (!questions.length) {
+                        throw new Error(currentLang === 'en'
+                            ? 'No valid questions found in the CSV table.'
+                            : 'Tiada soalan yang sah ditemui dalam jadual CSV.');
+                    }
+
+                    applyQuestionShuffle(questions, metadata);
+                    return { metadata, questions };
+                }
+            }
+
+            const grouped = new Map();
+
+            rows.forEach((row) => {
+                if (!row.length || row.every(cell => !String(cell).trim())) return;
+
+                const record = rowToRecord(row);
+                const qText = getFirstValue(record, ['q', 'question', 'soalan', 'Question', 'SOALAN']);
+                const aText = getFirstValue(record, ['a', 'answer', 'option', 'jawapan', 'A', 'Answer']);
+                if (!qText || !aText) return;
+
+                const key = String(qText).trim();
+                if (!grouped.has(key)) {
+                    grouped.set(key, {
+                        text: key,
+                        options: [],
+                        correct: null,
+                        mark: getFirstValue(record, ['mark', 'marks', 'markah', 'grade']) || null,
+                        hint: getFirstValue(record, ['hint', 'petunjuk']) || ''
+                    });
+                }
+
+                const q = grouped.get(key);
+                const id = optionId(q.options.length);
+                const feedback = getFirstValue(record, ['rationale', 'feedback', 'explanation', 'ulasan']) || '';
+                q.options.push({ id, text: String(aText).trim(), feedback: String(feedback || '') });
+                if (isTruthy(getFirstValue(record, ['isCorrect', 'iscorrect', 'correct', 'betul']))) {
+                    q.correct = id;
+                }
+            });
+
+            const questions = Array.from(grouped.values()).map(q => {
+                if (!q.correct && q.options.length) q.correct = q.options[0].id;
+                return q;
+            });
+
+            if (!questions.length) {
+                throw new Error(currentLang === 'en'
+                    ? 'No valid CSV quiz rows found. Use columns or fields such as Q, A and isCorrect.'
+                    : 'Tiada baris kuiz CSV yang sah. Gunakan medan seperti Q, A dan isCorrect.');
+            }
+
+            applyQuestionShuffle(questions, metadata);
+            return { metadata, questions };
+        }
+
+        function getDefaultMetadata(uiDefaults) {
+            return {
+                CATEGORY: uiDefaults.category,
+                SHUFFLE_ANSWERS: uiDefaults.shuffleAnswers,
+                SHUFFLE_QUESTIONS: uiDefaults.shuffleQuestions,
+                DEFAULT_MARK: uiDefaults.mark
+            };
+        }
+
+        function applyQuestionShuffle(questions, metadata) {
+            if (metadata.SHUFFLE_QUESTIONS === 'true') {
+                for (let i = questions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [questions[i], questions[j]] = [questions[j], questions[i]];
+                }
+            }
+        }
+
+        function optionId(index) {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            return letters[index] || String(index + 1);
+        }
+
+        function getFirstValue(obj, keys) {
+            if (!obj || typeof obj !== 'object') return undefined;
+            for (const key of keys) {
+                if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== '') {
+                    return obj[key];
+                }
+            }
+            return undefined;
+        }
+
+        function isTruthy(value) {
+            if (typeof value === 'boolean') return value;
+            if (typeof value === 'number') return value === 1;
+            if (value === undefined || value === null) return false;
+            return ['true', '1', 'yes', 'y', 'betul', 'correct', 'صح', 'صحيح'].includes(String(value).trim().toLowerCase());
+        }
+
+        function normaliseText(value) {
+            return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        function normaliseCsvHeader(value) {
+            return String(value || '')
+                .replace(/^\uFEFF/, '')
+                .replace(/^["']|["']$/g, '')
+                .trim()
+                .toLowerCase()
+                .replace(/[_\-]+/g, ' ')
+                .replace(/\s+/g, ' ');
+        }
+
+        function removeUtf8Bom(value) {
+            return String(value || '').replace(/^\uFEFF/, '');
+        }
+
+        function parseCsvRows(text) {
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+            const source = removeUtf8Bom(text);
+
+            for (let i = 0; i < source.length; i++) {
+                const char = source[i];
+                const next = source[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && next === '"') {
+                        cell += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if ((char === ',' || char === ';') && !inQuotes) {
+                    row.push(cell.trim());
+                    cell = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell.trim());
+                    if (row.some(item => item !== '')) rows.push(row);
+                    row = [];
+                    cell = '';
+                } else {
+                    cell += char;
+                }
+            }
+
+            if (cell || row.length) {
+                row.push(cell.trim());
+                if (row.some(item => item !== '')) rows.push(row);
+            }
+            return rows;
+        }
+
+        function rowToRecord(row) {
+            const record = {};
+            row.forEach((cell, index) => {
+                const match = String(cell).match(/^\s*([^:]+?)\s*:\s*(.*)$/s);
+                if (match) {
+                    const key = match[1].trim();
+                    record[key] = match[2].trim();
+                    record[key.toLowerCase()] = match[2].trim();
+                } else {
+                    if (index === 0) record.q = cell;
+                    if (index === 1) record.a = cell;
+                    if (index === 2) record.isCorrect = cell;
+                }
+            });
+            return record;
+        }
+
+        function buildMoodleXML(data) {
+            const { metadata, questions } = data;
+            const cdata = (content) => `<![CDATA[${String(content || '').replace(/\]\]>/g, ']]]]><![CDATA[>')}]]>`;
+            const xmlEscape = (content) => String(content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+            const hasArabic = (content) => /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(String(content || ''));
+            const formatQuestionText = (content) => {
+                const safeContent = String(content || '').trim();
+                if (hasArabic(safeContent)) {
+                    return `<p style="font-family: Scheherazade; text-align: right; font-size: 250%;" dir="rtl">${safeContent}</p>`;
+                }
+                return safeContent;
+            };
+            
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<quiz>\n`;
+
+            if (metadata.CATEGORY) {
+                xml += `  <question type="category">\n`;
+                xml += `    <category>\n      <text>$course$/${xmlEscape(metadata.CATEGORY)}</text>\n    </category>\n`;
+                xml += `  </question>\n`;
+            }
+
+            questions.forEach((q) => {
+                const isTrueFalse = detectTrueFalse(q.options);
+                const qType = isTrueFalse ? "truefalse" : "multichoice";
+                
+                // --- SMART NAME LOGIC ---
+                let finalQText = q.text;
+                let finalQName = q.text;
+
+                if (metadata.SHUFFLE_QUESTIONS === 'true') {
+                    // 1. Strip leading numbers/labels (e.g. "1.", "Q1:", "Soalan 1:") from the text
+                    // This ensures the displayed question doesn't have a hardcoded number
+                    finalQText = finalQText.replace(/^(\d+[\.\)\:\-]\s*|Q\s*\d+[\.\)\:\-]?\s*|Soalan\s*\d+[\.\)\:\-]?\s*|Question\s*\d+[\.\)\:\-]?\s*)/i, "");
+                    
+                    // 2. Generate short name (First 3 words)
+                    const words = finalQText.split(/\s+/).filter(w => w.length > 0);
+                    const limit = 3; 
+                    const shortName = words.slice(0, limit).join(" ");
+                    finalQName = shortName + (words.length > limit ? "..." : "");
+                } else {
+                    // Default behavior
+                    finalQName = finalQText.length > 50 ? finalQText.substring(0, 47) + "..." : finalQText;
+                }
+                // --- END LOGIC ---
+
+                const mark = q.mark || metadata.DEFAULT_MARK;
+                const shuffleAns = metadata.SHUFFLE_ANSWERS === 'true' ? 1 : 0;
+
+                xml += `  <question type="${qType}">\n`;
+                xml += `    <name>\n      <text>${xmlEscape(finalQName)}</text>\n    </name>\n`;
+                xml += `    <questiontext format="html">\n      <text>${cdata(formatQuestionText(finalQText))}</text>\n    </questiontext>\n`;
+                xml += `    <defaultgrade>${mark}</defaultgrade>\n`;
+                xml += `    <generalfeedback format="html">\n      <text></text>\n    </generalfeedback>\n`;
+                
+                if (qType === 'multichoice') {
+                    xml += `    <single>true</single>\n`;
+                    xml += `    <shuffleanswers>${shuffleAns}</shuffleanswers>\n`;
+                    xml += `    <answernumbering>none</answernumbering>\n`; // Changed to 'none' as requested
+
+                    q.options.forEach(opt => {
+                        let isCorrect = (q.correct === opt.id);
+                        const fraction = isCorrect ? "100" : "0";
+                        xml += `    <answer fraction="${fraction}" format="html">\n`;
+                        xml += `      <text>${cdata(formatQuestionText(opt.text))}</text>\n`;
+                        xml += `      <feedback format="html">\n        <text></text>\n      </feedback>\n`;
+                        xml += `    </answer>\n`;
+                    });
+
+                } else {
+                    // True/False Logic
+                    const correctOption = q.options.find(o => o.id === String(q.correct || '').toUpperCase());
+                    let correctText = "";
+                    if (correctOption) correctText = correctOption.text.toLowerCase();
+                    else correctText = q.correct ? q.correct.toLowerCase() : ""; 
+
+                    const isTrueCorrect = (correctText === 'true' || correctText === 'betul' || correctText.includes('betul') || correctText.includes('true'));
+
+                    xml += `    <answer fraction="${isTrueCorrect ? 100 : 0}" format="html">\n`;
+                    xml += `      <text>true</text>\n      <feedback format="html">\n        <text></text>\n      </feedback>\n    </answer>\n`;
+                    xml += `    <answer fraction="${!isTrueCorrect ? 100 : 0}" format="html">\n`;
+                    xml += `      <text>false</text>\n      <feedback format="html">\n        <text></text>\n      </feedback>\n    </answer>\n`;
+                }
+
+                xml += `  </question>\n`;
+            });
+
+            xml += `</quiz>`;
+            return xml;
+        }
+
+        function detectTrueFalse(options) {
+            if (options.length !== 2) return false;
+            const t1 = options[0].text.toLowerCase();
+            const t2 = options[1].text.toLowerCase();
+            const tfKeywords = ['true', 'false', 'betul', 'salah'];
+            const hasK1 = tfKeywords.some(k => t1.includes(k));
+            const hasK2 = tfKeywords.some(k => t2.includes(k));
+            return hasK1 && hasK2;
+        }
+
+        function downloadXML() {
+            if (!generatedXML) return;
+            const blob = new Blob([generatedXML], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'quiz.xml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            if (!generatedXML) return;
+            navigator.clipboard.writeText(generatedXML).then(() => {
+                const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+                const originalText = btn.innerHTML;
+                
+                // Get success text based on lang
+                const successMsg = translations[currentLang].statusCopied;
+                
+                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> ${successMsg}`;
+                lucide.createIcons();
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

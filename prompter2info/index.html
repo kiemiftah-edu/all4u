@@ -1,0 +1,354 @@
+<!doctype html>
+<!-- BEST PRACTICE 2: Atribut lang diletakkan. Ia akan diubah secara dinamik melalui JS -->
+<html lang="ms-MY">
+ <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SXNL0TEMNX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SXNL0TEMNX');
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- BEST PRACTICE 2: Meta description ditambah untuk tujuan SEO -->
+  <meta name="description" content="Penjana prompt infografik Webtoon pintar. Jana prompt pelbagai gaya kartun 4K dengan pantas dan mudah.">
+  <title>AI.WebtoonGen | Webtoon Infographic Prompt Generator</title>
+  
+  <!-- === PWA SETTINGS === -->
+  <meta name="theme-color" content="#4c51bf">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WebtoonGen">
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="img/comicgen.png">
+  <link rel="apple-touch-icon" href="img/comicgen.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- External Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Fredoka:wght@400;600;700&amp;family=Cairo:wght@400;600;700&amp;display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css?v=18.27">
+ </head>
+ <body>
+  <main class="app-container">
+   
+   <!-- TOP LEFT CONTROLS (Refresh & Install) -->
+   <div class="header-controls-left glass-control">
+       <button id="force-update-btn" class="ui-icon-btn refresh-btn" title="Reset & Update">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+         </svg>
+       </button>
+       <button id="install-pwa-btn" class="ui-icon-btn install-btn hidden" title="Install Aplikasi">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M12 3v13.5M8.25 12.75 12 16.5l3.75-3.75" />
+         </svg>
+       </button>
+   </div>
+
+   <!-- TOP RIGHT CONTROLS (Language) -->
+   <div class="ui-lang-switch glass-control">
+     <button type="button" class="ui-lang-btn active" data-lang="bm" onclick="setUILanguage('bm')">BM</button>
+     <button type="button" class="ui-lang-btn" data-lang="en" onclick="setUILanguage('en')">EN</button>
+   </div>
+
+   <div class="content-wrapper">
+    <header>
+     <div class="logo-container">
+      <img src="img/comicgen.png" alt="ComicGen Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'font-size:3rem;\'>📚✨</div>';">
+     </div>
+     <h1 id="main-title">Penjana Prompt Infografik Webtoon</h1>
+     <p class="subtitle" id="subtitle">Jana prompt infografik pelbagai gaya kartun lengkap dengan segera.</p>
+    </header>
+    
+    <div class="card">
+     <form id="prompt-form">
+      <div class="input-group">
+        <label for="topic-input">
+            <span class="label-icon">💡</span>
+            <span id="label-topic">Topik</span>
+        </label> 
+        <input type="text" id="topic-input" placeholder="Masukkan topik anda…" required aria-label="Topic input field">
+      </div>
+
+      <div class="input-group" id="prop-section-container">
+        <div class="label-row-custom">
+            <label for="prop-input">
+                <span class="label-icon">🎒</span>
+                <span id="label-prop">Elemen Lain / Konteks Tambahan</span>
+                <div class="info-icon-wrapper" onclick="toggleTooltip(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="info-icon-svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                    </svg>
+                    <div class="info-tooltip" id="info-tooltip-text">
+                        Masukkan sebarang elemen tambahan, deskripsi visual terperinci, atau prop khusus untuk memperkayakan hasil prompt.
+                    </div>
+                </div>
+            </label>
+            <div class="attachment-box-wrapper">
+                <input type="checkbox" id="prop-attached-check">
+                <label for="prop-attached-check" class="attach-label-text">📎 Rujuk Lampiran</label>
+            </div>
+        </div>
+        
+        <div class="relative-container" style="position: relative;">
+            <textarea id="prop-input" placeholder="Contoh: Komputer riba, Kucing..." aria-label="Prop input field"></textarea>
+
+            <div id="prop-warning" class="upload-warning-overlay hidden">
+                <div class="warning-box">
+                    <button type="button" class="warning-close-btn" data-target="prop-warning">✕</button>
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">Ikut Fail Lampiran</span>
+                    <span class="warning-subtext">Sila muat naik fail rujukan!</span>
+                </div>
+            </div>
+        </div>
+
+        <label for="prop-mode" style="margin-top: 1.5rem;">
+            <span class="label-icon">📝</span>
+            <span id="label-prop-mode">Mod Kandungan</span>
+        </label>
+        <select id="prop-mode">
+            <option value="short" selected id="opt-short">Ringkasan Visual & Ikon</option>
+            <option value="details" id="opt-details">Teks Penuh</option>
+        </select>
+      </div>
+
+      <div class="input-group checkbox-wrapper">
+         <input type="checkbox" id="spanning-check">
+         <label for="spanning-check" id="label-spanning">Watak/Elemen Merentasi Panel</label>
+      </div>
+
+      <div class="input-group hidden" id="spanning-custom-group">
+        <label for="spanning-custom-input">
+            <span class="label-icon">↔️</span>
+            <span id="label-spanning-custom">Arahan Merentasi Panel (Opsyenal)</span>
+        </label>
+        <textarea id="spanning-custom-input" placeholder="Contoh (opsyenal): Watak utama keluar dari Panel 2 ke Panel 3, tangan kanan memegang telefon di luar bingkai, position di tengah-kanan, saiz besar." aria-label="Spanning custom instruction"></textarea>
+        <p class="helper-text" id="spanning-custom-help" style="margin-top:0.5rem; font-size:0.8rem; color: var(--text-muted);">Jika kosong, AI akan tentukan watak/elemen, posisi, dan rentasan panel secara automatik berdasarkan topik. Jika diisi, ikut arahan ini sepenuhnya.</p>
+      </div>
+
+      <div class="input-group checkbox-wrapper">
+         <input type="checkbox" id="ai-advisor-check">
+         <label for="ai-advisor-check" id="label-ai-advisor">🤖 Penasihat Gaya AI (Kesan Auto)</label>
+      </div>
+      
+      <!-- Design Style Selection -->
+      <div class="input-group" id="style-section-container">
+        <div class="label-row-custom">
+            <label id="label-style">Gaya Desain</label>
+            <div class="attachment-box-wrapper">
+                <input type="checkbox" id="style-attached-check">
+                <label for="style-attached-check" class="attach-label-text">📎 Rujuk Lampiran</label>
+            </div>
+        </div>
+        
+        <div class="relative-container" style="position: relative;">
+            <div class="format-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); margin-bottom: 0.75rem;">
+                <div class="format-option"><input type="radio" id="style-warm" name="style" value="warm" checked><label for="style-warm" class="format-label">🏠 <span id="text-style-warm">Keluarga</span></label></div>
+                <div class="format-option"><input type="radio" id="style-business" name="style" value="business"><label for="style-business" class="format-label">💼 <span id="text-style-business">Bisnes</span></label></div>
+                <div class="format-option"><input type="radio" id="style-digital" name="style" value="digital"><label for="style-digital" class="format-label">💻 <span id="text-style-digital">Digital</span></label></div>
+                <div class="format-option"><input type="radio" id="style-academic" name="style" value="academic"><label for="style-academic" class="format-label">📚 <span id="text-style-academic">Pendidikan</span></label></div>
+                <div class="format-option"><input type="radio" id="style-exploration" name="style" value="exploration"><label for="style-exploration" class="format-label">🧭 <span id="text-style-exploration">Eksplorasi</span></label></div>
+                <div class="format-option"><input type="radio" id="style-stem" name="style" value="stem"><label for="style-stem" class="format-label">🧪 <span id="text-style-stem">STEM</span></label></div>
+            </div>
+
+            <div class="format-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
+                <div class="format-option"><input type="radio" id="style-storytelling" name="style" value="storytelling"><label for="style-storytelling" class="format-label">📖 <span id="text-style-storytelling">Penceritaan</span></label></div>
+                <div class="format-option"><input type="radio" id="style-expressive" name="style" value="expressive"><label for="style-expressive" class="format-label">🎭 <span id="text-style-expressive">Ekspresif</span></label></div>
+                <div class="format-option"><input type="radio" id="style-coretan" name="style" value="coretan"><label for="style-coretan" class="format-label">🖍️ <span id="text-style-coretan">Coretan</span></label></div>
+                <div class="format-option"><input type="radio" id="style-retro" name="style" value="retro"><label for="style-retro" class="format-label">📻 <span id="text-style-retro">Retro</span></label></div>
+                <div class="format-option"><input type="radio" id="style-vivid" name="style" value="vivid"><label for="style-vivid" class="format-label">✨ <span id="text-style-vivid">Vivid</span></label></div>
+                <div class="format-option"><input type="radio" id="style-miniatur" name="style" value="miniatur"><label for="style-miniatur" class="format-label">🧩 <span id="text-style-miniatur">Miniatur</span></label></div>
+            </div>
+            
+            <div id="style-warning" class="upload-warning-overlay hidden">
+                <div class="warning-box">
+                    <button type="button" class="warning-close-btn" data-target="style-warning">✕</button>
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">Ikut Fail Lampiran</span>
+                    <span class="warning-subtext">Sila muat naik fail rujukan!</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Cartoon Art Style Selection -->
+      <div class="input-group" id="art-section-container">
+        <div class="label-row-custom">
+            <label for="art-style">
+                <span class="label-icon">🎨</span>
+                <span id="label-art-style">Gaya Seni Kartun</span>
+            </label>
+            <div class="attachment-box-wrapper">
+                <input type="checkbox" id="art-attached-check">
+                <label for="art-attached-check" class="attach-label-text">📎 Rujuk Lampiran</label>
+            </div>
+        </div>
+        
+        <div class="relative-container" style="position: relative;">
+            <select id="art-style">
+                <option value="default" selected>✨ Default (Malaysian Webtoon)</option>
+                <option value="malay_chibi_25d">Cute Malaysian Chibi (2.5D)</option>
+                <option value="hyperreal_3d">Hyperrealistic 3D Cartoon</option>
+                <option value="pixar_3d">Pixar-Style 3D</option>
+                <option value="kawaii_storybook">Modern Kawaii Storybook</option>
+                <option value="semi_real_anime">Semi-Realistic Anime</option>
+                <option value="anime_classic">Anime Style (Classic)</option>
+                <option value="disney_2d">Disney Traditional (2D)</option>
+                <option value="vector_flat">Vector Flat (Modern)</option>
+                <option value="watercolor">Watercolor Storybook Premium</option>
+                <option value="gritty_action">Gritty Action</option>
+                <option value="rubber_hose">Vintage Rubber-Hose (1930s)</option>
+            </select>
+            <p id="art-style-hint" class="hidden" style="color: var(--color-danger); font-size: 0.8rem; font-weight: bold; margin-top: 0.5rem;">
+                *Gaya Kartun dinyahtaktifkan kerana ia tidak serasi dengan Gaya Desain yang dipilih.
+            </p>
+            <div id="art-warning" class="upload-warning-overlay hidden">
+                <div class="warning-box">
+                    <button type="button" class="warning-close-btn" data-target="art-warning">✕</button>
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">Ikut Fail Lampiran</span>
+                    <span class="warning-subtext">Sila muat naik fail rujukan!</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Panel Count Selection -->
+      <div class="input-group">
+        <label for="panel-count">
+            <span class="label-icon">🎞️</span>
+            <span id="label-panels">Bilangan Panel</span>
+        </label> 
+        <select id="panel-count">
+            <option value="auto" id="opt-panel-auto">Auto (Fleksibel)</option>
+            <option value="poster" id="opt-panel-poster">🖼️ Poster (Satu Halaman Penuh)</option>
+            <option value="1">1 Panel</option>
+            <option value="2">2 Panel</option>
+            <option value="3">3 Panel</option>
+            <option value="4">4 Panel</option>
+            <option value="5">5 Panel</option>
+            <option value="6">6 Panel</option>
+        </select>
+      </div>
+
+      <!-- Language Output -->
+      <div class="input-group">
+        <label id="label-output-lang">Bahasa Output</label>
+        <div class="format-options" id="lang-options">
+            <div class="format-option"><input type="radio" id="lang-bm" name="language" value="bm" checked><label for="lang-bm" class="format-label">🇲🇾 Bahasa Melayu</label></div>
+            <div class="format-option"><input type="radio" id="lang-en" name="language" value="en"><label for="lang-en" class="format-label">🇬🇧 English</label></div>
+            <div class="format-option"><input type="radio" id="lang-ar" name="language" value="ar"><label for="lang-ar" class="format-label">🇸🇦 العربية</label></div>
+        </div>
+      </div>
+      
+      <!-- Arabic Font Selection -->
+      <div class="input-group hidden" id="arabic-font-group">
+        <label for="arabic-font">
+            <span class="label-icon">🔠</span>
+            <span id="label-arabic-font">Gaya Font Arab</span>
+            <div class="info-icon-wrapper" onclick="toggleTooltip(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="info-icon-svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+                <div class="info-tooltip wide-tooltip">
+                    <p class="mb-2" id="info-arabic-font">Contoh Font Google:</p>
+                    <ul class="list-disc pl-4 text-left">
+                        <li>Almarai, Amiri, Harmattan, dll.</li>
+                    </ul>
+                </div>
+            </div>
+        </label>
+        <select id="arabic-font">
+            <option value="Almarai" selected>Almarai (Standard)</option>
+            <option value="Amiri Quran">Amiri Quran</option>
+            <option value="Harmattan">Harmattan</option>
+            <option value="IBM Plex Sans Arabic">IBM Plex Sans Arabic</option>
+            <option value="Marhey">Marhey</option>
+            <option value="Scheherazade New">Scheherazade New</option>
+            <option value="Rubik">Rubik Arabic</option>
+            <option value="Tajawal">Tajawal</option>
+            <option value="Beiruti">Beiruti</option>
+            <option value="Playpen Sans Arabic">Playpen Sans Arabic</option>
+            <option value="Baloo Bhaijaan 2">Baloo Bhaijaan 2</option>
+        </select>
+      </div>
+
+      <!-- Character -->
+      <div class="input-group" id="char-section-container">
+        <div class="label-row-custom">
+            <label id="label-character">Watak Utama</label>
+            <div class="attachment-box-wrapper">
+                <input type="checkbox" id="char-attached-check">
+                <label for="char-attached-check" class="attach-label-text">📎 Rujuk Lampiran</label>
+            </div>
+        </div>
+        
+        <div class="relative-container" style="position: relative;">
+            <div class="format-options">
+                <div class="format-option"><input type="radio" id="char-female" name="character" value="female" checked><label for="char-female" class="format-label">👧 <span id="text-char-female">Perempuan</span></label></div>
+                <div class="format-option"><input type="radio" id="char-male" name="character" value="male"><label for="char-male" class="format-label">👦 <span id="text-char-male">Lelaki</span></label></div>
+                <div class="format-option"><input type="radio" id="char-both" name="character" value="both"><label for="char-both" class="format-label">👥 <span id="text-char-both">Lelaki &amp;<br>Perempuan</span></label></div>
+                <div class="format-option"><input type="radio" id="char-none" name="character" value="none"><label for="char-none" class="format-label">🚫 <span id="text-char-none">Tiada</span></label></div>
+            </div>
+            <div id="char-warning" class="upload-warning-overlay hidden">
+                <div class="warning-box">
+                    <button type="button" class="warning-close-btn" data-target="char-warning">✕</button>
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">Ikut Fail Lampiran</span>
+                    <span class="warning-subtext">Sila muat naik fail rujukan!</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Orientation -->
+      <div class="input-group">
+        <label id="label-orientation">Saiz Paparan</label>
+        <select id="size-select">
+            <option value="9:16" id="opt-size-916" selected>📱 9:16 (Potret/TikTok/Reels/Story)</option>
+            <option value="16:9" id="opt-size-169">🖥️ 16:9 (Landskap/YouTube)</option>
+            <option value="1:1" id="opt-size-11">⬜ 1:1 (Segi Empat Sama/Instagram/FB)</option>
+            <option value="4:5" id="opt-size-45">🖼️ 4:5 (Potret Instagram)</option>
+            <option value="A4" id="opt-size-a4">📄 A4 Paper (2480×3508 px, 300 DPI)</option>
+            <option value="A5" id="opt-size-a5">📄 A5 Paper (1748×2480 px, 300 DPI)</option>
+            <option value="B5" id="opt-size-b5">📄 B5 Paper (2079×2953 px, 300 DPI)</option>
+        </select>
+      </div>
+      
+      <button type="submit" class="button-primary" id="generate-btn">Jana Prompt</button>
+     </form>
+    </div>
+    
+    <div class="card output-section" id="output-section">
+     <div class="output-header">
+      <div class="output-title-wrapper">
+          <h2 class="output-title" id="output-title">JANAAN PROMPT</h2>
+          <p class="output-note" id="json-note">Format JSON memastikan AI patuh arahan ketat.</p>
+      </div>
+      <button type="button" class="button-copy" id="copy-btn">SALIN PROMPT</button>
+     </div>
+     <div class="prompt-container" id="prompt-output"></div>
+     
+     <a href="https://gemini.google.com/" target="_blank" class="button-gemini" id="open-gemini-btn">
+        Buka Gemini &amp; Tampal 🚀
+     </a>
+    </div>
+    
+    <!-- Footer container, populated dynamically via JS -->
+    <footer class="app-footer" id="app-footer"></footer>
+   </div>
+  </main>
+  
+  <script src="config.js" onerror="console.log('Mod tanpa konfigurasi luaran (Free Tier).')"></script>
+  <script src="script.js?v=18.27"></script>
+ </body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="background-color" content="#f4f7fb">
+<meta name="application-name" content="Media2Split">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Media2Split">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Split video and audio into clean 5–20 second clips directly in your browser.">
+<title>AI Video & Audio Splitter</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="img/media2split.png">
+<link rel="shortcut icon" type="image/png" href="img/media2split.png">
+<link rel="apple-touch-icon" href="img/media2split.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page-glow page-glow-one"></div>
+<div class="page-glow page-glow-two"></div>
+
+<div class="app">
+  <header class="app-header">
+    <div class="brand-mark">
+      <img src="img/media2split.png" alt="Media2Split app icon">
+    </div>
+    <div class="eyebrow">LOCAL MEDIA TOOL</div>
+    <h1>AI Video & Audio Splitter</h1>
+    <p class="tagline">Create clean 5–20 second clips for AI workflows.</p>
+    <p class="subtitle">Auto-detects video or audio. Processing stays in your browser.</p>
+  </header>
+
+  <main class="app-main">
+
+    <section class="card upload-card" id="uploadSection">
+      <div class="section-kicker">01 &nbsp; SELECT MEDIA</div>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="video/*,audio/*,.mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,.oga,.flac,.opus" hidden>
+        <div class="dropzone-content">
+          <div class="upload-icon-wrap">
+            <svg class="upload-icon" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M12 16V4M12 4L7 9M12 4l5 5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="dropzone-title">Drop video or audio here</p>
+          <p class="dropzone-or">or select a file from your device</p>
+          <button type="button" class="btn btn-secondary" id="chooseFileBtn">Choose Media</button>
+          <p class="dropzone-hint">Video: MP4, MOV, M4V, WebM &nbsp;•&nbsp; Audio: MP3, WAV, M4A, AAC, OGG, FLAC, OPUS</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="previewSection">
+      <div class="section-heading-row">
+        <div>
+          <div class="section-kicker">02 &nbsp; PREVIEW</div>
+          <h2 class="section-title">Media detected</h2>
+        </div>
+        <span class="media-badge" id="mediaTypeBadge">VIDEO</span>
+      </div>
+
+      <div class="preview-layout">
+        <div class="media-wrap video-wrap" id="videoWrap">
+          <video id="videoPreview" controls playsinline></video>
+        </div>
+        <div class="media-wrap audio-wrap hidden" id="audioWrap">
+          <div class="audio-art" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M9 18V7l10-2v11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <audio id="audioPreview" controls preload="metadata"></audio>
+        </div>
+
+        <div class="metadata" id="metadata">
+          <div class="meta-row"><span class="meta-label">File</span><span class="meta-value" id="metaFile">-</span></div>
+          <div class="meta-row"><span class="meta-label">Type</span><span class="meta-value" id="metaType">-</span></div>
+          <div class="meta-row"><span class="meta-label">Duration</span><span class="meta-value" id="metaDuration">-</span></div>
+          <div class="meta-row" id="resolutionRow"><span class="meta-label">Resolution</span><span class="meta-value" id="metaResolution">-</span></div>
+          <div class="meta-row"><span class="meta-label">Size</span><span class="meta-value" id="metaSize">-</span></div>
+        </div>
+      </div>
+      <p class="warning hidden" id="shortVideoWarning">This file is shorter than the recommended 5-second minimum.</p>
+    </section>
+
+    <section class="card hidden" id="optionsSection">
+      <div class="section-kicker">03 &nbsp; SPLIT OPTIONS</div>
+      <h2 class="section-title">Choose clip length</h2>
+
+      <div class="options-grid">
+        <div class="option-panel">
+          <label class="option-label" for="clipDuration">Clip Duration</label>
+          <div class="presets" id="presets">
+            <button type="button" class="preset-btn" data-value="5">5s</button>
+            <button type="button" class="preset-btn active" data-value="10">10s</button>
+            <button type="button" class="preset-btn" data-value="15">15s</button>
+            <button type="button" class="preset-btn" data-value="20">20s</button>
+          </div>
+          <select id="clipDuration" class="select">
+            <option value="5">5 seconds</option>
+            <option value="6">6 seconds</option>
+            <option value="7">7 seconds</option>
+            <option value="8">8 seconds</option>
+            <option value="9">9 seconds</option>
+            <option value="10" selected>10 seconds</option>
+            <option value="11">11 seconds</option>
+            <option value="12">12 seconds</option>
+            <option value="13">13 seconds</option>
+            <option value="14">14 seconds</option>
+            <option value="15">15 seconds</option>
+            <option value="16">16 seconds</option>
+            <option value="17">17 seconds</option>
+            <option value="18">18 seconds</option>
+            <option value="19">19 seconds</option>
+            <option value="20">20 seconds</option>
+          </select>
+        </div>
+
+        <div class="option-panel" id="outputSizeOptionGroup">
+          <label class="option-label">Video Output Size</label>
+          <div class="radio-group" id="outputSizeGroup">
+            <label class="radio-option">
+              <input type="radio" name="outputSize" value="100" checked>
+              <span class="radio-card-text"><strong>Original</strong><small>Keep resolution</small></span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="outputSize" value="75">
+              <span class="radio-card-text"><strong>75%</strong><small>Smaller output</small></span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="outputSize" value="50">
+              <span class="radio-card-text"><strong>50%</strong><small>Lightest output</small></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-block" id="splitBtn" disabled>Split Media</button>
+      <p class="privacy-note">Your file stays on your device. Processing is done locally in your browser.</p>
+    </section>
+
+    <section class="card hidden" id="progressSection">
+      <div class="section-kicker">04 &nbsp; PROCESSING</div>
+      <h2 class="section-title">Creating clips</h2>
+      <p class="progress-status" id="progressStatus">Loading media engine...</p>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+      <p class="progress-percent" id="progressPercent">0%</p>
+    </section>
+
+    <section class="card hidden" id="resultsSection">
+      <div class="results-header">
+        <div>
+          <div class="section-kicker">05 &nbsp; RESULTS</div>
+          <h2 class="section-title">Split Complete</h2>
+        </div>
+        <p class="results-count" id="resultsCount">0 clips created</p>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+      <button type="button" class="btn btn-secondary" id="newVideoBtn">New Media</button>
+    </section>
+
+    <div class="error-box hidden" id="errorBox"></div>
+  </main>
+
+  <footer class="app-footer">
+    <span class="status-dot"></span>
+    <p>Private browser processing. No media upload required.</p>
+  </footer>
+</div>
+
+<script src="ffmpeg-local.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

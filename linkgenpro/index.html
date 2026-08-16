@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-656DEMRN8F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-656DEMRN8F');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkGen Pro - Penjana Halaman Pendaratan</title>
+    
+    <!-- PWA & Mobile Meta -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LinkGen Pro">
+    
+    <!-- Ikon & Favicon -->
+    <link rel="icon" type="image/png" href="img/linkgenpro.png">
+    <link rel="apple-touch-icon" href="img/linkgenpro.png">
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg-builder: #0f172a;
+            --card-builder: #1e293b;
+            --text-builder: #f1f5f9;
+            --border-color: #334155;
+            --accent: #6366f1;
+            --amber: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-builder);
+            color: var(--text-builder);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Nav Bar Atas */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 2rem;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .app-brand-box img {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            background: var(--card-builder);
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Tajuk Aplikasi: Bold Tebal */
+        .app-brand-info h1 {
+            font-size: 2.2rem;
+            font-weight: 900; 
+            line-height: 0.85;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to bottom, #ffffff 40%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            position: relative;
+        }
+
+        .app-brand-info p {
+            font-size: 0.62rem;
+            opacity: 0.4;
+            white-space: nowrap;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-top: 6px;
+            color: var(--primary);
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .lang-toggle {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 800;
+            opacity: 0.4;
+            color: #fff;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: white;
+            opacity: 1;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-reset-main {
+            background: var(--card-builder);
+            color: var(--amber);
+            border: 1px solid var(--border-color);
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            flex-shrink: 0;
+        }
+
+        .btn-reset-main:hover {
+            background: var(--amber);
+            color: #000;
+            transform: rotate(180deg) scale(1.1);
+        }
+
+        /* Layout Container */
+        .app-container {
+            display: flex;
+            flex-direction: column-reverse;
+            flex: 1;
+        }
+
+        @media (min-width: 900px) {
+            .app-container {
+                flex-direction: row-reverse;
+                height: calc(100vh - 92px - 80px);
+            }
+        }
+
+        /* Pembetulan Navigasi Mobile */
+        @media (max-width: 600px) {
+            .top-nav { padding: 10px 1rem; gap: 5px; }
+            .app-brand-box { gap: 8px; }
+            .app-brand-box img { width: 42px; height: 42px; border-radius: 10px; }
+            .app-brand-info h1 { font-size: 1.5rem; }
+            .app-brand-info p { font-size: 0.42rem; margin-top: 3px; }
+            .nav-controls { gap: 6px; }
+            .lang-btn { padding: 4px 8px; font-size: 0.65rem; }
+            .btn-reset-main { width: 30px; height: 30px; }
+        }
+
+        /* Panel Preview */
+        #preview-side {
+            flex: 1.2;
+            padding: 2rem;
+            background: #020617;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* Panel Builder */
+        #builder-side {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background-color: var(--bg-builder);
+        }
+
+        .phone-mockup {
+            width: 100%;
+            max-width: 440px; 
+            min-height: 620px;
+            border-radius: 35px;
+            border: 12px solid #1e293b;
+            background: #000;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center; gap: 10px;
+            text-transform: uppercase;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+
+        .percent-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .percent-item label {
+            display: block;
+            font-size: 0.6rem;
+            margin-bottom: 4px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .percent-item input {
+            padding: 0.4rem;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            margin-bottom: 0.4rem;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--card-builder);
+            color: white;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        input:focus { border-color: var(--primary); background: #262f3f; }
+
+        .link-item {
+            background: #161e2e;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--primary);
+        }
+
+        .link-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            align-items: center;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 0.7rem 1.2rem; 
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-add { background: var(--primary); color: white; width: 100%; margin-bottom: 2rem; }
+        
+        .btn-output-group { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 0.5rem; 
+            width: 100%; 
+            max-width: 600px;
+            flex-wrap: nowrap;
+        }
+        
+        .btn-output-group button { 
+            flex: 1; 
+            padding: 0.8rem 0.5rem; 
+            font-size: 0.82rem; 
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        @media (max-width: 480px) {
+            .btn-output-group { gap: 6px; }
+            .btn-output-group button { font-size: 0.7rem; padding: 0.7rem 4px; }
+        }
+        
+        .btn-copy { background: #4f46e5; color: white; }
+        .btn-export { background: var(--success); color: white; }
+        .btn-import { background: var(--card-builder); color: white; border: 1px solid var(--border-color); }
+        .btn-small { padding: 0.4rem 0.5rem; background: #334155; color: white; font-size: 0.75rem; }
+
+        .import-note-text {
+            font-size: 0.65rem;
+            opacity: 0.5;
+            margin-bottom: 1.5rem;
+            text-align: justify; 
+            width: 100%;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        /* Output Container */
+        .output-container-side {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 4rem;
+        }
+
+        .code-container-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #000;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #html-code-display {
+            padding: 1.25rem;
+            font-size: 0.75rem;
+            color: #10b981;
+            max-height: 250px;
+            overflow: auto;
+            white-space: pre;
+            line-height: 1.6;
+        }
+
+        #html-code-display::-webkit-scrollbar { width: 6px; }
+        #html-code-display::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        /* Global Footer */
+        .app-footer-global {
+            width: 100%;
+            padding: 1.5rem 2rem;
+            background: #020617;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            line-height: 1.6;
+            margin-top: auto;
+        }
+
+        .app-footer-global a { color: var(--primary); text-decoration: none; font-weight: bold; }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: var(--card-builder);
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 350px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hidden { display: none !important; }
+        .animate-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="app-brand-box">
+        <img src="img/linkgenpro.png" alt="LGP Logo" onerror="this.src='https://api.dicebear.com/7.x/shapes/svg?seed=LinkGenPro'">
+        <div class="app-brand-info">
+            <h1 id="ui-app-title">LinkGen Pro</h1>
+            <p id="ui-main-subtitle">One-Click Landing Page Generator</p>
+        </div>
+    </div>
+    <div class="nav-controls">
+        <div class="lang-toggle">
+            <div id="btn-ms" class="lang-btn" onclick="setLanguage('ms')">BM</div>
+            <div id="btn-en" class="lang-btn" onclick="setLanguage('en')">EN</div>
+        </div>
+        <div class="btn-reset-main" id="trigger-reset" onclick="showResetModal()" title="Mula Semula / Restart">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        </div>
+    </div>
+</nav>
+
+<div id="modal-overlay">
+    <div class="modal-card">
+        <h3 id="modal-title" style="color: var(--amber); margin-bottom: 12px; font-size: 1.25rem;">Mula Semula?</h3>
+        <p id="modal-desc" style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 25px;">Tindakan ini akan mengembalikan data ke tetapan contoh asal.</p>
+        <div style="display: flex; gap: 12px;">
+            <button style="flex: 1; background: #334155; color: white;" onclick="closeResetModal()" id="btn-cancel">Batal</button>
+            <button style="flex: 1; background: var(--amber); color: #000;" onclick="performReset()" id="btn-confirm">Ya, Reset</button>
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
+    <div id="preview-side">
+        <div class="phone-mockup" id="preview-frame"></div>
+        
+        <div class="output-container-side" id="output-section">
+            <h2 class="section-title" id="ui-sec-output">📦 Hasil Akhir</h2>
+            <div class="btn-output-group">
+                <button class="btn-copy" onclick="copyHTML()" id="btn-copy-html">📋 Salin HTML</button>
+                <button class="btn-export" onclick="downloadHTML()" id="btn-download-html">📥 Muat Turun</button>
+                <button class="btn-import" onclick="document.getElementById('import-file').click()" id="btn-import-html">📂 Ubah Info</button>
+                <input type="file" id="import-file" accept=".html" style="display: none;" onchange="importHTML(this)">
+            </div>
+            <p class="import-note-text" id="ui-import-note">Nota Pengguna: Sila tekan 'Ubah Info' dan muat naik fail (.html) anda bagi mengubah atau mengemaskini informasi.</p>
+            
+            <div class="code-container-wrapper">
+                <pre id="html-code-display"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="builder-side">
+        <section>
+            <h2 class="section-title" id="ui-sec-profile">👤 Profil Utama</h2>
+            <div class="form-group">
+                <label id="lbl-username">Nama Pengguna</label>
+                <input type="text" id="input-username" oninput="updateData()">
+            </div>
+            <div class="form-group">
+                <label id="lbl-tagline">Tagline</label>
+                <input type="text" id="input-tagline" oninput="updateData()">
+            </div>
+            <div class="form-group">
+                <label id="lbl-personal-web">Laman Peribadi (Pautan Nama Pengguna)</label>
+                <input type="text" id="input-personal-web" oninput="updateData()">
+            </div>
+            <div class="form-group">
+                <label id="lbl-avatar">URL Gambar Profil</label>
+                <input type="text" id="input-avatar" placeholder="https://..." oninput="handleUrlInput(this)">
+            </div>
+            
+            <div class="percent-row">
+                <div class="percent-item">
+                    <label id="lbl-zoom">Zoom %</label>
+                    <input type="number" id="input-avatar-zoom" value="150" oninput="updateData()">
+                </div>
+                <div class="percent-item">
+                    <label id="lbl-pos-x">Paksi X %</label>
+                    <input type="number" id="input-avatar-pos-x" value="0" oninput="updateData()">
+                </div>
+                <div class="percent-item">
+                    <label id="lbl-pos-y">Paksi Y %</label>
+                    <input type="number" id="input-avatar-pos-y" value="0" oninput="updateData()">
+                </div>
+            </div>
+        </section>
+
+        <section style="margin-top: 2rem;">
+            <h2 class="section-title" id="ui-sec-theme">🎨 Gaya & Warna</h2>
+            <div class="form-group">
+                <label id="lbl-theme">Pilih Tema</label>
+                <select id="select-theme" onchange="handleThemeChange()"></select>
+            </div>
+            <div id="custom-theme-controls" class="hidden animate-in">
+                <div class="color-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px;">
+                    <div class="form-group"><label>BG 1</label><input type="color" id="custom-bg1" oninput="updateData()"></div>
+                    <div class="form-group"><label>BG 2</label><input type="color" id="custom-bg2" oninput="updateData()"></div>
+                    <div class="form-group"><label>Teks</label><input type="color" id="custom-text" oninput="updateData()"></div>
+                    <div class="form-group"><label>Butang</label><input type="color" id="custom-btn-bg" oninput="updateData()"></div>
+                    <div class="form-group"><label>Sempadan</label><input type="color" id="custom-btn-border" oninput="updateData()"></div>
+                    <div class="form-group"><label>Aksen</label><input type="color" id="custom-accent" oninput="updateData()"></div>
+                </div>
+            </div>
+        </section>
+
+        <section style="margin-top: 2rem;">
+            <h2 class="section-title" id="ui-sec-links">🔗 Pautan</h2>
+            <div id="links-container"></div>
+            <button class="btn-add" id="btn-add-link" onclick="addNewLink()">+ Tambah Pautan Baru</button>
+        </section>
+
+        <section style="margin-top: 1rem;">
+            <h2 class="section-title" id="ui-sec-footer">📝 Kaki Bio</h2>
+            <div class="form-group">
+                <label id="lbl-footer">Teks Footer (Gunakan {user}, {year})</label>
+                <input type="text" id="input-footer" oninput="updateData()">
+            </div>
+        </section>
+    </div>
+</div>
+
+<footer class="app-footer-global">
+    LinkGen Pro <span id="footer-year"></span>© was creatively built and designed using Gemini Canvas by 
+    <a href="https://www.tiktok.com/@kiemiftah" target="_blank">Kiemiftah.Com</a>.<br>
+    <span style="font-size: 0.6rem; opacity: 0.35; font-weight: normal; color: #94a3b8; display: block; margin-top: 4px;">
+        Last Updated on <span id="footer-date"></span>
+        <span class="mx-1 opacity-50">|</span>
+        Hitstat: <span id="hitstatTotal" style="color: var(--primary); font-family: monospace;">...</span>
+    </span>
+</footer>
+
+<script>
+    // --- UTILS ---
+    function getDirectLink(url) {
+        if (!url || typeof url !== 'string') return url;
+        let cleanUrl = url.trim();
+        if (cleanUrl.includes('www.dropbox.com')) cleanUrl = cleanUrl.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+        return cleanUrl;
+    }
+
+    function handleUrlInput(el, linkIndex = null, field = 'avatar') {
+        const originalValue = el.value;
+        const converted = getDirectLink(originalValue);
+        if (originalValue !== converted) {
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            el.value = converted;
+            el.setSelectionRange(start, end);
+        }
+        if (linkIndex !== null) {
+            if (field === 'icon') state.links[linkIndex].icon = el.value;
+        } else {
+            if (field === 'avatar') state.avatar = el.value;
+        }
+        updateData();
+    }
+
+    const i18n = {
+        ms: {
+            appTitle: "LinkGen Pro",
+            secProfile: "👤 Profil Utama", secTheme: "🎨 Gaya & Warna", secLinks: "🔗 Pautan", secFooter: "📝 Kaki Bio", secOutput: "📦 Hasil Akhir",
+            lblUsername: "Nama Pengguna", lblTagline: "Tagline", lblAvatar: "URL Gambar Profil",
+            lblPersonalWeb: "Laman Peribadi (Pautan Nama Pengguna)",
+            lblZoom: "Zoom %", lblPosX: "Paksi X %", lblPosY: "Paksi Y %",
+            lblTheme: "Pilih Tema", lblFooter: "Teks Footer (Gunakan {user}, {year})",
+            lblCode: "Kod Sumber HTML:", btnAddLink: "+ Tambah Pautan Baru", btnCopy: "📋 Salin HTML", btnDownload: "📥 Muat Turun", btnImport: "📂 Ubah Info",
+            importNote: "Nota Pengguna: Sila tekan 'Ubah Info' dan muat naik fail (.html) anda bagi mengubah atau mengemaskini informasi.",
+            modalTitle: "Mula Semula?", modalDesc: "Semua data akan dikembalikan ke tetapan contoh asal.",
+            btnCancel: "Batal", btnConfirm: "Ya, Reset", toastCopied: "Kod disalin!", toastImported: "Info Berjaya Diubah!", toastError: "Fail tidak sah!",
+            groups: { light: "Tema Cerah", dark: "Tema Gelap" },
+            presets: {
+                'pure-white': 'Putih Klasik', 'sky-light': 'Biru Langit', 'lavender-mist': 'Ungu Lavender', 'peach-blossom': 'Bunga Pic', 'mint-fresh': 'Mint Segar', 'lemon-fizz': 'Kuning Lemon', 'minimal-light': 'Minimalis Cerah', 'soft-sand': 'Pasir Lembut',
+                'slate-night': 'Slate Night', 'midnight-blue': 'Midnight Blue', 'carbon-purple': 'Carbon Purple', 'emerald-dark': 'Emerald Dark', 'sunset-orange': 'Sunset Orange', 'rose-wine': 'Rose Wine', 'ocean-teal': 'Ocean Teal', 'royal-gold': 'Royal Gold', 'mono-ink': 'Hitam Mono', 'custom': '-- Kustom --'
+            }
+        },
+        en: {
+            appTitle: "LinkGen Pro",
+            secProfile: "👤 Main Profile", secTheme: "🎨 Style & Color", secLinks: "🔗 Links", secFooter: "📝 Bio Footer", secOutput: "📦 Final Output",
+            lblUsername: "Username", lblTagline: "Tagline", lblAvatar: "Profile Image URL",
+            lblPersonalWeb: "Personal Website (Username Link)",
+            lblZoom: "Zoom %", lblPosX: "Axis X %", lblPosY: "Axis Y %",
+            lblTheme: "Select Theme", lblFooter: "Footer Text (Use {user}, {year})",
+            btnAddLink: "+ Add New Link", btnCopy: "📋 Copy HTML", btnDownload: "📥 Download", btnImport: "📂 Change Info",
+            importNote: "User Note: Please click 'Change Info' and upload your (.html) file to edit or update information.",
+            modalTitle: "Restart?", modalDesc: "All data will be restored to original samples.",
+            btnCancel: "Cancel", btnConfirm: "Yes, Reset", toastCopied: "HTML Copied!", toastImported: "Info Changed!", toastError: "Invalid File!",
+            groups: { light: "Light Themes", dark: "Dark Themes" },
+            presets: {
+                'pure-white': 'Classic White', 'sky-light': 'Sky Blue', 'lavender-mist': 'Lavender Mist', 'peach-blossom': 'Peach Blossom', 'mint-fresh': 'Fresh Mint', 'lemon-fizz': 'Lemon Fizz', 'minimal-light': 'Minimal Light', 'soft-sand': 'Soft Sand',
+                'slate-night': 'Slate Night', 'midnight-blue': 'Midnight Blue', 'carbon-purple': 'Carbon Purple', 'emerald-dark': 'Emerald Dark', 'sunset-orange': 'Sunset Orange', 'rose-wine': 'Rose Wine', 'ocean-teal': 'Ocean Teal', 'royal-gold': 'Royal Gold', 'mono-ink': 'Mono Black', 'custom': '-- Custom --'
+            }
+        }
+    };
+
+    const themes = {
+        'pure-white': { bg1: '#ffffff', bg2: '#ffffff', text: '#111827', btn: '#ffffff', border: '#e5e7eb', accent: '#3b82f6', isLight: true },
+        'sky-light': { bg1: '#e0f2fe', bg2: '#ffffff', text: '#0369a1', btn: '#ffffff', border: '#bae6fd', accent: '#0ea5e9', isLight: true },
+        'lavender-mist': { bg1: '#f5f3ff', bg2: '#ffffff', text: '#5b21b6', btn: '#ffffff', border: '#ddd6fe', accent: '#8b5cf6', isLight: true },
+        'peach-blossom': { bg1: '#fff1f2', bg2: '#ffffff', text: '#9f1239', btn: '#ffffff', border: '#fecdd3', accent: '#f43f5e', isLight: true },
+        'mint-fresh': { bg1: '#f0fdf4', bg2: '#ffffff', text: '#166534', btn: '#ffffff', border: '#bbf7d0', accent: '#22c55e', isLight: true },
+        'lemon-fizz': { bg1: '#fefce8', bg2: '#ffffff', text: '#854d0e', btn: '#ffffff', border: '#fef08a', accent: '#eab308', isLight: true },
+        'minimal-light': { bg1: '#f8fafc', bg2: '#f1f5f9', text: '#334155', btn: '#ffffff', border: '#e2e8f0', accent: '#64748b', isLight: true },
+        'soft-sand': { bg1: '#fffbeb', bg2: '#ffffff', text: '#92400e', btn: '#ffffff', border: '#fde68a', accent: '#f59e0b', isLight: true },
+        'slate-night': { bg1: '#0f172a', bg2: '#1e293b', text: '#f8fafc', btn: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', accent: '#38bdf8' },
+        'midnight-blue': { bg1: '#020617', bg2: '#1e1b4b', text: '#e0e7ff', btn: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.15)', accent: '#818cf8' },
+        'carbon-purple': { bg1: '#171717', bg2: '#2e1065', text: '#f5f3ff', btn: 'rgba(255,255,255,0.05)', border: 'rgba(139,92,246,0.3)', accent: '#a78bfa' },
+        'emerald-dark': { bg1: '#064e3b', bg2: '#022c22', text: '#ecfdf5', border: 'rgba(16,185,129,0.2)', accent: '#34d399' },
+        'sunset-orange': { bg1: '#451a03', bg2: '#78350f', text: '#fff7ed', btn: 'rgba(251,146,60,0.1)', border: 'rgba(251,146,60,0.3)', accent: '#fb923c' },
+        'rose-wine': { bg1: '#4c0519', bg2: '#831843', text: '#fff1f2', btn: 'rgba(244,63,94,0.1)', border: 'rgba(244,63,94,0.3)', accent: '#fb7185' },
+        'ocean-teal': { bg1: '#164e63', bg2: '#083344', text: '#ecfeff', btn: 'rgba(34,211,238,0.1)', border: 'rgba(34,211,238,0.3)', accent: '#22d3ee' },
+        'royal-gold': { bg1: '#1c1917', bg2: '#44403c', text: '#fef3c7', btn: 'rgba(251,191,36,0.1)', border: '#fbbf24', accent: '#fbbf24' },
+        'mono-ink': { bg1: '#000000', bg2: '#000000', text: '#ffffff', btn: '#000000', border: '#ffffff', accent: '#ffffff' }
+    };
+
+    const initialSample = {
+        lang: 'ms', username: '@profil_kreatif', tagline: 'Membangun masa depan digital bersama.',
+        personalWeb: 'https://example.com',
+        avatar: 'https://dl.dropboxusercontent.com/scl/fi/vt0ilzwp95y64bnsiotvb/ai-avatar-cth.png?rlkey=vo6kxlefiukq0e5visl1f8uey&st=hsff6ad6&dl=0',
+        avatarZoom: 150, avatarPosX: 0, avatarPosY: 0,
+        themeKey: 'pure-white', footerText: 'Halaman Pengenalan {year}© Disusun oleh {user}',
+        customTheme: { ...themes['pure-white'] },
+        links: [
+            { id: 1, title: 'Portfolio', url: 'https://example.com/portfolio', icon: 'https://cdn-icons-png.flaticon.com/512/1006/1006363.png', iconZoom: 150, iconPosX: 0, iconPosY: 0, target: true },
+            { id: 2, title: 'Instagram', url: 'https://www.instagram.com/profil_kreatif', icon: 'https://cdn-icons-png.flaticon.com/512/174/174855.png', iconZoom: 150, iconPosX: 0, iconPosY: 0, target: true }
+        ]
+    };
+
+    let state = JSON.parse(JSON.stringify(initialSample));
+
+    window.onload = () => {
+        const saved = localStorage.getItem('linkgen_v18_final_fixed_v9');
+        if (saved) state = JSON.parse(saved);
+        
+        const now = new Date();
+        const fYear = document.getElementById('footer-year');
+        const fDate = document.getElementById('footer-date');
+        if(fYear) fYear.textContent = now.getFullYear();
+        if(fDate) fDate.textContent = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        applyLanguageUI();
+        populateForm();
+        updateData();
+        
+        (async () => {
+            try {
+                const res = await fetch("./api/hit.php", { cache: "no-store" });
+                if (!res.ok) throw new Error("API fail");
+                const data = await res.json();
+                const el = document.getElementById("hitstatTotal");
+                if (el) el.innerText = data.total || "0";
+            } catch (e) { console.log("Hitstat: Offline/Local mode"); }
+        })();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    };
+
+    function setLanguage(l) { state.lang = l; applyLanguageUI(); renderLinksList(); updateData(); }
+
+    function applyLanguageUI() {
+        const t = i18n[state.lang];
+        if (!t) return;
+        const elements = {
+            'ui-app-title': t.appTitle,
+            'ui-sec-profile': t.secProfile, 'ui-sec-theme': t.secTheme, 'ui-sec-links': t.secLinks, 'ui-sec-footer': t.secFooter, 'ui-sec-output': t.secOutput,
+            'lbl-username': t.lblUsername, 'lbl-tagline': t.lblTagline, 'lbl-avatar': t.lblAvatar, 'lbl-personal-web': t.lblPersonalWeb, 'lbl-zoom': t.lblZoom,
+            'lbl-theme': t.lblTheme, 'lbl-footer': t.lblFooter,
+            'btn-add-link': t.btnAddLink, 'btn-copy-html': t.btnCopy, 'btn-download-html': t.btnDownload, 'btn-import-html': t.btnImport,
+            'ui-import-note': t.importNote,
+            'modal-title': t.modalTitle, 'modal-desc': t.modalDesc, 'btn-cancel': t.btnCancel, 'btn-confirm': t.btnConfirm
+        };
+        for (const [id, val] of Object.entries(elements)) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val;
+        }
+        document.getElementById('btn-ms').classList.toggle('active', state.lang === 'ms');
+        document.getElementById('btn-en').classList.toggle('active', state.lang === 'en');
+
+        const select = document.getElementById('select-theme');
+        if (select && t.groups && t.presets) {
+            const cur = select.value || state.themeKey;
+            select.innerHTML = `
+                <optgroup label="${t.groups.light}">${['pure-white','sky-light','lavender-mist','peach-blossom','mint-fresh','lemon-fizz','minimal-light','soft-sand'].map(k=>`<option value="${k}">${t.presets[k] || k}</option>`).join('')}</optgroup>
+                <optgroup label="${t.groups.dark}">${['slate-night','midnight-blue','carbon-purple','emerald-dark','sunset-orange','rose-wine','ocean-teal','royal-gold','mono-ink'].map(k=>`<option value="${k}">${t.presets[k] || k}</option>`).join('')}</optgroup>
+                <option value="custom">${t.presets.custom || '-- Kustom --'}</option>
+            `;
+            select.value = cur;
+        }
+    }
+
+    function populateForm() {
+        document.getElementById('input-username').value = state.username;
+        document.getElementById('input-tagline').value = state.tagline;
+        document.getElementById('input-personal-web').value = state.personalWeb || '';
+        document.getElementById('input-avatar').value = state.avatar;
+        document.getElementById('input-avatar-zoom').value = state.avatarZoom || 150;
+        document.getElementById('input-avatar-pos-x').value = state.avatarPosX || 0;
+        document.getElementById('input-avatar-pos-y').value = state.avatarPosY || 0;
+        document.getElementById('select-theme').value = state.themeKey;
+        document.getElementById('input-footer').value = state.footerText || '';
+        renderLinksList();
+    }
+
+    function handleThemeChange() {
+        state.themeKey = document.getElementById('select-theme').value;
+        const controls = document.getElementById('custom-theme-controls');
+        if (state.themeKey === 'custom') controls.classList.remove('hidden');
+        else { controls.classList.add('hidden'); state.customTheme = { ...themes[state.themeKey] }; }
+        updateData();
+    }
+
+    function renderLinksList() {
+        const t = i18n[state.lang];
+        const container = document.getElementById('links-container');
+        if (!container) return;
+        container.innerHTML = '';
+        state.links.forEach((link, index) => {
+            const div = document.createElement('div');
+            div.className = 'link-item animate-in';
+            div.innerHTML = `
+                <div class="form-group"><label>${t.linkTitle || 'Tajuk'}</label><input type="text" value="${link.title}" oninput="state.links[${index}].title = this.value; updateData()"></div>
+                <div class="form-group"><label>${t.linkUrl || 'URL'}</label><input type="text" value="${link.url}" oninput="state.links[${index}].url = this.value; updateData()"></div>
+                <div class="form-group"><label>${t.linkIcon || 'Icon'}</label><input type="text" value="${link.icon || ''}" placeholder="https://..." oninput="handleUrlInput(this, ${index}, 'icon')"></div>
+                <div class="percent-row" style="background: rgba(0,0,0,0.15); margin-bottom: 15px;">
+                    <div class="percent-item"><label>Zoom</label><input type="number" value="${link.iconZoom || 150}" oninput="state.links[${index}].iconZoom = parseInt(this.value) || 0; updateData()"></div>
+                    <div class="percent-item"><label>X %</label><input type="number" value="${link.iconPosX || 0}" oninput="state.links[${index}].iconPosX = parseInt(this.value) || 0; updateData()"></div>
+                    <div class="percent-item"><label>Y %</label><input type="number" value="${link.iconPosY || 0}" oninput="state.links[${index}].iconPosY = parseInt(this.value) || 0; updateData()"></div>
+                </div>
+                <div class="link-controls">
+                    <button class="btn-small" onclick="moveLink(${index}, -1)">⬆️</button>
+                    <button class="btn-small" onclick="moveLink(${index}, 1)">⬇️</button>
+                    <button class="btn-small" style="background:var(--danger)" onclick="deleteLink(${index})"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    <div style="flex: 1"></div>
+                    <label style="margin:0; font-size: 0.6rem; display: flex; align-items: center; cursor: pointer;"><input type="checkbox" ${link.target?'checked':''} onchange="state.links[${index}].target = this.checked; updateData()"> ${t.linkTab || 'Tab Baru'}</label>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function addNewLink() { state.links.push({ id: Date.now(), title: state.lang === 'ms' ? 'Link Baru' : 'New Link', url: 'https://', icon: '', iconZoom: 150, iconPosX: 0, iconPosY: 0, target: true }); renderLinksList(); updateData(); }
+    function deleteLink(index) { state.links.splice(index, 1); renderLinksList(); updateData(); }
+    function moveLink(index, dir) { const target = index + dir; if (target >= 0 && target < state.links.length) { [state.links[index], state.links[target]] = [state.links[target], state.links[index]]; renderLinksList(); updateData(); } }
+
+    function updateData() {
+        state.username = document.getElementById('input-username').value;
+        state.tagline = document.getElementById('input-tagline').value;
+        state.personalWeb = document.getElementById('input-personal-web').value;
+        state.avatarZoom = parseInt(document.getElementById('input-avatar-zoom').value) || 100;
+        state.avatarPosX = parseInt(document.getElementById('input-avatar-pos-x').value) || 0;
+        state.avatarPosY = parseInt(document.getElementById('input-avatar-pos-y').value) || 0;
+        state.avatar = getDirectLink(document.getElementById('input-avatar').value);
+        state.footerText = document.getElementById('input-footer').value;
+        if (state.themeKey === 'custom') { state.customTheme = { bg1: document.getElementById('custom-bg1').value, bg2: document.getElementById('custom-bg2').value, text: document.getElementById('custom-text').value, btn: document.getElementById('custom-btn-bg').value, border: document.getElementById('custom-btn-border').value, accent: document.getElementById('custom-accent').value, isLight: false }; }
+        localStorage.setItem('linkgen_v18_final_fixed_v9', JSON.stringify(state));
+        renderPreview();
+    }
+
+    function importHTML(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            const dataEl = doc.getElementById('linkgen-state-data');
+            if (dataEl) {
+                try {
+                    state = JSON.parse(dataEl.textContent);
+                    applyLanguageUI(); populateForm(); updateData();
+                    showToast(i18n[state.lang].toastImported);
+                } catch(err) { showToast(i18n[state.lang].toastError); }
+            } else { showToast(i18n[state.lang].toastError); }
+        };
+        reader.readAsText(file);
+    }
+
+    function renderPreview() {
+        const theme = state.themeKey === 'custom' ? state.customTheme : themes[state.themeKey];
+        const frame = document.getElementById('preview-frame');
+        if (!frame) return;
+        const shadow = theme.isLight ? '0 4px 12px -2px rgba(0,0,0,0.1)' : 'none';
+        const ring = theme.isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)';
+        const currentYear = new Date().getFullYear();
+        const footerLink = state.personalWeb ? state.personalWeb : "#top";
+        
+        let processedFooter = (state.footerText || '').replace('{user}', `<a href="${footerLink}" target="_blank" style="color: ${theme.accent}; text-decoration: none; font-weight: bold;">${state.username || '@username'}</a>`);
+        processedFooter = processedFooter.replace('{year}', currentYear);
+        
+        const displayUsername = state.personalWeb ? `<a href="${state.personalWeb}" target="_blank" style="text-decoration: none; color: inherit;">${state.username || '@username'}</a>` : (state.username || '@username');
+
+        frame.innerHTML = `
+            <div id="preview-top" style="min-height: 100%; background: linear-gradient(145deg, ${theme.bg1}, ${theme.bg2}); color: ${theme.text}; padding: 35px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative;">
+                <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid ${theme.accent}; margin-bottom: 15px; box-shadow: ${shadow}; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; position: relative; background: #000;">
+                    <img src="${getDirectLink(state.avatar)}" style="width: 100%; height: 100%; object-fit: cover; transform: scale(${state.avatarZoom / 100}) translate(${state.avatarPosX}%, ${state.avatarPosY}%);" onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=${state.username}'">
+                </div>
+                <h1 style="font-size: 1.7rem; font-weight: 700; margin-bottom: 6px;">${displayUsername}</h1>
+                <p style="font-size: 0.9rem; opacity: 0.7; margin-bottom: 30px; max-width: 85%; line-height: 1.4;">${state.tagline}</p>
+                <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; flex: 1;">
+                    ${state.links.map(l => `
+                        <a href="${l.url}" target="${l.target ? '_blank' : '_self'}" style="display: flex; align-items: center; justify-content: space-between; width: 92%; max-width: 320px; padding: 12px 18px; background: ${theme.btn}; border: 1.5px solid ${theme.border}; border-radius: 999px; color: ${theme.text}; font-size: 0.8rem; font-weight: 500; box-shadow: ${shadow}; text-decoration: none;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: ${ring}; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; position: relative; background: #000;">
+                                ${l.icon ? `<img src="${getDirectLink(l.icon)}" style="width: 100%; height: 100%; object-fit: cover; transform: scale(${(l.iconZoom || 150) / 100}) translate(${l.iconPosX}%, ${l.iconPosY}%);">` : '🔗'}
+                            </div>
+                            <span style="flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px;">${l.title}</span>
+                            <div style="opacity: 0.2; font-size: 14px; flex-shrink: 0;">⋮</div>
+                        </a>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 35px; font-size: 0.7rem; opacity: 0.6; width: 90%; border-top: 1px solid ${theme.border}; padding-top: 20px; padding-bottom: 10px;">${processedFooter}</div>
+            </div>
+        `;
+        document.getElementById('html-code-display').innerText = generateFinalHTML();
+    }
+
+    function generateFinalHTML() {
+        const theme = state.themeKey === 'custom' ? state.customTheme : themes[state.themeKey];
+        const shadow = theme.isLight ? '0 10px 25px -5px rgba(0,0,0,0.08)' : 'none';
+        const footerLink = state.personalWeb ? state.personalWeb : "#top";
+        const currentYear = new Date().getFullYear();
+        
+        let footerHTML = (state.footerText || '').replace('{user}', `<a href="${footerLink}" target="_blank" style="color: ${theme.accent}; text-decoration: none; font-weight: bold;">${state.username}</a>`);
+        footerHTML = footerHTML.replace('{year}', currentYear);
+        
+        const finalUsernameLink = state.personalWeb ? `<a href="${state.personalWeb}" target="_blank" style="text-decoration: none; color: inherit;">${state.username}</a>` : state.username;
+        const profileImage = getDirectLink(state.avatar);
+
+        return `<!DOCTYPE html>
+<html lang="${state.lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${state.username}</title>
+    <!-- PWA & Mobile Meta (Generated) -->
+    <meta name="theme-color" content="${theme.bg1}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="${state.username}">
+    <link rel="icon" type="image/png" href="${profileImage}">
+    <link rel="apple-touch-icon" href="${profileImage}">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"${state.username}","short_name":"${state.username.substring(0,12)}","start_url":".","display":"standalone","background_color":"${theme.bg1}","theme_color":"${theme.accent}","icons":[{"src":"${profileImage}","sizes":"192x192","type":"image/png"},{"src":"${profileImage}","sizes":"512x512","type":"image/png"}]}'>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #020617; color: ${theme.text}; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .device-wrapper { width: 100%; max-width: 500px; height: 90vh; max-height: 900px; background: linear-gradient(145deg, ${theme.bg1}, ${theme.bg2}); border: 12px solid #1e293b; border-radius: 45px; box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .scrollable-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 60px 20px 40px; scrollbar-width: none; }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+        .avatar-frame { width: 120px; height: 120px; border-radius: 50%; border: 4px solid ${theme.accent}; margin-bottom: 20px; box-shadow: ${shadow}; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; background: #000; flex-shrink: 0; }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; transform: scale(${state.avatarZoom / 100}) translate(${state.avatarPosX}%, ${state.avatarPosY}%); }
+        .username { font-size: 1.7rem; font-weight: 700; margin-bottom: 10px; text-align: center; }
+        .tagline { opacity: 0.8; margin-bottom: 50px; font-size: 0.9rem; line-height: 1.5; max-width: 85%; text-align: center; }
+        .links-container { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; flex: 1; }
+        .link-btn { display: flex; align-items: center; justify-content: space-between; width: 92%; max-width: 420px; padding: 16px 24px; background: ${theme.btn}; border: 1.5px solid ${theme.border}; border-radius: 999px; text-decoration: none; color: ${theme.text}; font-weight: 500; font-size: 0.8rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: ${shadow}; }
+        .link-btn:hover { transform: translateY(-4px) scale(1.02); background: ${theme.isLight ? '#fdfdfd' : 'rgba(255,255,255,0.1)'}; }
+        .icon-frame { width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; position: relative; background: #000; }
+        .icon-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .link-btn span { flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 12px; }
+        footer { margin-top: 60px; font-size: 0.7rem; opacity: 0.6; padding: 30px 0; border-top: 1px solid ${theme.border}; width: 90%; text-align: center; flex-shrink: 0; }
+        @media (max-width: 600px) { body { padding: 0; background: linear-gradient(145deg, ${theme.bg1}, ${theme.bg2}); } .device-wrapper { height: 100vh; max-height: none; border-radius: 0; border: none; box-shadow: none; } }
+    </style>
+</head>
+<body id="top">
+    <div class="device-wrapper">
+        <div class="scrollable-content">
+            <div class="avatar-frame"><img src="${profileImage}"></div>
+            <h1 class="username">${finalUsernameLink}</h1>
+            <p class="tagline">${state.tagline}</p>
+            <div class="links-container">
+                ${state.links.map(l => `<a href="${l.url}" class="link-btn" ${l.target ? 'target="_blank"' : ''}>
+                    <div class="icon-frame">${l.icon ? `<img src="${getDirectLink(l.icon)}" style="transform: scale(${(l.iconZoom || 150) / 100}) translate(${l.iconPosX}%, ${l.iconPosY}%);">` : '🔗'}</div>
+                    <span>${l.title}</span>
+                    <div style="opacity:0.2; font-weight: normal;">⋮</div>
+                </a>`).join('')}
+            </div>
+            <footer>${footerHTML}</footer>
+        </div>
+    </div>
+    <script id="linkgen-state-data" type="application/json">${JSON.stringify(state)}<\/script>
+</body>
+</html>`;
+    }
+
+    function showResetModal() { document.getElementById('modal-overlay').style.display = 'flex'; }
+    function closeResetModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+    function performReset() { state = JSON.parse(JSON.stringify(initialSample)); localStorage.removeItem('linkgen_v18_final_fixed_v9'); applyLanguageUI(); populateForm(); updateData(); closeResetModal(); }
+    function copyHTML() { const text = generateFinalHTML(); const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); showToast(i18n[state.lang].toastCopied); }
+    function downloadHTML() { const blob = new Blob([generateFinalHTML()], { type: 'text/html' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${state.username.replace('@','')}-bio.html`; a.click(); URL.revokeObjectURL(url); }
+    function showToast(msg) { const t = document.createElement('div'); t.style.cssText = `position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 10px 20px; border-radius: 25px; z-index: 9999; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.3); font-size: 0.75rem;`; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
+</script>
+
+</body>
+</html>

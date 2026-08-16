@@ -1,0 +1,19 @@
+{
+  "name": "NLM to Comixs Prompt Generator",
+  "short_name": "NLM2Comixs",
+  "description": "Create comic, poster and infographic prompts for NotebookLM Studio.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "img/nlm2comixslogo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

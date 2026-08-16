@@ -1,0 +1,27 @@
+{
+  "name": "QuizCanvas Builder",
+  "short_name": "QuizCanvas",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#6366f1",
+  "description": "One-Page Interactive Quiz Generator",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "img/logoquiz2html.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/logoquiz2html.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "img/logoquiz2html.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

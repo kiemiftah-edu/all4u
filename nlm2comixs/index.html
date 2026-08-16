@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLM2Comixs | Prompt Generator</title>
+    <meta id="themeColor" name="theme-color" content="#1d4ed8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="NLM2Comixs">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="img/nlm2comixslogo.png">
+    <link rel="shortcut icon" type="image/png" href="img/nlm2comixslogo.png">
+    <link rel="apple-touch-icon" href="img/nlm2comixslogo.png">
+    <!-- Modern Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #eef3f9;
+            --bg-accent: #e4edfb;
+            --panel: #ffffff;
+            --panel-soft: #f5f8ff;
+            --primary: #1d4ed8;
+            --primary-hover: #1e40af;
+            --primary-gradient: linear-gradient(135deg, #1d4ed8, #2563eb);
+            --border: #cbd5e1;
+            --text-dark: #0f172a;
+            --text-body: #334155;
+            --text-muted: #475569;
+            --control-bg: #e2e8f0;
+            --output-bg: #f1f5fb;
+            --secondary-btn: #334155;
+            --footer-muted: #64748b;
+            --shadow: 0 12px 25px -16px rgba(15, 23, 42, 0.38);
+            --logo-shadow: 0 12px 28px rgba(29, 78, 216, 0.2);
+        }
+        html[data-theme="dark"] {
+            --bg: #07111f;
+            --bg-accent: #0a1728;
+            --panel: #101d2f;
+            --panel-soft: #0b1728;
+            --primary: #60a5fa;
+            --primary-hover: #93c5fd;
+            --primary-gradient: linear-gradient(135deg, #2563eb, #60a5fa);
+            --border: #29405c;
+            --text-dark: #f1f5f9;
+            --text-body: #d5dfec;
+            --text-muted: #a9bacf;
+            --control-bg: #16263a;
+            --output-bg: #091523;
+            --secondary-btn: #24364d;
+            --footer-muted: #93a6bd;
+            --shadow: 0 16px 34px -18px rgba(0, 0, 0, 0.72);
+            --logo-shadow: 0 12px 32px rgba(59, 130, 246, 0.28);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 220px);
+            color: var(--text-body);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-weight: 500;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+        .container { max-width: 900px; margin: 0 auto; flex: 1; width: 100%; position: relative; }
+
+        /* Top Controls */
+        .top-controls { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 8px; }
+        .lang-capsule { background: var(--control-bg); border-radius: 50px; padding: 3px; display: flex; gap: 2px; border: 1px solid var(--border); }
+        .toggle-btn { padding: 6px 12px; cursor: pointer; border-radius: 50px; border: none; background: transparent; font-weight: 700; font-size: 0.7rem; color: var(--text-muted); transition: all 0.22s ease; }
+        .toggle-btn.active { background: var(--primary); color: #ffffff; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.22); }
+        .theme-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; background: var(--panel); color: var(--text-dark); cursor: pointer; display: inline-flex; justify-content: center; align-items: center; transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+        .theme-btn:hover { opacity: 1; background: var(--panel-soft); }
+        .theme-btn svg { width: 17px; height: 17px; display: block; }
+        .icon-sun { display: none !important; }
+        html[data-theme="dark"] .icon-moon { display: none !important; }
+        html[data-theme="dark"] .icon-sun { display: block !important; }
+
+        .header-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 40px; margin-bottom: 20px; }
+        .app-logo { width: 80px; height: 80px; border-radius: 20px; display: block; object-fit: cover; box-shadow: var(--logo-shadow); }
+        .title-area { text-align: center; }
+        .title-area h1 { margin: 0; color: var(--text-dark); font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; }
+        .title-area p { margin: 8px 0 0 0; color: var(--text-muted); font-size: 0.9rem; max-width: 500px; line-height: 1.45; }
+
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .card { background: var(--panel); padding: 24px; border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; transition: background 0.25s ease, border-color 0.25s ease; }
+        label { display: block; margin-top: 15px; font-weight: 700; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+        select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-soft); font-family: inherit; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); outline: none; }
+        select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14); }
+
+        button.generate-btn { background: var(--primary-gradient); color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 700; margin-top: 25px; transition: opacity 0.2s; }
+        button:hover { opacity: 0.92; }
+        #promptOutput { background: var(--output-bg); padding: 16px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.84rem; font-weight: 500; height: 280px; overflow-y: auto; border: 1px solid var(--border); margin-top: 12px; white-space: pre-wrap; flex-grow: 1; color: var(--text-body); line-height: 1.62; }
+        #promptOutput.has-boxes { background: transparent; border-color: transparent; padding: 0; overflow: hidden; white-space: normal; }
+        .prompt-stack { display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; height: 100%; }
+        .prompt-box { background: var(--output-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 12px 52px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; position: relative; }
+        .prompt-box-title { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; flex-shrink: 0; }
+        .prompt-box-body { white-space: pre-wrap; color: var(--text-body); line-height: 1.55; overflow-y: auto; flex: 1; min-height: 0; padding-right: 3px; }
+        .prompt-box-copy { background: var(--secondary-btn); border: none; color: white; padding: 8px 10px; width: auto; border-radius: 8px; cursor: pointer; margin-top: 0; font-family: inherit; font-size: 0.76rem; font-weight: 700; position: absolute; left: 12px; right: 12px; bottom: 12px; }
+        .copy-btn { background: var(--secondary-btn); border: none; color: white; padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 15px; font-family: inherit; font-weight: 700; }
+        .app-footer { width: 100%; text-align: center; padding: 22px 16px 10px; margin-top: 30px; color: var(--footer-muted); }
+        .app-footer .footer-main { margin: 0; font-size: 0.76rem; line-height: 1.55; color: var(--footer-muted); }
+        .app-footer .footer-brand { color: var(--primary); font-weight: 700; text-decoration: none; }
+        .app-footer .footer-brand:hover { text-decoration: underline; }
+        .app-footer .footer-sub { margin: 7px 0 0; font-size: 0.62rem; line-height: 1.5; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--footer-muted); }
+
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            .header-wrapper { flex-direction: column; margin-top: 54px; }
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-controls">
+        <div class="lang-capsule">
+            <button id="btnEN" class="toggle-btn active" onclick="setLang('English')">EN</button>
+            <button id="btnBM" class="toggle-btn" onclick="setLang('Bahasa Melayu')">BM</button>
+        </div>
+        <button id="themeToggle" class="theme-btn" type="button" onclick="toggleTheme()" aria-label="Switch to dark theme" title="Dark theme">
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        </button>
+    </div>
+
+    <div class="header-wrapper">
+        <img class="app-logo" src="img/nlm2comixslogo.png" alt="NLM2Comixs logo">
+        <div class="title-area">
+            <h1>NLM to Comixs Prompt Generator</h1>
+            <p id="descText">Create comic scripts from NotebookLM data easily.</p>
+        </div>
+    </div>
+
+    <input type="hidden" id="language" value="English">
+
+    <div class="layout">
+        <section class="card">
+            <label id="lblMode">Mode</label>
+            <select id="mode">
+                <option value="infographic" id="optInfographic">Infographic (One Page)</option>
+                <option value="slideDeck" id="optSlideDeck">Slide Deck (Series)</option>
+            </select>
+            <label id="lblOrientation">Orientation</label>
+            <select id="orientation">
+                <option value="16:9 (Landscape)">16:9 (Landscape)</option>
+                <option value="9:16 (Portrait)">9:16 (Portrait)</option>
+                <option value="1:1 (Square)">1:1 (Square)</option>
+                <option value="4:5 (Social Media Post)">4:5 (Social Media Post)</option>
+            </select>
+            <label id="lblArtStyle">Art Style</label>
+            <select id="artStyle">
+                <option value="Semi-Realistic Anime">Semi-Realistic Anime</option>
+                <option value="3D Pixar Style">3D Pixar Style</option>
+                <option value="Classic American Superhero Comic">Classic American Superhero Comic</option>
+                <option value="Vintage 1950s Cartoon">Vintage 1950s Cartoon</option>
+                <option value="Modern Webtoon Flat Style">Modern Webtoon Flat Style</option>
+                <option value="Bold B&W Thick Outline Doodle">Bold B&W Thick Outline Doodle</option>
+                <option value="Cyberpunk Neon Art">Cyberpunk Neon Art</option>
+                <option value="Minimalist Vector Illustration">Minimalist Vector Illustration</option>
+            </select>
+            <label id="lblVisualLanguage">Visual Language</label>
+            <select id="visualLanguage">
+                <option value="English" id="optVisualEN">English</option>
+                <option value="Bahasa Melayu" id="optVisualBM">Bahasa Melayu</option>
+                <option value="Arabic" id="optVisualAR">Arabic (RTL)</option>
+            </select>
+            <label id="lblPanelCount">Comic Panels</label>
+            <select id="panelCount">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+            <button class="generate-btn" id="btnGen" onclick="generate()">Generate Prompt</button>
+        </section>
+        
+        <section class="card">
+            <label id="lblOutput">Output Prompt</label>
+            <div id="promptOutput">Prompt will appear here...</div>
+            <button id="btnCopy" class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+        </section>
+    </div>
+</div>
+
+<footer class="app-footer">
+    <p class="footer-main">
+        NLM2Comixs <span id="footerYear"></span>© was creatively built and designed using Gemini Canvas by
+        <a class="footer-brand" href="https://www.tiktok.com/@kiemiftah" target="_blank" rel="noopener noreferrer">Kiemiftah.Com</a>.
+    </p>
+    <p class="footer-sub">Last Updated on <span id="footerUpdated"></span></p>
+</footer>
+
+<script>
+    function setLang(lang) {
+        document.getElementById('language').value = lang;
+        document.getElementById('btnEN').classList.toggle('active', lang === 'English');
+        document.getElementById('btnBM').classList.toggle('active', lang === 'Bahasa Melayu');
+
+        const isBM = lang === 'Bahasa Melayu';
+        
+        document.getElementById('descText').innerText = isBM ? "Jana skrip komik daripada data NotebookLM dengan mudah." : "Create comic scripts from NotebookLM data easily.";
+        document.getElementById('lblMode').innerText = isBM ? "Mod" : "Mode";
+        document.getElementById('optInfographic').innerText = isBM ? "Infografik (Satu Halaman)" : "Infographic (One Page)";
+        document.getElementById('optSlideDeck').innerText = isBM ? "Slide Deck (Bersiri)" : "Slide Deck (Series)";
+        document.getElementById('lblOrientation').innerText = isBM ? "Orientasi" : "Orientation";
+        document.getElementById('lblArtStyle').innerText = isBM ? "Gaya Seni" : "Art Style";
+        document.getElementById('lblVisualLanguage').innerText = isBM ? "Bahasa Visual" : "Visual Language";
+        document.getElementById('lblPanelCount').innerText = isBM ? "Bilangan Panel Komik" : "Comic Panels";
+        document.getElementById('optVisualEN').innerText = isBM ? "Bahasa Inggeris" : "English";
+        document.getElementById('optVisualBM').innerText = "Bahasa Melayu";
+        document.getElementById('optVisualAR').innerText = isBM ? "Bahasa Arab (RTL)" : "Arabic (RTL)";
+        document.getElementById('btnGen').innerText = isBM ? "Jana Prompt" : "Generate Prompt";
+        document.getElementById('lblOutput').innerText = isBM ? "Hasil Prompt" : "Output Prompt";
+        document.getElementById('btnCopy').innerText = isBM ? "Salin ke Clipboard" : "Copy to Clipboard";
+        
+        if (document.getElementById('promptOutput').innerText !== "Prompt will appear here..." && document.getElementById('promptOutput').innerText !== "Prompt akan dijana di sini...") {
+             generate();
+        } else {
+             document.getElementById('promptOutput').innerText = isBM ? "Prompt akan dijana di sini..." : "Prompt will appear here...";
+        }
+    }
+
+    function escapeHtml(value) {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    let slideDeckPromptSections = [];
+
+    function renderPromptOutput(content, options = {}) {
+        const output = document.getElementById('promptOutput');
+        const copyButton = document.getElementById('btnCopy');
+        output.dataset.copyText = options.copyText || content;
+
+        if (options.boxed && options.sections) {
+            slideDeckPromptSections = options.sections.map(section => section.body);
+            output.classList.add('has-boxes');
+            copyButton.style.display = 'none';
+            output.innerHTML = `
+                <div class="prompt-stack">
+                    <div class="prompt-box">
+                        <div class="prompt-box-title">${escapeHtml(options.sections[0].title)}</div>
+                        <div class="prompt-box-body">${escapeHtml(options.sections[0].body)}</div>
+                        <button class="prompt-box-copy" type="button" onclick="copySlideDeckPrompt(0)">Copy Prompt</button>
+                    </div>
+                    <div class="prompt-box">
+                        <div class="prompt-box-title">${escapeHtml(options.sections[1].title)}</div>
+                        <div class="prompt-box-body">${escapeHtml(options.sections[1].body)}</div>
+                        <button class="prompt-box-copy" type="button" onclick="copySlideDeckPrompt(1)">Copy Prompt</button>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        slideDeckPromptSections = [];
+        output.classList.remove('has-boxes');
+        copyButton.style.display = '';
+        output.textContent = content;
+    }
+
+    function copySlideDeckPrompt(index) {
+        const text = slideDeckPromptSections[index];
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => alert(document.getElementById('language').value === 'Bahasa Melayu' ? "Disalin!" : "Copied!"));
+    }
+
+    function generate() {
+        const mode = document.getElementById('mode').value;
+        const orient = document.getElementById('orientation').value;
+        const style = document.getElementById('artStyle').value;
+        const visualLanguage = document.getElementById('visualLanguage').value;
+        const panelCount = document.getElementById('panelCount').value;
+        const lang = document.getElementById('language').value;
+        const isBM = lang === "Bahasa Melayu";
+        const isArabicVisual = visualLanguage === "Arabic";
+        const isInfographic = mode === 'infographic';
+
+        let prompt = '';
+        let mainPrompt = '';
+        let coverPrompt = '';
+
+        const directionRuleEN = isArabicVisual ? `
+Text Direction: right-to-left (RTL) for all visible Arabic text` : ``;
+        const directionRuleBM = isArabicVisual ? `
+Arah Teks: kanan ke kiri (RTL) untuk semua teks visual bahasa Arab` : ``;
+        const languageRuleEN = isArabicVisual ? `- Render all visible Arabic text in right-to-left (RTL) direction with right alignment and correctly connected Arabic letterforms.` : visualLanguage === 'Bahasa Melayu' ? `- Keep all visible Bahasa Melayu text accurate, concise and easy to read.` : `- Keep all visible English text accurate, concise and easy to read.`;
+        const languageRuleBM = isArabicVisual ? `- Semua teks visual mesti dalam bahasa Arab standard, menggunakan arah kanan ke kiri (RTL), penjajaran kanan dan bentuk huruf Arab yang bersambung dengan betul.` : visualLanguage === 'Bahasa Melayu' ? `- Pastikan semua teks visual Bahasa Melayu tepat, ringkas dan mudah dibaca.` : `- Pastikan semua teks visual bahasa Inggeris tepat, ringkas dan mudah dibaca.`;
+        const selectedCanvasEN = orient.includes('9:16') ? '9:16 portrait comic page' : orient.includes('16:9') ? '16:9 landscape comic page' : orient.includes('4:5') ? '4:5 social media post comic page' : '1:1 square comic page';
+        const selectedCanvasBM = orient.includes('9:16') ? 'halaman komik menegak 9:16' : orient.includes('16:9') ? 'halaman komik landskap 16:9' : orient.includes('4:5') ? 'halaman komik format post media sosial 4:5' : 'halaman komik segi empat sama 1:1';
+
+        if (isBM) {
+            mainPrompt = isInfographic ? `[PERANAN]
+Bertindak sebagai pengarah visual halaman komik untuk NotebookLM Studio. Tukarkan sumber yang dibekalkan kepada satu halaman infografik gaya komik yang tepat, mudah dibaca dan tersusun.
+
+[MOD STUDIO]
+Gunakan: NotebookLM Studio > Infographic
+Orientasi: ${orient}
+Jenis Output: Halaman Komik
+Gaya Seni: ${style}
+Bahasa Visual: ${visualLanguage}${directionRuleBM}
+Kualiti: visual bersih, tajam dan teks mudah dibaca
+
+[PILIHAN PANEL]
+Bilangan panel komik pilihan pengguna: ${panelCount}
+Jika sumber sudah mempunyai storyboard, pelan komik, pelan halaman, urutan panel atau bilangan panel yang jelas, ikut struktur sumber itu dengan tepat walaupun berbeza daripada pilihan ini.
+Jika sumber tidak menyatakan struktur panel, hasilkan tepat ${panelCount} panel komik pada satu halaman.
+
+[MATLAMAT UTAMA]
+Hasilkan SATU halaman infografik gaya komik yang lengkap sahaja.
+Output akhir mesti kelihatan seperti halaman komik terlebih dahulu, bukan poster infografik biasa.
+Ia mesti mengandungi panel komik bersempadan jelas, babak berilustrasi, aksi watak, kapsyen yang mudah dibaca, serta gelembung dialog atau kotak narasi apabila sesuai.
+
+[KETEPATAN SUMBER]
+Gunakan hanya maklumat dalam sumber yang dimasukkan.
+Kekalkan fakta, nama, nombor, urutan, mesej, dialog dan kesimpulan seperti yang diberikan dalam sumber.
+Jangan cipta fakta, petikan, statistik, watak atau peristiwa baharu.
+Jangan tambah tafsiran luar atau kesimpulan tambahan.
+Jika butiran visual tiada, gunakan visual sokongan neutral yang tidak mengubah maksud sumber.
+
+[LOGIK JENIS SUMBER]
+1. Jika sumber mengandungi storyboard lengkap, pelan komik, pelan halaman atau urutan panel:
+   - Ikut storyboard dengan tepat.
+   - Kekalkan susunan panel asal, aliran babak, aliran dialog dan struktur.
+   - Padankan bilangan panel jika ia dinyatakan dengan jelas dalam sumber.
+   - Gunakan storyboard sebagai panduan utama susun atur.
+
+2. Jika sumber ialah artikel biasa, esei, teks penerangan atau sumber maklumat tanpa storyboard:
+   - Tukarkan sumber kepada ringkasan visual gaya komik.
+   - Kekalkan susunan idea asal.
+   - Pecahkan kandungan kepada tepat ${panelCount} panel komik.
+   - Jangan ubah halaman menjadi infografik biasa yang hanya menggunakan kotak atau seksyen.
+
+[FORMAT KOMIK WAJIB]
+- Hasilkan SATU halaman gaya komik sahaja.
+- Halaman mesti mempunyai panel komik yang dipisahkan dengan jelas mengikut bilangan panel pilihan.
+- Setiap panel mesti mempunyai sempadan yang jelas.
+- Setiap panel mesti menunjukkan detik, idea atau babak berbeza daripada sumber.
+- Aliran bacaan mesti jelas dan semula jadi dari atas ke bawah.
+- Halaman mesti dibaca secara visual seperti halaman komik, bukan poster, flyer, slaid atau infografik standard.
+
+[PERATURAN PANEL DAN TEKS]
+- Jika sumber menyediakan struktur panel, ikut dengan tepat.
+- Jika sumber tidak menyediakan struktur panel, gunakan tepat ${panelCount} panel komik.
+- Gunakan teks ringkas dalam panel.
+- Gunakan gelembung dialog apabila sumber mengandungi dialog, ucapan dipetik atau ekspresi lisan langsung.
+- Gunakan kotak narasi untuk penerangan, transisi atau konteks fakta.
+- Jika sumber ialah artikel tanpa dialog langsung, letakkan kebanyakan maklumat dalam kotak narasi atau kapsyen pendek sambil mengekalkan rasa penceritaan komik.
+${languageRuleBM}
+- Jangan padatkan halaman dengan perenggan panjang.
+
+[ARAHAN REKA BENTUK]
+- Utamakan penceritaan panel komik berbanding susun atur infografik biasa.
+- Gunakan hierarki satu halaman yang jelas dengan tajuk utama dan aliran komik tersusun.
+- Gunakan gaya ${style} secara konsisten pada watak, prop, latar dan babak.
+- Pastikan identiti watak, pakaian dan visual kekal konsisten dalam panel berkaitan.
+- Latar belakang mesti sesuai dengan tajuk dan konteks sumber tanpa menjejaskan kebolehbacaan.
+- Pastikan teks cukup besar untuk dibaca dengan jelas.
+- Kekalkan susun atur halaman yang seimbang dengan jarak yang sesuai.
+
+[LARANGAN KETAT]
+Jangan hasilkan poster infografik biasa.
+Jangan jadikan kad infografik, garis masa, kluster ikon, blok carta atau kotak seksyen sebagai susun atur utama.
+Jangan hasilkan halaman sambungan, slaid berasingan atau siri komik.
+Jangan cipta maklumat.
+Jangan tambah logo luar.
+Jangan tambah watermark.
+Jangan ulang visual tanpa tujuan.
+Jangan rosakkan anatomi.
+Jangan masukkan kesalahan ejaan.
+
+[PELAKSANAAN]
+Jana output terus dalam NotebookLM Studio > Infographic sebagai SATU halaman infografik gaya komik dengan panel bersempadan jelas.
+Jika sumber mengandungi storyboard, ikut dengan tepat.
+Jika sumber tidak mengandungi storyboard, gunakan tepat ${panelCount} panel komik sambil mengekalkan maksud dan susunan asal sumber.` : `[PERANAN]
+Bertindak sebagai pengarah visual halaman komik dan penyusun storyboard untuk NotebookLM Studio. Tukarkan sumber yang dibekalkan kepada slide deck komik berbilang halaman yang tepat, bersambung, tersusun, mudah dibaca dan konsisten secara visual.
+
+[MOD OUTPUT]
+Hasilkan SLIDE DECK KOMIK BERBILANG HALAMAN dalam NotebookLM Studio > Slide Deck.
+Output mesti kelihatan seperti siri komik yang bersambung, bukan slaid pembentangan, poster, kad tajuk atau ilustrasi satu babak.
+
+[KANVAS DAN FORMAT]
+Gunakan ${selectedCanvasBM} untuk setiap slaid.
+Anggap setiap slaid sebagai satu halaman komik, episod atau unit cerita yang fokus.
+Kekalkan rawatan halaman komik yang sama sepanjang deck.
+Kekalkan margin selamat, sempadan panel, gutter, kedudukan tajuk, skala tipografi, gaya gelembung dialog dan kepadatan visual yang konsisten.
+Jangan bertukar kepada orientasi lain, susun atur poster, susun atur sinematik satu imej atau susun atur slaid pembentangan biasa.
+
+[PILIHAN PANEL]
+Bilangan panel komik pilihan pengguna: ${panelCount} panel per slaid.
+Jika sumber menyediakan storyboard, susunan babak, susunan panel, bilangan panel, pelan halaman atau pelan slaid, ikut struktur sumber itu dengan tepat walaupun berbeza daripada pilihan ini.
+Jika sumber tidak menyatakan bilangan panel, gunakan tepat ${panelCount} panel komik pada setiap slaid.
+
+[PERATURAN SUMBER UTAMA]
+Gunakan hanya maklumat yang diberikan dalam sumber yang dimuat naik.
+Kekalkan semua fakta, nama, nombor, urutan, mesej utama, dialog dan kesimpulan daripada sumber.
+Jangan cipta fakta, petikan, statistik, watak, peristiwa, dialog, nilai moral atau kesimpulan tambahan.
+Jika butiran visual tiada, gunakan ilustrasi sokongan neutral yang tidak mengubah maksud sumber.
+Jika sumber menyediakan dialog tepat atau ayat petikan dalam bahasa lain, kekalkan wording itu dengan tepat melainkan sumber jelas meminta terjemahan.
+${languageRuleBM}
+
+[STRUKTUR SLAID DAN EPISOD]
+Tukarkan sumber kepada urutan komik berterusan merentas pelbagai slaid.
+Setiap slaid mesti menyambung secara semula jadi daripada slaid sebelumnya.
+Setiap slaid harus fokus pada satu idea utama, peristiwa, isu, penerangan, babak atau titik perubahan daripada sumber.
+Jika sumber terlalu padat untuk satu slaid, pecahkan kepada slaid tambahan dan jangan padatkan halaman.
+Mulakan slaid pertama dengan kandungan komik terus.
+Jangan hasilkan cover-only slide melainkan sumber secara jelas menyediakannya.
+
+[PERATURAN BILANGAN PANEL]
+Jika sumber menyediakan storyboard, susunan babak, susunan panel, bilangan panel, pelan halaman atau pelan slaid, ikut dengan tepat.
+Struktur panel komik mesti mengikut storyboard apabila dinyatakan dalam sumber.
+Jangan paksa setiap slaid mempunyai bilangan panel yang sama jika sumber sudah menentukan struktur.
+Jangan gabung, buang, susun semula atau ganti panel yang ditentukan oleh sumber.
+Jika sumber tidak menyatakan bilangan panel, hasilkan tepat ${panelCount} panel komik per slaid.
+Jangan hasilkan slaid dengan sifar panel komik.
+
+[REKA BENTUK PANEL KOMIK]
+Setiap panel mesti menunjukkan satu detik visual, aksi, penerangan atau segmen dialog yang jelas berdasarkan sumber.
+Pastikan urutan bacaan panel jelas dan mudah diikuti.
+Gunakan gelembung dialog, kotak kapsyen dan label kecil hanya apabila perlu.
+Pastikan teks cukup pendek supaya mudah dibaca dalam panel.
+Jangan letakkan perenggan panjang di dalam panel.
+Gunakan gutter yang konsisten dan ruang putih yang seimbang antara panel.
+Pastikan setiap slaid berfungsi jelas sebagai satu halaman komik daripada siri yang sama.
+
+[GAYA SENI DAN BAHASA VISUAL]
+Gaya Seni: ${style}.
+Bahasa Visual: ${visualLanguage}${directionRuleBM}
+Gunakan visual bersih, tajam, teks mudah dibaca dan jarak panel yang kemas.
+Gunakan rawatan seni yang sama pada semua watak, prop, latar, gelembung dialog dan sempadan panel.
+Kekalkan identiti watak, pakaian, rupa wajah, logik latar, reka bentuk objek dan gaya visual yang sama sepanjang deck.
+Latar belakang mesti sesuai dengan topik dan konteks daripada sumber.
+Elakkan elemen hiasan yang mengganggu kandungan sumber.
+
+[TEKS DAN KEBOLEHBACAAN]
+Gunakan teks pendek dan jelas dalam setiap panel.
+Jika sumber mengandungi penerangan panjang, tukarkan kepada kapsyen ringkas tanpa mengubah maksud.
+Jika sumber mengandungi dialog, letakkan dalam gelembung dialog yang jelas.
+Jika sumber mengandungi proses atau penerangan, gunakan kotak kapsyen, aliran visual atau label mudah.
+Pastikan teks cukup besar untuk dibaca pada skrin.
+Elakkan teks terlalu padat dan fon terlalu kecil.
+
+[LARANGAN KETAT]
+Tiada slaid gaya poster.
+Tiada susun atur slaid pembentangan biasa.
+Tiada cover-only slide kecuali diminta secara jelas oleh sumber.
+Tiada slaid sinematik satu babak kecuali diminta secara jelas oleh sumber.
+Tiada orientasi bercampur.
+Tiada rawatan panel yang tidak konsisten.
+Tiada maklumat rekaan.
+Tiada watak rekaan kecuali perlu sebagai visual placeholder neutral.
+Tiada dialog rekaan.
+Tiada moral, rumusan, ayat penutup atau seruan tindakan kecuali wujud dalam sumber.
+Tiada teks terlalu padat.
+Tiada visual berulang tanpa tujuan.
+Tiada watermark.
+Tiada logo luar.
+Tiada kesalahan ejaan.
+Tiada anatomi rosak.
+Tiada perubahan pada maksud sumber.
+
+[PELAKSANAAN AKHIR]
+Jana output dalam NotebookLM Studio > Slide Deck sebagai urutan komik berbilang halaman yang bersambung.
+Setiap slaid mesti kelihatan seperti satu halaman daripada siri komik yang sama.
+Ikut struktur sumber yang dimuat naik terlebih dahulu.
+Jika sumber menentukan bilangan panel atau struktur storyboard, kekalkan dengan tepat.
+Jika sumber tidak menentukan bilangan panel, gunakan tepat ${panelCount} panel komik per slaid.
+Pastikan deck akhir tepat, konsisten, mudah dibaca dan profesional secara visual.`;
+
+            coverPrompt = `Berdasarkan sumber NotebookLM dan photo references yang dilampirkan, hasilkan SATU imej cover page sahaja sebagai halaman pembuka untuk comic slide deck ini.
+
+[TUJUAN COVER PAGE]
+- Ini ialah cover hadapan sahaja, bukan halaman komik dalaman.
+- Hasilkan cover pembuka yang kuat, bersih dan menarik, sesuai untuk comic slide deck.
+- Cover mesti memperkenalkan komik secara visual tanpa menunjukkan perbualan atau urutan cerita.
+
+[KAWALAN SUMBER DAN WATAK]
+- Gunakan tajuk utama tepat seperti yang diberikan dalam sumber NotebookLM.
+- Gunakan hanya watak yang ditunjukkan dalam photo references yang dilampirkan.
+- Kekalkan identiti wajah, rupa, butiran pakaian dan keseluruhan likeness watak berdasarkan photo references.
+- Jangan tambah watak baharu melainkan benar-benar diperlukan secara jelas oleh sumber NotebookLM.
+- Gunakan photo references sebagai panduan utama untuk reka bentuk watak dan rawatan visual keseluruhan.
+
+[KANVAS]
+- Hasilkan satu cover page sahaja menggunakan orientasi yang dipilih, iaitu ${orient}.
+- Pastikan komposisi sesuai sebagai cover pembuka.
+- Letakkan tajuk utama dengan jelas dan menonjol.${isArabicVisual ? ' Gunakan teks Arab yang tepat, mudah dibaca, jajaran kanan dan arah kanan ke kiri (RTL).' : visualLanguage === 'Bahasa Melayu' ? ' Gunakan teks Bahasa Melayu yang tepat dan mudah dibaca.' : ' Gunakan teks visual yang tepat dan mudah dibaca dalam bahasa yang dipilih.'}
+- Kekalkan ruang yang mencukupi di sekeliling tajuk dan watak untuk susun atur yang bersih dan profesional.
+
+[REKA BENTUK VISUAL]
+- Padankan gaya reka bentuk dan penampilan watak seperti photo references yang dilampirkan.
+- Bina latar belakang yang sesuai dengan tajuk komik dan konteks sumber tanpa mengganggu tajuk atau watak.
+- Gunakan komposisi cover yang kuat dengan watak utama sebagai fokus visual.
+- Pastikan visual bersih, tajam, seimbang dan sesuai sebagai halaman pertama komik.
+
+[LARANGAN TEKS DAN BUBBLE]
+- JANGAN sama sekali masukkan speech bubbles.
+- JANGAN sama sekali masukkan dialogue bubbles.
+- JANGAN sama sekali masukkan thought bubbles.
+- JANGAN sama sekali masukkan narration boxes, caption boxes, chat boxes, message boxes atau conversation text.
+- JANGAN sama sekali masukkan sebarang dialog pertuturan atau petikan watak.
+- Masukkan hanya tajuk utama daripada sumber NotebookLM, dan subtitle hanya jika subtitle itu memang wujud dalam sumber dan benar-benar perlu untuk cover.
+
+[LARANGAN COVER]
+- Tiada panel komik.
+- Tiada sempadan panel atau susun atur babak bersiri.
+- Tiada susun atur halaman komik dalaman.
+- Tiada tajuk rekaan, tagline, petikan, watak tambahan, logo, watermark atau maklumat tambahan.
+- Tiada ejaan salah.
+- Tiada wajah, tangan atau anatomi yang rosak.
+
+[PELAKSANAAN]
+Hasilkan SATU cover page yang bersih menggunakan photo references yang dilampirkan untuk watak dan sumber NotebookLM hanya untuk tajuk utama yang tepat serta konteks cover yang berkaitan. Hasil akhir mesti tiada speech bubble, tiada dialogue bubble dan tiada unsur perbualan dalam apa jua bentuk.`;
+        } else {
+            mainPrompt = isInfographic ? `[ROLE]
+Act as a comic page visual director for NotebookLM Studio. Transform the supplied source into one accurate, readable and well-structured comic-style infographic page.
+
+[STUDIO MODE]
+Use: NotebookLM Studio > Infographic
+Orientation: ${orient}
+Output Type: Comic Page
+Art Style: ${style}
+Visual Language: ${visualLanguage}${directionRuleEN}
+Quality: clean, sharp visuals with readable text
+
+[PANEL SELECTION]
+User-selected comic panel count: ${panelCount}
+If the source already contains a complete storyboard, comic plan, page plan, panel sequence or clearly stated panel count, follow the source structure exactly even if it differs from this selected number.
+If the source does not state a panel structure, create exactly ${panelCount} comic panel on the page.
+
+[PRIMARY GOAL]
+Generate ONE complete comic-style infographic page only.
+The final output must look like a comic page first, not a normal infographic poster.
+It must contain clearly separated comic panels, illustrated scenes, character actions, readable captions, and speech bubbles or narration boxes where appropriate.
+
+[SOURCE FIDELITY]
+Use only the information contained in the inserted source.
+Preserve facts, names, numbers, sequence, messages, dialogue, and conclusions exactly as given in the source.
+Do not invent facts, quotations, statistics, characters, or events.
+Do not add external interpretation or extra conclusions.
+When visual details are missing, use neutral supporting visuals that do not change the source meaning.
+
+[SOURCE TYPE LOGIC]
+1. If the source contains a complete storyboard, comic plan, page plan, or panel sequence:
+   - Follow the storyboard exactly.
+   - Preserve the original panel order, scene flow, dialogue flow, and structure.
+   - Match the panel count if it is clearly stated in the source.
+   - Use the storyboard as the main layout guide.
+
+2. If the source is a normal article, essay, explanatory text, or information source without a storyboard:
+   - Convert the source into a comic-style visual summary.
+   - Keep the original order of ideas.
+   - Break the content into exactly ${panelCount} comic panel.
+   - Do not turn the page into a normal infographic with boxes or sections only.
+
+[MANDATORY COMIC FORMAT]
+- Produce ONE comic-style page only.
+- The page must have clearly separated comic panels according to the selected panel count.
+- Every panel must have a visible border.
+- Every panel must show a distinct moment, idea, or scene from the source.
+- The reading flow must be clear and natural from top to bottom.
+- The page must visually read like a comic page, not like a poster, flyer, slide, or standard infographic.
+
+[PANEL AND TEXT RULES]
+- If the source provides a panel structure, follow it exactly.
+- If the source does not provide a panel structure, use exactly ${panelCount} comic panel.
+- Use concise text inside the panels.
+- Use speech bubbles when the source contains dialogue, quoted speech, or direct verbal expression.
+- Use narration boxes for explanation, transitions, or factual context.
+- If the source is an article without direct dialogue, keep most information in narration boxes or short captions, while maintaining a comic storytelling feel.
+${languageRuleEN}
+- Do not overcrowd the page with long paragraphs.
+
+[DESIGN INSTRUCTIONS]
+- Prioritise comic panel storytelling over infographic layout.
+- Use a clear one-page hierarchy with a main title and structured comic flow.
+- Apply the ${style} style consistently across characters, props, backgrounds, and scenes.
+- Ensure characters, clothing, and visual identity remain consistent across related panels.
+- The background must match the topic and context of the source without reducing readability.
+- Keep text large enough to read clearly.
+- Maintain a balanced page layout with proper spacing.
+
+[STRICT NEGATIVE INSTRUCTIONS]
+Do not create a normal infographic poster.
+Do not use infographic cards, timelines, icon clusters, chart blocks, or section boxes as the main layout.
+Do not create continuation pages, separate slides, or a comic series.
+Do not invent information.
+Do not add external logos.
+Do not add watermark.
+Do not repeat visuals without purpose.
+Do not distort anatomy.
+Do not include spelling mistakes.
+
+[EXECUTION]
+Generate the output directly in NotebookLM Studio > Infographic as ONE comic-style infographic page with clear bordered panels.
+If the source contains a storyboard, follow it exactly.
+If the source does not contain a storyboard, create a comic layout with exactly ${panelCount} panel while preserving the original meaning and order of the source.` : `[ROLE]
+Act as a comic-page visual director and storyboard organiser for NotebookLM Studio. Transform the supplied source into an accurate, connected multi-page comic slide deck that is organised, readable and visually consistent.
+
+[OUTPUT MODE]
+Create a MULTI-PAGE COMIC SLIDE DECK in NotebookLM Studio > Slide Deck.
+The output must look like a connected comic series, not presentation slides, posters, title cards or single-scene illustrations.
+
+[CANVAS AND FORMAT]
+Use ${selectedCanvasEN} for every slide.
+Treat every slide as one comic page, episode or focused story unit.
+Keep the same comic-page treatment throughout the deck.
+Maintain consistent safe margins, panel borders, gutters, title placement, typography scale, speech bubble style and visual density.
+Do not switch to another orientation, poster layout, cinematic single-image layout or normal presentation slide layout.
+
+[PANEL SELECTION]
+User-selected comic panel count: ${panelCount} panel per slide.
+If the source provides a storyboard, scene order, panel order, panel count, page plan or slide plan, follow the source structure exactly even if it differs from this selected number.
+If the source does not state the panel count, create exactly ${panelCount} comic panel per slide.
+
+[CORE SOURCE RULE]
+Use only the information provided in the uploaded source.
+Preserve all facts, names, numbers, sequence, key messages, dialogue and conclusions from the source.
+Do not invent facts, quotations, statistics, characters, events, dialogue, moral values or extra conclusions.
+If visual details are absent, use neutral supporting illustrations that do not change the source meaning.
+If the source provides exact dialogue or quoted wording in another language, preserve that wording exactly unless the source clearly asks for translation.
+${languageRuleEN}
+
+[SLIDE AND EPISODE STRUCTURE]
+Convert the source into a continuous comic sequence across multiple slides.
+Each slide must continue naturally from the previous slide.
+Each slide should focus on one main idea, event, issue, explanation, scene or turning point from the source.
+If the source is too dense for one slide, split it into additional slides instead of overcrowding the page.
+Start the first slide with the comic content immediately.
+Do not create a cover-only slide unless the source explicitly includes one.
+
+[PANEL COUNT RULE]
+If the source provides a storyboard, scene order, panel order, panel count, page plan or slide plan, follow it exactly.
+The comic panel structure must follow the storyboard whenever it is stated in the source.
+Do not force every slide to have the same number of panels if the source has already defined the structure.
+Do not merge, remove, rearrange or replace source-defined panels.
+If the source does not state the panel count, create exactly ${panelCount} comic panel per slide.
+Never produce a slide with zero comic panels.
+
+[COMIC PANEL DESIGN]
+Each panel must show one clear visual moment, action, explanation or dialogue segment based on the source.
+Keep the panel reading order obvious and easy to follow.
+Use speech bubbles, caption boxes and small labels only when needed.
+Keep text short enough to remain readable inside the panel.
+Do not place long paragraphs inside panels.
+Use consistent gutters and balanced white space between panels.
+Make every slide visibly function as one comic page from the same series.
+
+[ART STYLE AND VISUAL LANGUAGE]
+Art Style: ${style}.
+Visual Language: ${visualLanguage}${directionRuleEN}
+Use clean, sharp visuals with readable text and tidy panel spacing.
+Apply the same art treatment consistently to all characters, props, backgrounds, speech bubbles and panel borders.
+Maintain the same character identity, attire, facial appearance, setting logic, object design and visual style throughout the deck.
+The background must suit the topic and context from the source.
+Avoid decorative elements that distract from the source content.
+
+[TEXT AND READABILITY]
+Use short, clear text in each panel.
+If the source contains long explanations, convert them into concise captions without changing the meaning.
+If the source contains dialogue, place it in clear speech bubbles.
+If the source contains process or explanation, use caption boxes, visual flow or simple labels.
+Keep text large enough to read on screen.
+Avoid overcrowded text and very small fonts.
+
+[STRICT RESTRICTIONS]
+No poster-style slide.
+No normal presentation slide layout.
+No cover-only slide unless explicitly required by the source.
+No single-scene cinematic slide unless explicitly required by the source.
+No mixed orientation.
+No inconsistent panel treatment.
+No invented information.
+No invented characters unless needed as neutral visual placeholders.
+No invented dialogue.
+No moral, summary, ending statement or call-to-action unless it appears in the source.
+No overcrowded text.
+No repeated visuals without purpose.
+No watermark.
+No external logo.
+No spelling errors.
+No distorted anatomy.
+No changes to source meaning.
+
+[FINAL EXECUTION]
+Generate the output in NotebookLM Studio > Slide Deck as a connected multi-page comic sequence.
+Every slide must look like one page from the same comic series.
+Follow the uploaded source structure first.
+If the source defines the panel count or storyboard structure, preserve it exactly.
+If the source does not define the panel count, use exactly ${panelCount} comic panel per slide.
+Ensure the final deck is accurate, consistent, readable and visually professional.`;
+
+            coverPrompt = `Based on the NotebookLM source and the attached photo references, create ONE cover page image only for the opening page of this comic slide deck.
+
+[COVER PAGE PURPOSE]
+- This is a front cover only, not an interior comic page.
+- Create a strong, clean and visually appealing opening cover suitable for this comic slide deck.
+- The cover must introduce the comic visually without showing any conversation or story sequence.
+
+[SOURCE AND CHARACTER CONTROL]
+- Use the main title exactly as provided in the NotebookLM source.
+- Use only the characters shown in the attached photo references.
+- Preserve the characters’ facial identity, appearance, clothing details and overall visual likeness based on the attached photos.
+- Do not add new characters unless they are clearly required by the NotebookLM source.
+- Use the attached photo references as the primary guide for character design and overall visual treatment.
+
+[CANVAS]
+- Create one single cover page using the selected orientation, which is ${orient}.
+- Keep the composition suitable for an opening cover.
+- Place the main title clearly and prominently.${isArabicVisual ? ' Use accurate, readable Arabic text with right-to-left (RTL) direction, right alignment and correctly connected Arabic letterforms.' : visualLanguage === 'Bahasa Melayu' ? ' Use accurate, readable Bahasa Melayu text.' : ' Use accurate, readable visual text in the selected visual language.'}
+- Keep sufficient spacing around the title and characters for a clean professional layout.
+
+[VISUAL DESIGN]
+- Match the design style and character appearance of the attached photo references.
+- Build a background that suits the comic title and source context without distracting from the title or characters.
+- Use a strong cover composition with the main characters as the visual focus.
+- Keep the visual clean, sharp, balanced and suitable as the first page of the comic.
+
+[STRICT TEXT AND BUBBLE RESTRICTIONS]
+- STRICTLY DO NOT include speech bubbles.
+- STRICTLY DO NOT include dialogue bubbles.
+- STRICTLY DO NOT include thought bubbles.
+- STRICTLY DO NOT include narration boxes, caption boxes, chat boxes, message boxes or conversation text.
+- STRICTLY DO NOT include any spoken dialogue or character quotation.
+- Include only the main title from the NotebookLM source, and a subtitle only if it already exists in the source and is necessary for the cover.
+
+[STRICT COVER RESTRICTIONS]
+- No comic panels.
+- No panel borders or sequential scene layout.
+- No interior-page comic arrangement.
+- No invented title, tagline, quotation, character, logo, watermark or additional information.
+- No spelling errors.
+- No distorted faces, hands or anatomy.
+
+[EXECUTION]
+Generate ONE clean comic cover page using the attached photo references for the characters and the NotebookLM source only for the accurate main title and relevant cover context. The final cover must contain no speech bubble, no dialogue bubble and no conversation element of any kind.`;
+        }
+
+        prompt = isInfographic ? mainPrompt : `1) ${isBM ? 'PROMPT UTAMA SLIDE DECK' : 'MAIN SLIDE DECK PROMPT'}
+${mainPrompt}
+
+2) ${isBM ? 'PROMPT KHAS COVER PAGE' : 'SPECIAL COVER PAGE PROMPT'}
+${coverPrompt}`;
+
+        if (isInfographic) {
+            renderPromptOutput(prompt.trim(), { copyText: prompt.trim() });
+        } else {
+            renderPromptOutput('', {
+                boxed: true,
+                copyText: prompt.trim(),
+                sections: [
+                    { title: isBM ? 'Prompt Utama Slide Deck' : 'Main Slide Deck Prompt', body: mainPrompt.trim() },
+                    { title: isBM ? 'Prompt Khas Cover Page' : 'Special Cover Page Prompt', body: coverPrompt.trim() }
+                ]
+            });
+        }
+    }
+
+    function copyToClipboard() {
+        const output = document.getElementById('promptOutput');
+        const text = output.dataset.copyText || output.innerText;
+        navigator.clipboard.writeText(text).then(() => alert(document.getElementById('language').value === 'Bahasa Melayu' ? "Disalin!" : "Copied!"));
+    }
+
+    function applyTheme(theme) {
+        const activeTheme = theme === 'dark' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', activeTheme);
+        localStorage.setItem('nlm2comixsTheme', activeTheme);
+
+        const isDark = activeTheme === 'dark';
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+        themeToggle.setAttribute('title', isDark ? 'Light theme' : 'Dark theme');
+        document.getElementById('themeColor').setAttribute('content', isDark ? '#07111f' : '#1d4ed8');
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    }
+
+    applyTheme(localStorage.getItem('nlm2comixsTheme') === 'dark' ? 'dark' : 'light');
+
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+    document.getElementById('footerUpdated').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch((error) => {
+                console.warn('Service worker registration failed:', error);
+            });
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "AI Video & Audio Splitter",
+  "short_name": "Media2Split",
+  "description": "Split video and audio into clean 5–20 second clips directly in your browser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0f172a",
+  "prefer_related_applications": false,
+  "categories": ["utilities", "productivity", "multimedia"],
+  "icons": [
+    {
+      "src": "img/media2split.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/media2split.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/media2split.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "AI WebtoonGen",
+  "short_name": "WebtoonGen",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#4c51bf",
+  "theme_color": "#4c51bf",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "img/comicgen.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/comicgen.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

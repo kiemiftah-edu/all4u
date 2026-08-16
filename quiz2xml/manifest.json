@@ -1,0 +1,21 @@
+{
+  "name": "Quiz to Moodle XML Converter",
+  "short_name": "Quiz2XML",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050b14",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "img/quiz2xml.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/quiz2xml.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
